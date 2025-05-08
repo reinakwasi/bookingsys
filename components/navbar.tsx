@@ -3,9 +3,11 @@
 import Link from "next/link"
 import Image from "next/image"
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Menu } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 const navItems = [
   { name: "Home", href: "/" },
@@ -18,9 +20,10 @@ const navItems = [
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname()
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-slate-900/95 backdrop-blur supports-[backdrop-filter]:bg-slate-900/60">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-gradient-to-r from-slate-800 to-slate-900 backdrop-blur supports-[backdrop-filter]:bg-slate-900/80">
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center space-x-2">
           <Image src="/logo.png" alt="Hotel 734 Logo" width={40} height={40} className="h-10 w-auto" />
@@ -31,7 +34,12 @@ export default function Navbar() {
             <Link
               key={item.name}
               href={item.href}
-              className="text-sm font-medium text-slate-300 transition-colors hover:text-white"
+              className={cn(
+                "text-sm font-medium transition-colors",
+                pathname === item.href
+                  ? "text-white font-semibold"
+                  : "text-slate-300 hover:text-white"
+              )}
             >
               {item.name}
             </Link>
@@ -60,7 +68,12 @@ export default function Navbar() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-sm font-medium text-slate-300 transition-colors hover:text-white"
+                  className={cn(
+                    "text-sm font-medium transition-colors",
+                    pathname === item.href
+                      ? "text-white font-semibold"
+                      : "text-slate-300 hover:text-white"
+                  )}
                   onClick={() => setIsOpen(false)}
                 >
                   {item.name}

@@ -8,14 +8,14 @@ const rooms = [
     id: 1,
     name: "Expensive Room",
     description: "Luxurious suite with ocean view and premium amenities",
-    price: 500,
+    price: 300,
     image: "/room1.jpg",
   },
   {
     id: 2,
     name: "Standard Room",
     description: "Comfortable room with modern amenities and city view",
-    price: 300,
+    price: 250,
     image: "/room2.jpg",
   },
   {
@@ -52,7 +52,7 @@ export default function RoomsPage() {
               <CardDescription className="text-slate-600">{room.description}</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-slate-900">${room.price}/night</p>
+              <p className="text-2xl font-bold text-slate-900">{room.price} GHS/night</p>
             </CardContent>
             <CardFooter>
               <Button asChild className="w-full">

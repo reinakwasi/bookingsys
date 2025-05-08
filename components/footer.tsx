@@ -1,6 +1,6 @@
 import Link from "next/link"
 import Image from "next/image"
-import { Facebook, Instagram, Twitter } from "lucide-react"
+import { Facebook, Instagram } from "lucide-react"
 
 export default function Footer() {
   return (
@@ -16,6 +16,24 @@ export default function Footer() {
               Experience luxury and comfort at our premium hotel and resort. We offer the best accommodations and
               services for your perfect stay.
             </p>
+            <div className="flex space-x-4 mt-4">
+              <a
+                href="https://www.facebook.com/hotel734?mibextid=ZbWKwL"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <Facebook className="h-6 w-6" />
+              </a>
+              <a
+                href="https://www.instagram.com/hotel.734?igsh=MWw2NXBxZ3R5a3V3YQ=="
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                <Instagram className="h-6 w-6" />
+              </a>
+            </div>
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-4 text-white">Quick Links</h3>
@@ -55,20 +73,6 @@ export default function Footer() {
               <p className="mt-2">Phone: +233 24 409 3821</p>
               <p>Email: info@hotel734@gmail.com</p>
             </address>
-            <div className="flex space-x-4 mt-4">
-              <Link href="#" className="text-slate-400 hover:text-white transition-colors">
-                <Facebook className="h-5 w-5" />
-                <span className="sr-only">Facebook</span>
-              </Link>
-              <Link href="#" className="text-slate-400 hover:text-white transition-colors">
-                <Twitter className="h-5 w-5" />
-                <span className="sr-only">Twitter</span>
-              </Link>
-              <Link href="#" className="text-slate-400 hover:text-white transition-colors">
-                <Instagram className="h-5 w-5" />
-                <span className="sr-only">Instagram</span>
-              </Link>
-            </div>
           </div>
         </div>
         <div className="border-t border-slate-800 mt-8 pt-8 text-center text-sm text-slate-400">

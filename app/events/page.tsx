@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { CheckCircle2 } from "lucide-react"
 import Image from "next/image"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -47,7 +48,11 @@ const eventTypes = {
     capacity: "Up to 200 guests",
     price: "Starting from 5000 GHS",
     features: ["Spacious outdoor area", "Catering services", "Sound system", "Decorations", "Event coordination"],
-    image: "/placeholder.svg?height=300&width=500",
+    images: [
+      { src: "/poolview1.jpg", alt: "Compound Event Space 1" },
+      { src: "/poolview2.jpg", alt: "Compound Event Space 2" },
+      { src: "/pool.jpg", alt: "Compound Event Space 3" },
+    ],
   },
   conference: {
     title: "Conference Events",
@@ -61,13 +66,55 @@ const eventTypes = {
       "Catering options",
       "Business services",
     ],
-    image: "/placeholder.svg?height=300&width=500",
+    images: [
+      { src: "/outline.jpg", alt: "Conference Room 1" },
+      { src: "/view.jpg", alt: "Conference Room 2" },
+      { src: "/four.jpg", alt: "Conference Room 3" },
+    ],
   },
 }
 
 export default function EventsPage() {
   const [activeTab, setActiveTab] = useState("compound")
   const [isSubmitted, setIsSubmitted] = useState(false)
+
+  // Carousel state
+  const [currentIndexes, setCurrentIndexes] = useState({ compound: 0, conference: 0 })
+
+  // Auto-rotate images
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndexes((prev) => {
+        const key = activeTab as "compound" | "conference"
+        const images = eventTypes[key].images
+        return {
+          ...prev,
+          [key]: (prev[key] + 1) % images.length,
+        }
+      })
+    }, 5000)
+    return () => clearInterval(interval)
+  }, [activeTab])
+
+  // Manual navigation
+  const handlePrev = (type: "compound" | "conference") => {
+    setCurrentIndexes((prev) => {
+      const images = eventTypes[type].images
+      return {
+        ...prev,
+        [type]: (prev[type] - 1 + images.length) % images.length,
+      }
+    })
+  }
+  const handleNext = (type: "compound" | "conference") => {
+    setCurrentIndexes((prev) => {
+      const images = eventTypes[type].images
+      return {
+        ...prev,
+        [type]: (prev[type] + 1) % images.length,
+      }
+    })
+  }
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -127,13 +174,38 @@ export default function EventsPage() {
 
         <TabsContent value="compound" className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="relative h-64 md:h-full rounded-lg overflow-hidden">
+            <div className="relative h-64 md:h-full rounded-lg overflow-hidden flex items-center justify-center bg-slate-100">
+              <button
+                className="absolute left-2 z-10 bg-white/80 hover:bg-white rounded-full p-1"
+                onClick={() => handlePrev("compound")}
+                type="button"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="h-6 w-6 text-slate-700" />
+              </button>
               <Image
-                src={eventTypes.compound.image || "/placeholder.svg"}
-                alt="Compound Event Space"
+                src={eventTypes.compound.images[currentIndexes.compound].src}
+                alt={eventTypes.compound.images[currentIndexes.compound].alt}
                 fill
                 className="object-cover"
+                priority
               />
+              <button
+                className="absolute right-2 z-10 bg-white/80 hover:bg-white rounded-full p-1"
+                onClick={() => handleNext("compound")}
+                type="button"
+                aria-label="Next image"
+              >
+                <ChevronRight className="h-6 w-6 text-slate-700" />
+              </button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1">
+                {eventTypes.compound.images.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`h-1.5 w-3 rounded-full transition-all ${idx === currentIndexes.compound ? "bg-slate-700" : "bg-slate-300"}`}
+                  />
+                ))}
+              </div>
             </div>
             <div>
               <h2 className="text-2xl font-bold">{eventTypes.compound.title}</h2>
@@ -162,13 +234,38 @@ export default function EventsPage() {
 
         <TabsContent value="conference" className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="relative h-64 md:h-full rounded-lg overflow-hidden">
+            <div className="relative h-64 md:h-full rounded-lg overflow-hidden flex items-center justify-center bg-slate-100">
+              <button
+                className="absolute left-2 z-10 bg-white/80 hover:bg-white rounded-full p-1"
+                onClick={() => handlePrev("conference")}
+                type="button"
+                aria-label="Previous image"
+              >
+                <ChevronLeft className="h-6 w-6 text-slate-700" />
+              </button>
               <Image
-                src={eventTypes.conference.image || "/placeholder.svg"}
-                alt="Conference Event Space"
+                src={eventTypes.conference.images[currentIndexes.conference].src}
+                alt={eventTypes.conference.images[currentIndexes.conference].alt}
                 fill
                 className="object-cover"
+                priority
               />
+              <button
+                className="absolute right-2 z-10 bg-white/80 hover:bg-white rounded-full p-1"
+                onClick={() => handleNext("conference")}
+                type="button"
+                aria-label="Next image"
+              >
+                <ChevronRight className="h-6 w-6 text-slate-700" />
+              </button>
+              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1">
+                {eventTypes.conference.images.map((_, idx) => (
+                  <div
+                    key={idx}
+                    className={`h-1.5 w-3 rounded-full transition-all ${idx === currentIndexes.conference ? "bg-slate-700" : "bg-slate-300"}`}
+                  />
+                ))}
+              </div>
             </div>
             <div>
               <h2 className="text-2xl font-bold">{eventTypes.conference.title}</h2>

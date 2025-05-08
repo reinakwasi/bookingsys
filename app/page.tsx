@@ -31,7 +31,7 @@ const featuredRooms = [
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col">
+    <main className="flex min-h-screen flex-col"> 
       <DynamicHeader />
       
       <section className="py-16 bg-slate-50">
@@ -100,65 +100,82 @@ export default function Home() {
             </div>
             <div className="text-center">
               <div className="bg-slate-800 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🍽️</span>
+                <span className="text-2xl">🛡️</span>
               </div>
-              <h3 className="text-xl font-semibold mb-2">Fine Dining</h3>
+              <h3 className="text-xl font-semibold mb-2">24/7 Security</h3>
               <p className="text-slate-300">
-                Savor exquisite cuisine prepared by our expert chefs.
+                Your safety is our priority with round-the-clock security and surveillance.
               </p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* Compound & Conference Facilities */}
       <section className="py-16 bg-slate-50">
         <div className="container px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4 text-slate-900">Special Offers</h2>
+            <h2 className="text-3xl font-bold text-slate-900 mb-4">Compound & Conference Facilities</h2>
             <p className="text-slate-600 max-w-2xl mx-auto">
-              Take advantage of our exclusive deals and packages for your stay.
+              Host your events in our state-of-the-art facilities, perfect for business meetings, conferences, and special occasions.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="bg-slate-900 text-white">
+            <Card className="overflow-hidden">
+              <div className="relative h-64">
+                <Image
+                  src="/view.jpg"
+                  alt="Conference Hall"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <CardHeader>
-                <CardTitle>Weekend Getaway</CardTitle>
-                <CardDescription className="text-slate-300">
-                  Enjoy a relaxing weekend with our special package
+                <CardTitle className="text-slate-900">Conference Hall</CardTitle>
+                <CardDescription className="text-slate-600">
+                  Modern conference hall equipped with advanced audio-visual technology, perfect for business meetings and corporate events.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-2 text-slate-300">
-                  <li>• 2 nights accommodation</li>
-                  <li>• Breakfast included</li>
-                  <li>• Spa access</li>
-                  <li>• 20% off on dining</li>
+                <ul className="space-y-2 text-slate-600">
+                  <li>• Capacity for up to 200 people</li>
+                  <li>• High-speed WiFi and presentation equipment</li>
+                  <li>• Professional catering services available</li>
+                  <li>• Flexible seating arrangements</li>
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full text-white border-white hover:bg-white hover:text-slate-900">
-                  Book Now
+                <Button asChild className="w-full">
+                  <Link href="/events?type=conference">Book Conference Hall</Link>
                 </Button>
               </CardFooter>
             </Card>
-            <Card className="bg-slate-900 text-white">
+            <Card className="overflow-hidden">
+              <div className="relative h-64">
+                <Image
+                  src="/poolview1.jpg"
+                  alt="Outdoor Compound"
+                  fill
+                  className="object-cover"
+                />
+              </div>
               <CardHeader>
-                <CardTitle>Extended Stay</CardTitle>
-                <CardDescription className="text-slate-300">
-                  Perfect for longer vacations
+                <CardTitle className="text-slate-900">Outdoor Compound</CardTitle>
+                <CardDescription className="text-slate-600">
+                  Spacious outdoor area perfect for weddings, social gatherings, and team-building events.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ul className="space-y-2 text-slate-300">
-                  <li>• 7 nights accommodation</li>
-                  <li>• All meals included</li>
-                  <li>• Free airport transfer</li>
-                  <li>• 30% off on activities</li>
+                <ul className="space-y-2 text-slate-600">
+                  <li>• Beautiful landscaped gardens</li>
+                  <li>• Covered pavilion for all weather events</li>
+                  <li>• Outdoor lighting and sound system</li>
+                  <li>• Dedicated event planning support</li>
                 </ul>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full text-white border-white hover:bg-white hover:text-slate-900">
-                  Book Now
+                <Button asChild className="w-full">
+                  <Link href="/events?type=compound">Book Outdoor Space</Link>
                 </Button>
               </CardFooter>
             </Card>
