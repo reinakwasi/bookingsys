@@ -1,37 +1,27 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth.tsx';
+import { useEffect } from 'react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
 }
 
-export default function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+export function ProtectedRoute({ children, requireAdmin = false }: ProtectedRouteProps) {
+  const { user, isAuthenticated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading) {
-      if (!isAuthenticated) {
-        router.push('/admin/login');
-      } else if (requireAdmin && !isAdmin) {
-        router.push('/');
-      }
+    if (!isAuthenticated) {
+      router.push('/admin/login');
+    } else if (requireAdmin && user?.role !== 'admin') {
+      router.push('/');
     }
-  }, [loading, isAuthenticated, isAdmin, requireAdmin, router]);
+  }, [isAuthenticated, user, requireAdmin, router]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || (requireAdmin && !isAdmin)) {
+  if (!isAuthenticated || (requireAdmin && user?.role !== 'admin')) {
     return null;
   }
 

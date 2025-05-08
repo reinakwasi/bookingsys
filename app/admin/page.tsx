@@ -1,495 +1,154 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { BarChart, PieChart } from "@/components/ui/chart"
-import { Search, Calendar, Users, DollarSign } from "lucide-react"
-import { bookingsAPI, roomsAPI, eventsAPI } from "@/lib/api"
-import { format } from "date-fns"
-import { toast } from 'sonner'
+import { useState } from "react";
 
-// Dummy data for room reservations
-const roomReservations = [
-  {
-    id: 1,
-    guestName: "John Smith",
-    email: "john.smith@example.com",
-    phone: "+233 123 456 789",
-    roomType: "expensive",
-    checkIn: "2023-05-15",
-    checkOut: "2023-05-20",
-    guests: 2,
-    status: "confirmed",
-  },
-  {
-    id: 2,
-    guestName: "Sarah Johnson",
-    email: "sarah.j@example.com",
-    phone: "+233 234 567 890",
-    roomType: "standard",
-    checkIn: "2023-05-18",
-    checkOut: "2023-05-22",
-    guests: 1,
-    status: "confirmed",
-  },
-  {
-    id: 3,
-    guestName: "Michael Brown",
-    email: "michael.b@example.com",
-    phone: "+233 345 678 901",
-    roomType: "regular",
-    checkIn: "2023-05-20",
-    checkOut: "2023-05-25",
-    guests: 2,
-    status: "pending",
-  },
-  {
-    id: 4,
-    guestName: "Emily Davis",
-    email: "emily.d@example.com",
-    phone: "+233 456 789 012",
-    roomType: "expensive",
-    checkIn: "2023-05-22",
-    checkOut: "2023-05-28",
-    guests: 3,
-    status: "confirmed",
-  },
-  {
-    id: 5,
-    guestName: "David Wilson",
-    email: "david.w@example.com",
-    phone: "+233 567 890 123",
-    roomType: "standard",
-    checkIn: "2023-05-25",
-    checkOut: "2023-05-30",
-    guests: 2,
-    status: "confirmed",
-  },
-  {
-    id: 6,
-    guestName: "Jennifer Lee",
-    email: "jennifer.l@example.com",
-    phone: "+233 678 901 234",
-    roomType: "regular",
-    checkIn: "2023-05-28",
-    checkOut: "2023-06-02",
-    guests: 1,
-    status: "pending",
-  },
-]
+const stats = [
+  { label: "Total Bookings", value: 42, desc: "All time" },
+  { label: "Occupancy Rate", value: "85%", desc: "Current active" },
+  { label: "Revenue", value: "GHC 12,500", desc: "Total earned" },
+  { label: "Pending Actions", value: 3, desc: "Require attention" },
+];
 
-// Dummy data for event reservations
-const eventReservations = [
-  {
-    id: 1,
-    guestName: "Corporate Solutions Ltd",
-    email: "events@corpsolutions.com",
-    phone: "+233 123 456 789",
-    eventType: "conference",
-    date: "2023-06-15",
-    guests: 75,
-    status: "confirmed",
-  },
-  {
-    id: 2,
-    guestName: "Johnson Family",
-    email: "johnson.family@example.com",
-    phone: "+233 234 567 890",
-    eventType: "compound",
-    date: "2023-06-18",
-    guests: 120,
-    status: "confirmed",
-  },
-  {
-    id: 3,
-    guestName: "Tech Innovators Inc",
-    email: "events@techinnovators.com",
-    phone: "+233 345 678 901",
-    eventType: "conference",
-    date: "2023-06-25",
-    guests: 50,
-    status: "pending",
-  },
-  {
-    id: 4,
-    guestName: "Smith Wedding",
-    email: "smith.wedding@example.com",
-    phone: "+233 456 789 012",
-    eventType: "compound",
-    date: "2023-07-02",
-    guests: 150,
-    status: "confirmed",
-  },
-  {
-    id: 5,
-    guestName: "Global Finance Summit",
-    email: "summit@globalfinance.com",
-    phone: "+233 567 890 123",
-    eventType: "conference",
-    date: "2023-07-10",
-    guests: 100,
-    status: "confirmed",
-  },
-  {
-    id: 6,
-    guestName: "Williams Anniversary",
-    email: "williams@example.com",
-    phone: "+233 678 901 234",
-    eventType: "compound",
-    date: "2023-07-15",
-    guests: 80,
-    status: "pending",
-  },
-]
+const roomAvailability = [
+  { label: "Expensive Rooms", available: 2, total: 5 },
+  { label: "Standard Rooms", available: 3, total: 5 },
+  { label: "Regular Rooms", available: 4, total: 5 },
+];
 
-// Chart data
-const roomChartData = [
-  {
-    name: "Room Reservations by Type",
-    data: [
-      { name: "Expensive", value: 2 },
-      { name: "Standard", value: 2 },
-      { name: "Regular", value: 2 },
-    ],
-  },
-]
-
-const eventChartData = [
-  {
-    name: "Event Reservations by Type",
-    data: [
-      { name: "Compound", value: 3 },
-      { name: "Conference", value: 3 },
-    ],
-  },
-]
-
-interface DashboardStats {
-  totalBookings: number;
-  pendingBookings: number;
-  totalRooms: number;
-  totalEvents: number;
-  recentBookings: any[];
-  totalRevenue: number;
-  averageBookingValue: number;
-}
+const bookings = [
+  { id: 1001, guest: "John Doe", checkIn: "2025-05-01", checkOut: "2025-05-03", type: "Expensive", status: "Confirmed", amount: "GHC 600" },
+  { id: 1002, guest: "Jane Smith", checkIn: "2025-05-02", checkOut: "2025-05-04", type: "Standard", status: "Pending", amount: "GHC 400" },
+  { id: 1003, guest: "Mike Brown", checkIn: "2025-05-03", checkOut: "2025-05-05", type: "Regular", status: "Cancelled", amount: "GHC 300" },
+  { id: 1004, guest: "Mary Green", checkIn: "2025-05-04", checkOut: "2025-05-06", type: "Expensive", status: "Confirmed", amount: "GHC 600" },
+  { id: 1005, guest: "Bob Lee", checkIn: "2025-05-05", checkOut: "2025-05-07", type: "Standard", status: "Confirmed", amount: "GHC 400" },
+];
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats>({
-    totalBookings: 0,
-    pendingBookings: 0,
-    totalRooms: 0,
-    totalEvents: 0,
-    recentBookings: [],
-    totalRevenue: 0,
-    averageBookingValue: 0,
-  });
-  const [loading, setLoading] = useState(true);
-  const [roomFilter, setRoomFilter] = useState("all")
-  const [eventFilter, setEventFilter] = useState("all")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [dateRange, setDateRange] = useState({
-    startDate: '',
-    endDate: '',
-  });
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const [bookings, rooms, events] = await Promise.all([
-        bookingsAPI.getAll(),
-        roomsAPI.getAll(),
-        eventsAPI.getAll(),
-      ]);
-
-      const pendingBookings = bookings.filter((b: any) => b.status === 'pending');
-      const confirmedBookings = bookings.filter((b: any) => b.status === 'confirmed');
-      const totalRevenue = confirmedBookings.reduce((sum: number, b: any) => sum + b.totalPrice, 0);
-      const averageBookingValue = confirmedBookings.length > 0 
-        ? totalRevenue / confirmedBookings.length 
-        : 0;
-
-      setStats({
-        totalBookings: bookings.length,
-        pendingBookings: pendingBookings.length,
-        totalRooms: rooms.length,
-        totalEvents: events.length,
-        recentBookings: bookings.slice(0, 5),
-        totalRevenue,
-        averageBookingValue,
-      });
-    } catch (error) {
-      toast.error('Failed to fetch dashboard data');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSearch = async () => {
-    try {
-      setLoading(true);
-      const filters: any = {};
-      
-      if (searchQuery) {
-        filters.guestName = searchQuery;
-      }
-      if (dateRange.startDate) {
-        filters.startDate = dateRange.startDate;
-      }
-      if (dateRange.endDate) {
-        filters.endDate = dateRange.endDate;
-      }
-
-      const bookings = await bookingsAPI.getAll(filters);
-      setStats(prev => ({ ...prev, recentBookings: bookings }));
-    } catch (error) {
-      toast.error('Failed to search bookings');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleStatusUpdate = async (bookingId: string, newStatus: string) => {
-    try {
-      await bookingsAPI.updateStatus(bookingId, newStatus);
-      toast.success('Booking status updated successfully');
-      fetchDashboardData(); // Refresh data
-    } catch (error) {
-      toast.error('Failed to update booking status');
-    }
-  };
-
-  // Filter room reservations
-  const filteredRoomReservations = roomReservations.filter((reservation) => {
-    const matchesFilter = roomFilter === "all" || reservation.roomType === roomFilter
-    const matchesSearch =
-      reservation.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reservation.email.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesFilter && matchesSearch
-  })
-
-  // Filter event reservations
-  const filteredEventReservations = eventReservations.filter((reservation) => {
-    const matchesFilter = eventFilter === "all" || reservation.eventType === eventFilter
-    const matchesSearch =
-      reservation.guestName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reservation.email.toLowerCase().includes(searchQuery.toLowerCase())
-    return matchesFilter && matchesSearch
-  })
-
-  // Format room type for display
-  const formatRoomType = (type: string) => {
-    switch (type) {
-      case "expensive":
-        return "Expensive Suite"
-      case "standard":
-        return "Standard Room"
-      case "regular":
-        return "Regular Room"
-      default:
-        return type
-    }
-  }
-
-  // Format event type for display
-  const formatEventType = (type: string) => {
-    switch (type) {
-      case "compound":
-        return "Compound Event"
-      case "conference":
-        return "Conference Event"
-      default:
-        return type
-    }
-  }
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  const [activeMenu, setActiveMenu] = useState("dashboard");
+  const [activeSubMenu, setActiveSubMenu] = useState("");
 
   return (
-    <div className="container py-12">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-muted-foreground mt-2">Manage room and event reservations for Luxury Hotel.</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Bookings</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalBookings}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.pendingBookings} pending bookings
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              Avg. ${stats.averageBookingValue.toLocaleString()} per booking
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Rooms</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalRooms}</div>
-            <p className="text-xs text-muted-foreground">
-              Available for booking
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Events</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEvents}</div>
-            <p className="text-xs text-muted-foreground">
-              Available for booking
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="mb-8">
-        <CardHeader>
-          <CardTitle>Recent Bookings</CardTitle>
-          <div className="flex flex-col sm:flex-row gap-4 mt-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by guest name..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+    <div className="flex min-h-screen bg-[#f0f2f5]">
+      {/* Sidebar */}
+      <aside className="hidden md:block w-64 bg-[#1a233b] text-white p-6 fixed h-full z-10">
+        <div className="font-serif text-2xl mb-8" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Hotel 734 Admin</div>
+        <nav className="space-y-2">
+          <SidebarItem label="Dashboard" active={activeMenu === "dashboard"} onClick={() => { setActiveMenu("dashboard"); setActiveSubMenu(""); }} />
+          <SidebarItem label="Rooms" active={activeMenu === "rooms"} onClick={() => setActiveMenu("rooms")}/>
+          {activeMenu === "rooms" && (
+            <div className="ml-4 space-y-1">
+              <SidebarSubItem label="Expensive" active={activeSubMenu === "expensive"} onClick={() => setActiveSubMenu("expensive")} />
+              <SidebarSubItem label="Standard" active={activeSubMenu === "standard"} onClick={() => setActiveSubMenu("standard")} />
+              <SidebarSubItem label="Regular" active={activeSubMenu === "regular"} onClick={() => setActiveSubMenu("regular")} />
             </div>
-            <Input
-              type="date"
-              value={dateRange.startDate}
-              onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-              className="max-w-[200px]"
-            />
-            <Input
-              type="date"
-              value={dateRange.endDate}
-              onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-              className="max-w-[200px]"
-            />
-            <Button onClick={handleSearch}>Search</Button>
+          )}
+          <SidebarItem label="Compound" active={activeMenu === "compound"} onClick={() => { setActiveMenu("compound"); setActiveSubMenu(""); }} />
+          <SidebarItem label="Conference" active={activeMenu === "conference"} onClick={() => { setActiveMenu("conference"); setActiveSubMenu(""); }} />
+          <SidebarItem label="Messages" active={activeMenu === "messages"} onClick={() => { setActiveMenu("messages"); setActiveSubMenu(""); }} />
+          <SidebarItem label="Logout" active={false} onClick={() => window.location.reload()} />
+        </nav>
+      </aside>
+      {/* Main Content */}
+      <main className="flex-1 md:ml-64 p-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
+          <h1 className="font-serif text-3xl text-[#1a233b] mb-4 sm:mb-0" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+            Dashboard Overview
+          </h1>
+          <button className="bg-[#FFD700] hover:bg-[#e6c200] text-[#1a233b] font-bold px-6 py-2 rounded-md shadow transition-all">+ New Booking</button>
+        </div>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {stats.map((s) => (
+            <div key={s.label} className="bg-white rounded-xl shadow p-6 flex flex-col items-center">
+              <h3 className="text-base text-gray-500 mb-2">{s.label}</h3>
+              <h2 className="text-2xl font-bold text-[#1a233b] mb-1">{s.value}</h2>
+              <p className="text-xs text-gray-400">{s.desc}</p>
+            </div>
+          ))}
+        </div>
+        {/* Room Availability */}
+        <div className="bg-white rounded-xl shadow p-6 mb-8">
+          <h2 className="font-bold text-xl text-[#FFD700] mb-4">Room Availability</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {roomAvailability.map((room) => {
+              const percent = (room.available / room.total) * 100;
+              return (
+                <div key={room.label} className="bg-[#f8f9fa] rounded-lg p-4 border-l-4 border-[#FFD700]">
+                  <h3 className="text-lg text-[#1a233b] mb-2">{room.label}</h3>
+                  <div className="h-2 bg-gray-200 rounded mb-2">
+                    <div className="h-2 rounded bg-[#FFD700] transition-all" style={{ width: `${percent}%` }} />
+                  </div>
+                  <p className="text-sm text-gray-600">{room.available} of {room.total} available</p>
+                </div>
+              );
+            })}
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Guest Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Dates</TableHead>
-                  <TableHead>Total Price</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {stats.recentBookings.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
-                      No bookings found.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  stats.recentBookings.map((booking) => (
-                    <TableRow key={booking._id}>
-                      <TableCell className="font-medium">
-                        {booking.guestName}
-                        <div className="text-xs text-muted-foreground">{booking.email}</div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {booking.bookingType === 'room' ? 'Room' : 'Event'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {format(new Date(booking.startDate), 'MMM dd, yyyy')} -{' '}
-                        {format(new Date(booking.endDate), 'MMM dd, yyyy')}
-                      </TableCell>
-                      <TableCell>${booking.totalPrice}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            booking.status === 'confirmed'
-                              ? 'default'
-                              : booking.status === 'pending'
-                              ? 'outline'
-                              : 'destructive'
-                          }
-                        >
-                          {booking.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          {booking.status === 'pending' && (
-                            <>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusUpdate(booking._id, 'confirmed')}
-                              >
-                                Confirm
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleStatusUpdate(booking._id, 'cancelled')}
-                              >
-                                Cancel
-                              </Button>
-                            </>
-                          )}
-                          <Button variant="outline" size="sm">
-                            View Details
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+        {/* Bookings Table */}
+        <div className="bg-white rounded-xl shadow p-6 mb-8 overflow-x-auto">
+          <h2 className="font-bold text-xl text-[#FFD700] mb-4">Recent Bookings</h2>
+          <table className="min-w-full text-sm">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="py-2 px-3 text-left">Booking ID</th>
+                <th className="py-2 px-3 text-left">Guest Name</th>
+                <th className="py-2 px-3 text-left">Check-In</th>
+                <th className="py-2 px-3 text-left">Check-Out</th>
+                <th className="py-2 px-3 text-left">Type</th>
+                <th className="py-2 px-3 text-left">Status</th>
+                <th className="py-2 px-3 text-left">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.map((b) => (
+                <tr key={b.id} className="border-b last:border-0">
+                  <td className="py-2 px-3">#{b.id}</td>
+                  <td className="py-2 px-3">{b.guest}</td>
+                  <td className="py-2 px-3">{b.checkIn}</td>
+                  <td className="py-2 px-3">{b.checkOut}</td>
+                  <td className="py-2 px-3">{b.type}</td>
+                  <td className="py-2 px-3">
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      b.status === "Confirmed"
+                        ? "bg-green-100 text-green-700"
+                        : b.status === "Pending"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : "bg-red-100 text-red-700"
+                    }`}>
+                      {b.status}
+                    </span>
+                  </td>
+                  <td className="py-2 px-3">{b.amount}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* You can add Messages Table and Modals here as needed */}
+      </main>
     </div>
-  )
+  );
 }
+
+function SidebarItem({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <div
+      className={`menu-item px-4 py-3 rounded-lg cursor-pointer transition font-semibold mb-1 ${active ? 'bg-[#FFD700] text-[#1a233b]' : 'hover:bg-[#FFD700] hover:text-[#1a233b] text-white'}`}
+      onClick={onClick}
+    >
+      {label}
+    </div>
+  );
+}
+
+function SidebarSubItem({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <div
+      className={`sub-item px-4 py-2 rounded cursor-pointer transition text-sm mb-1 ${active ? 'bg-[#FFD700] text-[#1a233b]' : 'hover:bg-[#FFD700] hover:text-[#1a233b] text-white'}`}
+      onClick={onClick}
+    >
+      {label}
+    </div>
+  );
+} 

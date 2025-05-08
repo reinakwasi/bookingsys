@@ -28,7 +28,6 @@ const featuredRooms = [
     image: "/room3.jpg",
   },
 ]
-
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col"> 

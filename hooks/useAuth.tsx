@@ -1,78 +1,60 @@
 'use client';
 
-import { useState, useEffect, createContext, useContext } from 'react';
-import { authAPI } from '@/lib/api';
-import { useRouter } from 'next/navigation';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface User {
   id: string;
   username: string;
-  email: string;
-  role: string;
+  role: 'admin' | 'user';
 }
 
 interface AuthContextType {
   user: User | null;
-  loading: boolean;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
-  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // For demo purposes, we'll use a mock admin user
   useEffect(() => {
-    checkAuth();
+    // Check if user is already logged in
+    const storedUser = localStorage.getItem('adminUser');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+      setIsAuthenticated(true);
+    }
   }, []);
 
-  const checkAuth = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const userData = await authAPI.getCurrentUser();
-        setUser(userData);
-      }
-    } catch (error) {
-      localStorage.removeItem('token');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const login = async (username: string, password: string) => {
-    try {
-      const { token, user } = await authAPI.login(username, password);
-      localStorage.setItem('token', token);
-      setUser(user);
-      router.push('/admin');
-    } catch (error) {
-      throw error;
+    // This is a mock login - in a real app, this would make an API call
+    if (username === 'admin' && password === 'admin123') {
+      const mockUser = {
+        id: '1',
+        username: 'admin',
+        role: 'admin' as const,
+      };
+      setUser(mockUser);
+      setIsAuthenticated(true);
+      localStorage.setItem('adminUser', JSON.stringify(mockUser));
+    } else {
+      throw new Error('Invalid credentials');
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
+  const logout = async () => {
     setUser(null);
-    router.push('/');
-  };
-
-  const contextValue: AuthContextType = {
-    user,
-    loading,
-    login,
-    logout,
-    isAuthenticated: !!user,
-    isAdmin: user?.role === 'admin',
+    setIsAuthenticated(false);
+    localStorage.removeItem('adminUser');
   };
 
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   );
