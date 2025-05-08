@@ -33,7 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (username: string, password: string) => {
     // This is a mock login - in a real app, this would make an API call
-    if (username === 'admin' && password === 'admin123') {
+    if (username === 'admin' && password === 'Hotel734!Secure2024') {
       const mockUser = {
         id: '1',
         username: 'admin',

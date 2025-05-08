@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 const stats = [
   { label: "Total Bookings", value: 42, desc: "All time" },
@@ -24,8 +26,20 @@ const bookings = [
 ];
 
 export default function AdminDashboard() {
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const [activeSubMenu, setActiveSubMenu] = useState("");
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/admin/login");
+    }
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <div className="flex min-h-screen bg-[#f0f2f5]">
