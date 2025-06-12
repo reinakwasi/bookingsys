@@ -23,69 +23,84 @@ export default function Navbar() {
   const pathname = usePathname()
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-800 bg-gradient-to-r from-slate-800 to-slate-900 backdrop-blur supports-[backdrop-filter]:bg-slate-900/80">
-      <div className="container flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center space-x-2">
-          <Image src="/logo.png" alt="Hotel 734 Logo" width={40} height={40} className="h-10 w-auto" />
-          <span className="text-xl font-bold text-white">Hotel 734</span>
+    <header className="fixed top-0 z-50 w-full bg-gradient-to-b from-black/80 to-transparent">
+      <div className="container flex h-20 items-center justify-between">
+        <Link href="/" className="flex items-center space-x-3 group">
+          <div className="relative h-10 w-10 transition-transform duration-300 group-hover:scale-110">
+            <Image 
+              src="/logo.png" 
+              alt="Hotel 734 Logo" 
+              fill 
+              className="object-contain" 
+              priority
+            />
+          </div>
+          <span className="text-xl font-bold text-white tracking-wide">Hotel 734</span>
         </Link>
-        <nav className="hidden md:flex md:items-center md:space-x-6">
+
+        <nav className="hidden md:flex md:items-center md:space-x-8">
           {navItems.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "text-sm font-medium transition-colors",
-                pathname === item.href
-                  ? "text-white font-semibold"
-                  : "text-slate-300 hover:text-white"
+                "relative text-sm font-medium text-white/80 hover:text-white transition-all duration-300",
+                pathname === item.href && "text-white"
               )}
             >
               {item.name}
+              {pathname === item.href && (
+                <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-amber-400 transform origin-left transition-transform duration-300" />
+              )}
             </Link>
           ))}
-          <Link href="/admin">
-            <Button variant="outline" size="sm" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
-              Admin
-            </Button>
-          </Link>
           <Link href="/booking">
-            <Button size="sm" className="bg-white text-slate-900 hover:bg-slate-100">
+            <Button 
+              size="sm" 
+              className="bg-amber-400 text-slate-900 hover:bg-amber-300 transition-all duration-300 hover:scale-105 shadow-lg shadow-amber-400/20"
+            >
               Book Now
             </Button>
           </Link>
         </nav>
+
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="outline" size="icon" className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="border-white/20 text-white/80 hover:bg-white/10 hover:text-white transition-all duration-300"
+            >
               <Menu className="h-5 w-5" />
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="bg-slate-900 border-slate-800">
-            <nav className="flex flex-col gap-4 mt-8">
+          <SheetContent 
+            side="right" 
+            className="bg-black/95 backdrop-blur-md border-white/10"
+          >
+            <nav className="flex flex-col gap-6 mt-8">
               {navItems.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "text-sm font-medium transition-colors",
-                    pathname === item.href
-                      ? "text-white font-semibold"
-                      : "text-slate-300 hover:text-white"
+                    "text-base font-medium text-white/80 hover:text-white transition-all duration-300 relative",
+                    pathname === item.href && "text-white"
                   )}
                   onClick={() => setIsOpen(false)}
                 >
                   {item.name}
+                  {pathname === item.href && (
+                    <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-amber-400" />
+                  )}
                 </Link>
               ))}
-              <Link href="/admin" onClick={() => setIsOpen(false)}>
-                <Button variant="outline" className="w-full border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white" size="sm">
-                  Admin
-                </Button>
-              </Link>
               <Link href="/booking" onClick={() => setIsOpen(false)}>
-                <Button className="w-full bg-white text-slate-900 hover:bg-slate-100" size="sm">
+                <Button 
+                  className="w-full bg-amber-400 text-slate-900 hover:bg-amber-300 transition-all duration-300 shadow-lg shadow-amber-400/20" 
+                  size="lg"
+                >
                   Book Now
                 </Button>
               </Link>
