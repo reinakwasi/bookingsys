@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Camera, CameraOff, RotateCcw } from 'lucide-react'
-import QrScanner from 'qr-scanner'
+import jsQR from 'jsqr'
 
 interface QRScannerProps {
   onScan: (result: string) => void
@@ -12,59 +12,125 @@ interface QRScannerProps {
 
 export function QRScanner({ onScan, onError }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isScanning, setIsScanning] = useState(false)
-  const [qrScanner, setQrScanner] = useState<QrScanner | null>(null)
+  const [stream, setStream] = useState<MediaStream | null>(null)
   const [error, setError] = useState<string>('')
+  const [debugInfo, setDebugInfo] = useState<string>('')
+  const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const startScanning = async () => {
     try {
       setError('')
+      setDebugInfo('Requesting camera access...')
+      console.log('Starting camera...')
       
-      if (!videoRef.current) {
-        const errorMsg = 'Video element not available'
-        setError(errorMsg)
-        onError?.(errorMsg)
-        return
+      // Check if getUserMedia is available
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Camera API not supported in this browser')
       }
-
-      // Create QR scanner instance
-      const scanner = new QrScanner(
-        videoRef.current,
-        (result) => {
-          console.log('QR Code detected:', result.data)
-          onScan(result.data)
-          stopScanning()
-        },
-        {
-          onDecodeError: (err) => {
-            // Don't log decode errors as they happen frequently while scanning
-            // console.log('QR decode error:', err)
-          },
-          highlightScanRegion: true,
-          highlightCodeOutline: true,
-          preferredCamera: 'environment' // Use back camera if available
-        }
-      )
       
-      setQrScanner(scanner)
-      await scanner.start()
-      setIsScanning(true)
+      // Request camera access
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { 
+          facingMode: 'environment', // Try to use back camera
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        }
+      })
+      
+      setDebugInfo('Camera access granted, setting up video...')
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = mediaStream
+        setStream(mediaStream)
+        setIsScanning(true)
+        
+        // Wait for video to be ready and start scanning
+        videoRef.current.onloadedmetadata = () => {
+          console.log('Video loaded, starting QR scan loop')
+          setDebugInfo(`Video ready: ${videoRef.current?.videoWidth}x${videoRef.current?.videoHeight}`)
+          startScanLoop()
+        }
+        
+        // Add error handler for video
+        videoRef.current.onerror = (e) => {
+          console.error('Video error:', e)
+          setError('Video playback failed')
+          setIsScanning(false)
+        }
+      }
       
     } catch (err) {
-      console.error('QR Scanner error:', err)
+      console.error('Camera access error:', err)
       const errorMsg = err instanceof Error ? err.message : 'Camera access denied or not available'
       setError(errorMsg)
+      setDebugInfo(`Error: ${errorMsg}`)
       onError?.(errorMsg)
+      setIsScanning(false)
     }
   }
 
   const stopScanning = () => {
-    if (qrScanner) {
-      qrScanner.stop()
-      qrScanner.destroy()
-      setQrScanner(null)
+    console.log('Stopping camera...')
+    
+    // Stop scan loop
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current)
+      scanIntervalRef.current = null
     }
+    
+    // Stop camera stream
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop())
+      setStream(null)
+    }
+    
     setIsScanning(false)
+    setError('')
+    setDebugInfo('')
+  }
+  
+  const startScanLoop = () => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current)
+    }
+    
+    scanIntervalRef.current = setInterval(() => {
+      scanForQR()
+    }, 100) // Scan every 100ms
+  }
+  
+  const scanForQR = () => {
+    const video = videoRef.current
+    const canvas = canvasRef.current
+    
+    if (!video || !canvas || !isScanning) return
+    
+    // Check if video is ready
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) return
+    
+    const context = canvas.getContext('2d')
+    if (!context) return
+    
+    // Set canvas size to match video
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    
+    // Draw video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height)
+    
+    // Get image data
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+    
+    // Try to decode QR code
+    const code = jsQR(imageData.data, imageData.width, imageData.height)
+    
+    if (code) {
+      console.log('QR Code detected:', code.data)
+      onScan(code.data)
+      stopScanning()
+    }
   }
 
 
@@ -83,7 +149,16 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           playsInline
           muted
           className="w-full h-64 object-cover"
-          style={{ display: isScanning ? 'block' : 'none' }}
+          style={{ 
+            display: isScanning ? 'block' : 'none',
+            backgroundColor: '#000'
+          }}
+        />
+        
+        {/* Hidden canvas for QR processing */}
+        <canvas
+          ref={canvasRef}
+          className="hidden"
         />
         
         {!isScanning && (
@@ -113,6 +188,12 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       {error && (
         <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
           {error}
+        </div>
+      )}
+      
+      {debugInfo && (
+        <div className="text-blue-600 text-sm bg-blue-50 p-3 rounded-lg">
+          Debug: {debugInfo}
         </div>
       )}
 
