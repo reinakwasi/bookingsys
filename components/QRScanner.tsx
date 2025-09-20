@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Camera, CameraOff, RotateCcw, Zap } from 'lucide-react'
-import jsQR from 'jsqr'
+import QrScanner from 'qr-scanner'
 
 interface QRScannerProps {
   onScan: (result: string) => void
@@ -12,130 +12,76 @@ interface QRScannerProps {
 
 export function QRScanner({ onScan, onError }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
-  const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isScanning, setIsScanning] = useState(false)
-  const [stream, setStream] = useState<MediaStream | null>(null)
   const [error, setError] = useState<string>('')
-  const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const [debugInfo, setDebugInfo] = useState<string>('')
+  const qrScannerRef = useRef<QrScanner | null>(null)
 
   const startScanning = async () => {
     try {
       setError('')
-      console.log('📹 Starting camera for QR scanning...')
+      setDebugInfo('🔄 Initializing QR scanner...')
+      console.log('🚀 Starting QR scanner with qr-scanner library')
       
-      // Try to get camera with back camera preference
-      let mediaStream
-      try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { 
-            facingMode: 'environment', // Back camera
-            width: { ideal: 1280, min: 640 },
-            height: { ideal: 720, min: 480 }
-          }
-        })
-      } catch (backCameraError) {
-        console.log('Back camera failed, trying front camera')
-        mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: { 
-            width: { ideal: 1280, min: 640 },
-            height: { ideal: 720, min: 480 }
-          }
-        })
+      if (!videoRef.current) {
+        throw new Error('Video element not found')
       }
       
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-        setStream(mediaStream)
-        setIsScanning(true)
-        
-        // Start scanning when video is ready
-        videoRef.current.onloadedmetadata = () => {
-          console.log('✅ Camera ready, starting QR scan loop')
-          console.log('Video dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
-          startScanLoop()
+      // Create QR scanner instance
+      const qrScanner = new QrScanner(
+        videoRef.current,
+        (result) => {
+          console.log('🎉 QR Code detected:', result.data)
+          setDebugInfo(`✅ QR detected: ${result.data}`)
+          
+          // Validate QR code content
+          if (result.data && result.data.trim()) {
+            const qrData = result.data.trim()
+            console.log('📝 Processing QR data:', qrData)
+            onScan(qrData)
+            stopScanning()
+          }
+        },
+        {
+          returnDetailedScanResult: true,
+          highlightScanRegion: true,
+          highlightCodeOutline: true,
+          preferredCamera: 'environment', // Back camera
+          maxScansPerSecond: 5,
         }
-        
-        // Handle video errors
-        videoRef.current.onerror = (e) => {
-          console.error('Video error:', e)
-          setError('Video playback failed')
-          setIsScanning(false)
-        }
-      }
+      )
+      
+      qrScannerRef.current = qrScanner
+      
+      // Start the scanner
+      await qrScanner.start()
+      setIsScanning(true)
+      setDebugInfo('📹 Camera active - Point at QR code')
+      console.log('✅ QR scanner started successfully')
       
     } catch (err) {
-      console.error('Camera error:', err)
-      const errorMsg = 'Camera access denied. Please allow camera access and try again.'
+      console.error('❌ QR scanner error:', err)
+      const errorMsg = err instanceof Error ? err.message : 'Failed to start QR scanner'
       setError(errorMsg)
+      setDebugInfo(`❌ Error: ${errorMsg}`)
       onError?.(errorMsg)
     }
   }
 
   const stopScanning = () => {
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current)
-      scanIntervalRef.current = null
-    }
+    console.log('🛑 Stopping QR scanner')
     
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop())
-      setStream(null)
+    if (qrScannerRef.current) {
+      qrScannerRef.current.stop()
+      qrScannerRef.current.destroy()
+      qrScannerRef.current = null
     }
     
     setIsScanning(false)
     setError('')
+    setDebugInfo('')
   }
   
-  const scanForQR = () => {
-    const video = videoRef.current
-    const canvas = canvasRef.current
-    
-    if (!video || !canvas || !isScanning) return
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) return
-    
-    const context = canvas.getContext('2d')
-    if (!context) return
-    
-    try {
-      // Set canvas size and draw video frame
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
-      context.drawImage(video, 0, 0, canvas.width, canvas.height)
-      
-      // Get image data and try to decode QR
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
-      
-      // Try to decode QR code with jsQR
-      const code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'attemptBoth'
-      })
-      
-      if (code && code.data && code.data.trim()) {
-        const qrData = code.data.trim()
-        console.log('🎉 QR Code detected:', qrData)
-        
-        // Validate that it looks like a ticket number or contains ticket info
-        if (qrData.includes('TKT-') || qrData.length > 5) {
-          console.log('✅ Valid ticket QR code detected')
-          onScan(qrData)
-          stopScanning()
-        } else {
-          console.log('⚠️ QR code detected but doesn\'t look like a ticket:', qrData)
-        }
-      }
-    } catch (error) {
-      console.error('QR scan error:', error)
-    }
-  }
-  
-  const startScanLoop = () => {
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current)
-    }
-    
-    console.log('🔍 Starting QR scan loop...')
-    scanIntervalRef.current = setInterval(scanForQR, 150) // Scan every 150ms for better performance
-  }
 
 
   useEffect(() => {
@@ -177,11 +123,6 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           }}
         />
         
-        {/* Hidden canvas for QR processing */}
-        <canvas
-          ref={canvasRef}
-          className="hidden"
-        />
         
         {!isScanning && (
           <div className="w-full h-80 bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center">
@@ -227,11 +168,18 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
         </div>
       )}
       
+      {debugInfo && (
+        <div className="text-emerald-700 text-sm bg-emerald-50 p-3 rounded-lg border border-emerald-200 flex items-center gap-2">
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+          <span className="font-medium">Status:</span> {debugInfo}
+        </div>
+      )}
+      
       {isScanning && (
         <div className="text-center">
           <div className="inline-flex items-center gap-2 text-emerald-600 text-sm font-medium">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
-            Scanning for QR codes...
+            QR Scanner Active - Point camera at QR code
           </div>
         </div>
       )}
