@@ -28,24 +28,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in
+    // Check if user is already logged in with session validation
     console.log('useAuth: Checking stored user...');
     const storedUser = localStorage.getItem('adminUser');
-    console.log('useAuth: Stored user:', storedUser);
+    const sessionTimestamp = localStorage.getItem('adminSessionTimestamp');
+    const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
     
-    if (storedUser) {
-      try {
-        const parsedUser = JSON.parse(storedUser);
-        console.log('useAuth: Parsed user:', parsedUser);
-        setUser(parsedUser);
-        setIsAuthenticated(true);
-        console.log('useAuth: Set authenticated to true');
-      } catch (error) {
-        console.error('Error parsing stored user:', error);
+    console.log('useAuth: Stored user:', storedUser);
+    console.log('useAuth: Session timestamp:', sessionTimestamp);
+    
+    if (storedUser && sessionTimestamp) {
+      const sessionAge = Date.now() - parseInt(sessionTimestamp);
+      console.log('useAuth: Session age (hours):', sessionAge / (1000 * 60 * 60));
+      
+      if (sessionAge < SESSION_TIMEOUT) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          console.log('useAuth: Valid session, parsed user:', parsedUser);
+          setUser(parsedUser);
+          setIsAuthenticated(true);
+          console.log('useAuth: Set authenticated to true');
+        } catch (error) {
+          console.error('Error parsing stored user:', error);
+          localStorage.removeItem('adminUser');
+          localStorage.removeItem('adminSessionTimestamp');
+        }
+      } else {
+        console.log('useAuth: Session expired, clearing storage');
         localStorage.removeItem('adminUser');
+        localStorage.removeItem('adminSessionTimestamp');
       }
     } else {
-      console.log('useAuth: No stored user found');
+      console.log('useAuth: No valid session found');
     }
     setLoading(false);
     console.log('useAuth: Loading set to false');
@@ -72,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(authUser);
         setIsAuthenticated(true);
         localStorage.setItem('adminUser', JSON.stringify(authUser));
+        localStorage.setItem('adminSessionTimestamp', Date.now().toString());
       }
     } finally {
       setLoading(false);
@@ -90,6 +105,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setIsAuthenticated(false);
     localStorage.removeItem('adminUser');
+    localStorage.removeItem('adminSessionTimestamp');
   };
 
   return (

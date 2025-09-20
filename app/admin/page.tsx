@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { eventsAPI, bookingsAPI, ticketsAPI, ticketPurchasesAPI } from "@/lib/api";
 import { messagesAPI } from "@/lib/messagesAPI";
-import { Plus, Edit, Trash2, Calendar, Users, DollarSign, CheckCircle, Clock, XCircle, QrCode, Ticket, Scan, Camera, CameraOff } from "lucide-react";
+import { Plus, Edit, Trash2, Calendar, Users, DollarSign, CheckCircle, Clock, XCircle, QrCode, Ticket, Scan, Camera, CameraOff, Menu, X } from "lucide-react";
 import { QRScanner } from "@/components/QRScanner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -78,6 +78,7 @@ export default function AdminDashboard() {
   const [isUpdatingTicket, setIsUpdatingTicket] = useState(false);
   const [showDeleteTicketDialog, setShowDeleteTicketDialog] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState<any>(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     console.log('Auth check - isAuthenticated:', isAuthenticated);
@@ -672,36 +673,57 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-screen bg-[#f0f2f5]">
+      {/* Mobile Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 bg-[#1a233b] text-white p-4 z-50 flex items-center justify-between">
+        <div className="font-serif text-lg" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Hotel 734 Admin</div>
+        <button 
+          onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+          className="p-2 hover:bg-[#2a3447] rounded-md transition-colors"
+        >
+          {isMobileSidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+      </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {isMobileSidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40" 
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="hidden lg:block w-56 xl:w-64 bg-[#1a233b] text-white p-4 lg:p-6 fixed h-full z-10">
-        <div className="font-serif text-xl lg:text-2xl mb-6 lg:mb-8" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Hotel 734 Admin</div>
+      <aside className={`${
+        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0 fixed lg:static w-64 bg-[#1a233b] text-white p-4 lg:p-6 h-full z-50 lg:z-10 transition-transform duration-300 ease-in-out overflow-y-auto`}>
+        <div className="font-serif text-xl lg:text-2xl mb-6 lg:mb-8 mt-12 lg:mt-0" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Hotel 734 Admin</div>
         <nav className="space-y-2">
-          <SidebarItem label="Dashboard" active={activeMenu === "dashboard"} onClick={() => { setActiveMenu("dashboard"); setActiveSubMenu(""); }} />
+          <SidebarItem label="Dashboard" active={activeMenu === "dashboard"} onClick={() => { setActiveMenu("dashboard"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           <SidebarItem label="Rooms" active={activeMenu === "rooms"} onClick={() => setActiveMenu("rooms")}/>
           {activeMenu === "rooms" && (
             <div className="ml-4 space-y-1">
-              <SidebarSubItem label="Royal Suite" active={activeSubMenu === "royal_suite"} onClick={() => setActiveSubMenu("royal_suite")} />
-              <SidebarSubItem label="Superior Room" active={activeSubMenu === "superior_room"} onClick={() => setActiveSubMenu("superior_room")} />
-              <SidebarSubItem label="Classic Room" active={activeSubMenu === "classic_room"} onClick={() => setActiveSubMenu("classic_room")} />
+              <SidebarSubItem label="Royal Suite" active={activeSubMenu === "royal_suite"} onClick={() => { setActiveSubMenu("royal_suite"); setIsMobileSidebarOpen(false); }} />
+              <SidebarSubItem label="Superior Room" active={activeSubMenu === "superior_room"} onClick={() => { setActiveSubMenu("superior_room"); setIsMobileSidebarOpen(false); }} />
+              <SidebarSubItem label="Classic Room" active={activeSubMenu === "classic_room"} onClick={() => { setActiveSubMenu("classic_room"); setIsMobileSidebarOpen(false); }} />
             </div>
           )}
-          <SidebarItem label="Events" active={activeMenu === "events"} onClick={() => { setActiveMenu("events"); setActiveSubMenu(""); }} />
+          <SidebarItem label="Events" active={activeMenu === "events"} onClick={() => { setActiveMenu("events"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           {activeMenu === "events" && (
             <div className="ml-4 space-y-1">
-              <SidebarSubItem label="Conference" active={activeSubMenu === "conference"} onClick={() => setActiveSubMenu("conference")} />
-              <SidebarSubItem label="Compound" active={activeSubMenu === "compound"} onClick={() => setActiveSubMenu("compound")} />
+              <SidebarSubItem label="Conference" active={activeSubMenu === "conference"} onClick={() => { setActiveSubMenu("conference"); setIsMobileSidebarOpen(false); }} />
+              <SidebarSubItem label="Compound" active={activeSubMenu === "compound"} onClick={() => { setActiveSubMenu("compound"); setIsMobileSidebarOpen(false); }} />
             </div>
           )}
-          <SidebarItem label="Tickets" active={activeMenu === "tickets"} onClick={() => { setActiveMenu("tickets"); setActiveSubMenu(""); }} />
-          <SidebarItem label="Ticket Validation" active={activeMenu === "ticket-validation"} onClick={() => { setActiveMenu("ticket-validation"); setActiveSubMenu(""); }} />
-          <SidebarItem label="Messages" active={activeMenu === "messages"} onClick={() => { setActiveMenu("messages"); setActiveSubMenu(""); }} />
-          <SidebarItem label="Trash" active={activeMenu === "trash"} onClick={() => { setActiveMenu("trash"); setActiveSubMenu(""); }} />
-          <SidebarItem label="Security" active={activeMenu === "security"} onClick={() => { setActiveMenu("security"); setActiveSubMenu(""); }} />
+          <SidebarItem label="Tickets" active={activeMenu === "tickets"} onClick={() => { setActiveMenu("tickets"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
+          <SidebarItem label="Ticket Validation" active={activeMenu === "ticket-validation"} onClick={() => { setActiveMenu("ticket-validation"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
+          <SidebarItem label="Messages" active={activeMenu === "messages"} onClick={() => { setActiveMenu("messages"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
+          <SidebarItem label="Trash" active={activeMenu === "trash"} onClick={() => { setActiveMenu("trash"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
+          <SidebarItem label="Security" active={activeMenu === "security"} onClick={() => { setActiveMenu("security"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           <SidebarItem label="Logout" active={false} onClick={() => window.location.reload()} />
         </nav>
       </aside>
       {/* Main Content */}
-      <main className="flex-1 lg:ml-56 xl:ml-64 p-4 sm:p-6">
+      <main className="flex-1 lg:ml-64 p-4 sm:p-6 pt-20 lg:pt-6">
         {/* Header */}
         {activeMenu === 'dashboard' && (
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
@@ -751,44 +773,51 @@ export default function AdminDashboard() {
               </div>
             </div>
             {/* Bookings Table */}
-            <div className="bg-white rounded-xl shadow p-6 mb-8 overflow-x-auto">
-              <h2 className="font-bold text-xl text-[#FFD700] mb-4">Recent Bookings</h2>
-              <table className="min-w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="py-2 px-3 text-left">Booking ID</th>
-                    <th className="py-2 px-3 text-left">Guest Name</th>
-                    <th className="py-2 px-3 text-left">Check-In</th>
-                    <th className="py-2 px-3 text-left">Check-Out</th>
-                    <th className="py-2 px-3 text-left">Type</th>
-                    <th className="py-2 px-3 text-left">Status</th>
-                    <th className="py-2 px-3 text-left">Amount</th>
-                    <th className="py-2 px-3 text-left">Actions</th>
-                  </tr>
-                </thead>
+            <div className="bg-white rounded-xl shadow p-4 sm:p-6 mb-8 overflow-x-auto">
+              <h2 className="font-bold text-lg sm:text-xl text-[#FFD700] mb-4">Recent Bookings</h2>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-xs sm:text-sm">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="py-2 px-2 sm:px-3 text-left text-xs sm:text-sm">ID</th>
+                      <th className="py-2 px-2 sm:px-3 text-left text-xs sm:text-sm">Guest</th>
+                      <th className="py-2 px-2 sm:px-3 text-left text-xs sm:text-sm hidden sm:table-cell">Check-In</th>
+                      <th className="py-2 px-2 sm:px-3 text-left text-xs sm:text-sm hidden sm:table-cell">Check-Out</th>
+                      <th className="py-2 px-2 sm:px-3 text-left text-xs sm:text-sm">Type</th>
+                      <th className="py-2 px-2 sm:px-3 text-left text-xs sm:text-sm">Status</th>
+                      <th className="py-2 px-2 sm:px-3 text-left text-xs sm:text-sm">Amount</th>
+                      <th className="py-2 px-2 sm:px-3 text-left text-xs sm:text-sm">Actions</th>
+                    </tr>
+                  </thead>
                 <tbody>
                   {bookings.slice(0, 10).map((booking) => (
                     <tr key={booking.id} className="border-b last:border-0">
-                      <td className="py-2 px-3">#{booking.id.slice(0, 8)}</td>
-                      <td className="py-2 px-3">{booking.guest_name || booking.guestName}</td>
-                      <td className="py-2 px-3">{new Date(booking.start_date || booking.startDate).toLocaleDateString()}</td>
-                      <td className="py-2 px-3">{new Date(booking.end_date || booking.endDate).toLocaleDateString()}</td>
-                      <td className="py-2 px-3">
-                        {booking.booking_type === 'room' || booking.bookingType === 'room' 
-                          ? (() => {
-                              const roomType = booking.item_id || booking.itemId || 'Room';
-                              return roomType === 'royal_suite' ? 'Royal Suite' : 
-                                     roomType === 'superior_room' ? 'Superior Room' : 
-                                     roomType === 'classic_room' ? 'Classic Room' : 
-                                     roomType === 'expensive' ? 'Royal Suite' : 
-                                     roomType === 'standard' ? 'Superior Room' : 
-                                     roomType === 'regular' ? 'Classic Room' : 
-                                     `${roomType.charAt(0).toUpperCase() + roomType.slice(1)} Room`;
-                            })()
-                          : (booking.item_id || booking.itemId || 'Event').charAt(0).toUpperCase() + (booking.item_id || booking.itemId || 'Event').slice(1)}
+                      <td className="py-2 px-2 sm:px-3 text-xs sm:text-sm">#{booking.id.slice(0, 6)}</td>
+                      <td className="py-2 px-2 sm:px-3 text-xs sm:text-sm">
+                        <div className="max-w-[100px] sm:max-w-none truncate">
+                          {booking.guest_name || booking.guestName}
+                        </div>
                       </td>
-                      <td className="py-2 px-3">
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      <td className="py-2 px-2 sm:px-3 text-xs sm:text-sm hidden sm:table-cell">{new Date(booking.start_date || booking.startDate).toLocaleDateString()}</td>
+                      <td className="py-2 px-2 sm:px-3 text-xs sm:text-sm hidden sm:table-cell">{new Date(booking.end_date || booking.endDate).toLocaleDateString()}</td>
+                      <td className="py-2 px-2 sm:px-3 text-xs sm:text-sm">
+                        <div className="max-w-[80px] sm:max-w-none truncate">
+                          {booking.booking_type === 'room' || booking.bookingType === 'room' 
+                            ? (() => {
+                                const roomType = booking.item_id || booking.itemId || 'Room';
+                                return roomType === 'royal_suite' ? 'Royal' : 
+                                       roomType === 'superior_room' ? 'Superior' : 
+                                       roomType === 'classic_room' ? 'Classic' : 
+                                       roomType === 'expensive' ? 'Royal' : 
+                                       roomType === 'standard' ? 'Superior' : 
+                                       roomType === 'regular' ? 'Classic' : 
+                                       `${roomType.charAt(0).toUpperCase() + roomType.slice(1)}`;
+                              })()
+                            : (booking.item_id || booking.itemId || 'Event').charAt(0).toUpperCase() + (booking.item_id || booking.itemId || 'Event').slice(1)}
+                        </div>
+                      </td>
+                      <td className="py-2 px-2 sm:px-3 text-xs sm:text-sm">
+                        <span className={`px-1 sm:px-2 py-1 rounded text-xs font-semibold ${
                           booking.status === "confirmed"
                             ? "bg-green-100 text-green-700"
                             : booking.status === "pending"
@@ -798,26 +827,26 @@ export default function AdminDashboard() {
                           {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
                         </span>
                       </td>
-                      <td className="py-2 px-3">GHC {booking.total_price || booking.totalPrice}</td>
-                      <td className="py-2 px-3">
-                        <div className="flex gap-2">
+                      <td className="py-2 px-2 sm:px-3 text-xs sm:text-sm font-semibold">GHC {booking.total_price || booking.totalPrice}</td>
+                      <td className="py-2 px-2 sm:px-3">
+                        <div className="flex gap-1 sm:gap-2">
                           {(booking.status !== 'completed' && booking.status !== 'cancelled') && (
                             <Button
                               size="sm"
                               variant="outline"
-                              className="bg-blue-500 text-white hover:bg-blue-600"
+                              className="bg-blue-500 text-white hover:bg-blue-600 h-7 w-7 sm:h-8 sm:w-8 p-0"
                               onClick={() => handleUpdateStatus(booking)}
                             >
-                              <CheckCircle className="h-4 w-4" />
+                              <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4" />
                             </Button>
                           )}
                           <Button
                             size="sm"
                             variant="outline"
-                            className="bg-red-500 text-white hover:bg-red-600"
+                            className="bg-red-500 text-white hover:bg-red-600 h-7 w-7 sm:h-8 sm:w-8 p-0"
                             onClick={() => handleDeleteBooking(booking.id)}
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                           </Button>
                         </div>
                       </td>
@@ -830,8 +859,9 @@ export default function AdminDashboard() {
                       </td>
                     </tr>
                   )}
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </>
         )}

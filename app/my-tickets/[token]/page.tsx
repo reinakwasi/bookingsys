@@ -311,22 +311,36 @@ export default function MyTicketsPage() {
   }
 
   const shareTicket = async (individualTicket: IndividualTicket) => {
-    const shareUrl = `${window.location.origin}/ticket/${individualTicket.id}`
+    const shareText = `🎫 Hotel 734 Event Ticket\n\n` +
+      `Event: ${purchase?.ticket.name}\n` +
+      `Date: ${new Date(purchase?.ticket.event_date || '').toLocaleDateString()}\n` +
+      `Time: ${purchase?.ticket.event_time}\n` +
+      `Venue: ${purchase?.ticket.venue}\n` +
+      `Ticket #: ${individualTicket.ticket_number}\n\n` +
+      `Present this ticket number or QR code at the venue entrance.`
     
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `${purchase?.ticket.name} - Ticket`,
-          text: `Here's your ticket for ${purchase?.ticket.name}`,
-          url: shareUrl
+          title: `${purchase?.ticket.name} - Hotel 734 Ticket`,
+          text: shareText
         })
+        toast.success('Ticket shared successfully!')
       } catch (err) {
         console.log('Error sharing:', err)
+        // Fallback to clipboard
+        await navigator.clipboard.writeText(shareText)
+        toast.success('Ticket details copied to clipboard!')
       }
     } else {
       // Fallback: copy to clipboard
-      await navigator.clipboard.writeText(shareUrl)
-      toast.success('Ticket link copied to clipboard!')
+      try {
+        await navigator.clipboard.writeText(shareText)
+        toast.success('Ticket details copied to clipboard!')
+      } catch (err) {
+        console.error('Failed to copy to clipboard:', err)
+        toast.error('Failed to copy ticket details')
+      }
     }
   }
 
@@ -360,82 +374,82 @@ export default function MyTicketsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-600 rounded-full mb-4">
-            <Ticket className="h-8 w-8 text-white" />
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="inline-flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-amber-600 rounded-full mb-4">
+            <Ticket className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
           </div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Your Event Tickets</h1>
-          <p className="text-gray-600 text-lg">Hotel 734 • {purchase.ticket.name}</p>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Your Event Tickets</h1>
+          <p className="text-gray-600 text-base sm:text-lg">Hotel 734 • {purchase.ticket.name}</p>
         </div>
 
         {/* Event Summary Card */}
-        <Card className="mb-8 bg-white/90 backdrop-blur-sm border-0 shadow-2xl overflow-hidden">
-          <div className="bg-gradient-to-r from-amber-500 to-yellow-500 p-6 text-slate-900">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold mb-2">{purchase.ticket.name}</h2>
-                <div className="flex items-center gap-4 text-slate-700">
+        <Card className="mb-6 sm:mb-8 bg-white/90 backdrop-blur-sm border-0 shadow-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-amber-500 to-yellow-500 p-4 sm:p-6 text-slate-900">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex-1">
+                <h2 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3">{purchase.ticket.name}</h2>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-slate-700">
                   <div className="flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
-                    <span>{new Date(purchase.ticket.event_date).toLocaleDateString()}</span>
+                    <span className="text-sm sm:text-base">{new Date(purchase.ticket.event_date).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
-                    <span>{purchase.ticket.event_time}</span>
+                    <span className="text-sm sm:text-base">{purchase.ticket.event_time}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <MapPin className="h-4 w-4" />
-                    <span>{purchase.ticket.venue}</span>
+                    <span className="text-sm sm:text-base">{purchase.ticket.venue}</span>
                   </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-3xl font-bold">GHC {purchase.total_amount}</div>
-                <div className="text-emerald-100">{purchase.quantity} ticket{purchase.quantity > 1 ? 's' : ''}</div>
+              <div className="text-left sm:text-right">
+                <div className="text-2xl sm:text-3xl font-bold">GHC {purchase.total_amount}</div>
+                <div className="text-slate-700 text-sm sm:text-base">{purchase.quantity} ticket{purchase.quantity > 1 ? 's' : ''}</div>
               </div>
             </div>
           </div>
-          <CardContent className="p-6">
-            <div className="grid md:grid-cols-2 gap-6">
+          <CardContent className="p-4 sm:p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 {purchase.ticket.image_url && (
                   <img 
                     src={purchase.ticket.image_url} 
                     alt={purchase.ticket.name}
-                    className="w-full h-48 object-cover rounded-xl mb-4 shadow-lg"
+                    className="w-full h-40 sm:h-48 object-cover rounded-xl mb-4 shadow-lg"
                   />
                 )}
-                <p className="text-gray-700 leading-relaxed">{purchase.ticket.description}</p>
+                <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{purchase.ticket.description}</p>
               </div>
               <div className="space-y-4">
-                <div className="bg-gray-50 rounded-xl p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">Purchase Information</h3>
-                  <div className="space-y-2 text-sm">
+                <div className="bg-gray-50 rounded-xl p-3 sm:p-4">
+                  <h3 className="font-semibold text-gray-900 mb-3 text-sm sm:text-base">Purchase Information</h3>
+                  <div className="space-y-2 text-xs sm:text-sm">
                     <div className="flex items-center gap-2">
-                      <User className="h-4 w-4 text-emerald-600" />
-                      <span className="font-medium">{purchase.customer_name}</span>
+                      <User className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                      <span className="font-medium break-words">{purchase.customer_name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-emerald-600" />
-                      <span>{purchase.customer_email}</span>
+                      <Mail className="h-4 w-4 text-emerald-600 flex-shrink-0" />
+                      <span className="break-all">{purchase.customer_email}</span>
                     </div>
                     {purchase.customer_phone && (
                       <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-emerald-600" />
+                        <Phone className="h-4 w-4 text-emerald-600 flex-shrink-0" />
                         <span>{purchase.customer_phone}</span>
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Purchase Date:</span>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Purchase Date:</span>
                   <span className="font-medium">{new Date(purchase.purchase_date).toLocaleDateString()}</span>
                 </div>
                 <Badge 
                   variant={purchase.payment_status === 'completed' ? 'default' : 'secondary'}
-                  className="w-full justify-center py-2"
+                  className="w-full justify-center py-2 text-xs sm:text-sm"
                 >
                   Payment {purchase.payment_status}
                 </Badge>
@@ -445,43 +459,43 @@ export default function MyTicketsPage() {
         </Card>
 
         {/* Individual Tickets */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Ticket className="h-6 w-6 text-emerald-600" />
+        <div className="space-y-4 sm:space-y-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Ticket className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
             Your Individual Tickets
           </h2>
-          <div className="grid gap-6">
+          <div className="grid gap-4 sm:gap-6">
             {purchase.individual_tickets?.map((individualTicket, index) => (
               <Card key={individualTicket.id} className="bg-white/90 backdrop-blur-sm border-0 shadow-xl overflow-hidden hover:shadow-2xl transition-all duration-300">
                 <CardContent className="p-0">
-                  <div className="flex">
+                  <div className="flex flex-col lg:flex-row">
                     {/* Left Section - Ticket Details */}
-                    <div className="flex-1 p-6">
+                    <div className="flex-1 p-4 sm:p-6">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-bold text-gray-900">Ticket #{index + 1}</h3>
+                        <h3 className="text-lg sm:text-xl font-bold text-gray-900">Ticket #{index + 1}</h3>
                         <Badge 
                           variant={individualTicket.status === 'unused' ? 'default' : 
                                   individualTicket.status === 'used' ? 'secondary' : 'destructive'}
-                          className="px-3 py-1"
+                          className="px-2 sm:px-3 py-1 text-xs sm:text-sm"
                         >
                           {individualTicket.status.toUpperCase()}
                         </Badge>
                       </div>
                       
-                      <div className="space-y-3 mb-6">
+                      <div className="space-y-3 mb-4 sm:mb-6">
                         <div className="bg-emerald-50 rounded-lg p-3">
-                          <div className="text-sm text-emerald-700 font-medium">Ticket Number</div>
-                          <div className="text-lg font-bold text-emerald-900">{individualTicket.ticket_number}</div>
+                          <div className="text-xs sm:text-sm text-emerald-700 font-medium">Ticket Number</div>
+                          <div className="text-base sm:text-lg font-bold text-emerald-900 break-all">{individualTicket.ticket_number}</div>
                         </div>
                         
                         <div className="grid grid-cols-1 gap-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <User className="h-4 w-4 text-gray-500" />
-                            <span className="font-medium">{individualTicket.holder_name}</span>
+                          <div className="flex items-center gap-2 text-xs sm:text-sm">
+                            <User className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                            <span className="font-medium break-words">{individualTicket.holder_name}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Mail className="h-4 w-4 text-gray-500" />
-                            <span>{individualTicket.holder_email}</span>
+                          <div className="flex items-center gap-2 text-xs sm:text-sm">
+                            <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                            <span className="break-all">{individualTicket.holder_email}</span>
                           </div>
                         </div>
                         
@@ -493,10 +507,10 @@ export default function MyTicketsPage() {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex gap-3">
+                      <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                         <Button 
                           onClick={() => downloadTicket(individualTicket)}
-                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 shadow-lg"
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 shadow-lg text-sm sm:text-base h-10 sm:h-11"
                         >
                           <Download className="h-4 w-4 mr-2" />
                           Download Ticket
@@ -504,7 +518,7 @@ export default function MyTicketsPage() {
                         <Button 
                           onClick={() => shareTicket(individualTicket)}
                           variant="outline"
-                          className="flex-1 border-emerald-200 hover:bg-emerald-50"
+                          className="flex-1 border-emerald-200 hover:bg-emerald-50 text-sm sm:text-base h-10 sm:h-11"
                         >
                           <Share2 className="h-4 w-4 mr-2" />
                           Share
@@ -513,11 +527,11 @@ export default function MyTicketsPage() {
                     </div>
 
                     {/* Right Section - QR Code */}
-                    <div className="w-64 bg-gradient-to-br from-gray-50 to-gray-100 p-6 flex flex-col items-center justify-center border-l border-gray-200">
-                      <div className="bg-white p-4 rounded-xl shadow-lg mb-4">
+                    <div className="w-full lg:w-64 bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 flex flex-col items-center justify-center border-t lg:border-t-0 lg:border-l border-gray-200">
+                      <div className="bg-white p-3 sm:p-4 rounded-xl shadow-lg mb-3 sm:mb-4">
                         <QRCodeGenerator 
                           value={individualTicket.ticket_number}
-                          size={128}
+                          size={typeof window !== 'undefined' && window.innerWidth < 640 ? 100 : 128}
                           className="rounded-lg"
                         />
                       </div>
@@ -533,13 +547,13 @@ export default function MyTicketsPage() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-12 p-6 bg-white/50 rounded-xl backdrop-blur-sm">
+        <div className="text-center mt-8 sm:mt-12 p-4 sm:p-6 bg-white/50 rounded-xl backdrop-blur-sm">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <QrCode className="h-5 w-5 text-emerald-600" />
-            <span className="font-semibold text-gray-900">Important Instructions</span>
+            <QrCode className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
+            <span className="font-semibold text-gray-900 text-sm sm:text-base">Important Instructions</span>
           </div>
-          <p className="text-gray-700 mb-1">Present your QR code or ticket number at the venue for entry</p>
-          <p className="text-sm text-gray-600">For support or questions, contact Hotel 734 customer service</p>
+          <p className="text-gray-700 mb-1 text-sm sm:text-base">Present your QR code or ticket number at the venue for entry</p>
+          <p className="text-xs sm:text-sm text-gray-600">For support or questions, contact Hotel 734 customer service</p>
         </div>
       </div>
     </div>
