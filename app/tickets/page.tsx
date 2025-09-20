@@ -208,7 +208,7 @@ export default function TicketsPage() {
       console.log('Ticket purchase created:', purchase);
       console.log('Email sent automatically by the database API');
 
-      // Show custom success alert
+      // Show custom success alert immediately
       setPurchaseDetails({
         ticketTitle: selectedTicket.title,
         quantity: quantity,
@@ -218,7 +218,12 @@ export default function TicketsPage() {
         paymentReference: reference,
         paymentMethod: verificationResponse.data?.channel || 'Paystack'
       });
-      setShowSuccessAlert(true);
+      
+      // Show alert immediately without delay
+      setTimeout(() => {
+        setShowSuccessAlert(true);
+      }, 100);
+      
       toast.success(`Payment successful! Tickets purchased.`);
       
       setIsPurchaseDialogOpen(false);
@@ -433,19 +438,19 @@ export default function TicketsPage() {
 
       {/* Purchase Dialog */}
       <Dialog open={isPurchaseDialogOpen} onOpenChange={setIsPurchaseDialogOpen}>
-        <DialogContent className="max-w-sm sm:max-w-md mx-4">
+        <DialogContent className="w-[95vw] max-w-sm sm:max-w-md mx-auto max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Book Your Experience</DialogTitle>
           </DialogHeader>
           
           {selectedTicket && (
-            <div className="space-y-3 sm:space-y-4">
+            <div className="space-y-4">
               <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-3 sm:p-4 rounded-lg border border-amber-200">
-                <h3 className="font-semibold text-base sm:text-lg mb-2 text-amber-900">{selectedTicket.title}</h3>
-                <div className="text-xs sm:text-sm text-amber-700 space-y-1">
+                <h3 className="font-semibold text-sm sm:text-base lg:text-lg mb-2 text-amber-900 leading-tight">{selectedTicket.title}</h3>
+                <div className="text-xs sm:text-sm text-amber-700 space-y-1.5">
                   <div className="flex items-center">
                     <Calendar className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-amber-600" />
-                    <span className="text-xs sm:text-sm">{formatDate(selectedTicket.event_date)} at {formatTime(selectedTicket.event_time)}</span>
+                    <span className="text-xs sm:text-sm break-words">{formatDate(selectedTicket.event_date)} at {formatTime(selectedTicket.event_time)}</span>
                   </div>
                   <div className="flex items-center">
                     <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 mr-2 text-amber-600" />
@@ -455,8 +460,8 @@ export default function TicketsPage() {
               </div>
 
               <div>
-                <Label htmlFor="quantity" className="text-sm sm:text-base">Quantity</Label>
-                <div className="flex items-center gap-2 sm:gap-3 mt-1">
+                <Label htmlFor="quantity" className="text-sm sm:text-base font-medium">Quantity</Label>
+                <div className="flex items-center gap-3 mt-2">
                   <Button
                     type="button"
                     variant="outline"
@@ -467,7 +472,7 @@ export default function TicketsPage() {
                   >
                     <Minus className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
-                  <span className="w-10 sm:w-12 text-center font-semibold text-sm sm:text-base">{quantity}</span>
+                  <span className="w-12 text-center font-semibold text-base">{quantity}</span>
                   <Button
                     type="button"
                     variant="outline"
@@ -482,36 +487,36 @@ export default function TicketsPage() {
               </div>
 
               <div>
-                <Label htmlFor="name" className="text-sm sm:text-base">Full Name *</Label>
+                <Label htmlFor="name" className="text-sm sm:text-base font-medium">Full Name *</Label>
                 <Input
                   id="name"
                   value={customerForm.name}
                   onChange={(e) => setCustomerForm(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Enter your full name"
-                  className="h-10 sm:h-11 text-sm sm:text-base"
+                  className="h-11 text-base mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="email" className="text-sm sm:text-base">Email Address *</Label>
+                <Label htmlFor="email" className="text-sm sm:text-base font-medium">Email Address *</Label>
                 <Input
                   id="email"
                   type="email"
                   value={customerForm.email}
                   onChange={(e) => setCustomerForm(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="Enter your email"
-                  className="h-10 sm:h-11 text-sm sm:text-base"
+                  className="h-11 text-base mt-1"
                 />
               </div>
 
               <div>
-                <Label htmlFor="phone" className="text-sm sm:text-base">Phone Number</Label>
+                <Label htmlFor="phone" className="text-sm sm:text-base font-medium">Phone Number</Label>
                 <Input
                   id="phone"
                   value={customerForm.phone}
                   onChange={(e) => setCustomerForm(prev => ({ ...prev, phone: e.target.value }))}
                   placeholder="Enter your phone number"
-                  className="h-10 sm:h-11 text-sm sm:text-base"
+                  className="h-11 text-base mt-1"
                 />
               </div>
 
@@ -525,18 +530,11 @@ export default function TicketsPage() {
               </div>
 
 
-              <div className="flex gap-2 sm:gap-3 pt-3 sm:pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsPurchaseDialogOpen(false)}
-                  className="flex-1 h-10 sm:h-11 text-sm sm:text-base"
-                >
-                  Cancel
-                </Button>
+              <div className="flex flex-col gap-3 pt-4">
                 <Button
                   onClick={handlePurchase}
                   disabled={isProcessingPayment}
-                  className="flex-1 h-10 sm:h-11 text-sm sm:text-base bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full h-12 text-base bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                 >
                   {isProcessingPayment ? (
                     <div className="flex items-center gap-2">
@@ -550,6 +548,13 @@ export default function TicketsPage() {
                     </div>
                   )}
                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsPurchaseDialogOpen(false)}
+                  className="w-full h-11 text-base"
+                >
+                  Cancel
+                </Button>
               </div>
             </div>
           )}
@@ -558,12 +563,12 @@ export default function TicketsPage() {
 
       {/* Beautiful Custom Success Alert */}
       {showSuccessAlert && purchaseDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="relative max-w-md w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="relative w-[95vw] max-w-sm sm:max-w-md max-h-[90vh] overflow-y-auto">
             {/* Glowing background effect */}
             <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 rounded-2xl blur-xl opacity-60 animate-glow"></div>
             
-            <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl p-6 border border-amber-400/30 shadow-2xl">
+            <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-amber-400/30 shadow-2xl">
               {/* Close button */}
               <button
                 onClick={() => setShowSuccessAlert(false)}
@@ -583,29 +588,29 @@ export default function TicketsPage() {
               </div>
 
               {/* Success message */}
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-white mb-2 flex items-center justify-center gap-2">
-                  <Sparkles className="h-6 w-6 text-amber-400 animate-pulse" />
-                  Purchase Successful!
-                  <Sparkles className="h-6 w-6 text-amber-400 animate-pulse" />
+              <div className="text-center mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2 flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
+                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-amber-400 animate-pulse" />
+                  <span>Purchase Successful!</span>
+                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-amber-400 animate-pulse" />
                 </h3>
-                <p className="text-amber-200/80">Your tickets have been confirmed</p>
+                <p className="text-amber-200/80 text-sm sm:text-base">Your tickets have been confirmed</p>
               </div>
 
               {/* Purchase details */}
-              <div className="space-y-3 mb-6">
+              <div className="space-y-3 mb-4 sm:mb-6">
                 <div className="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-lg p-4 border border-amber-400/20">
-                  <h4 className="font-semibold text-amber-100 mb-3">{purchaseDetails.ticketTitle}</h4>
+                  <h4 className="font-semibold text-amber-100 mb-3 text-sm sm:text-base leading-tight">{purchaseDetails.ticketTitle}</h4>
                   
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between items-center">
-                      <span className="text-amber-200/80">Customer:</span>
-                      <span className="text-white font-medium">{purchaseDetails.customerName}</span>
+                  <div className="space-y-2 text-xs sm:text-sm">
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-amber-200/80 flex-shrink-0">Customer:</span>
+                      <span className="text-white font-medium text-right break-words">{purchaseDetails.customerName}</span>
                     </div>
                     
-                    <div className="flex justify-between items-center">
-                      <span className="text-amber-200/80">Email:</span>
-                      <span className="text-white font-medium">{purchaseDetails.customerEmail}</span>
+                    <div className="flex justify-between items-center gap-2">
+                      <span className="text-amber-200/80 flex-shrink-0">Email:</span>
+                      <span className="text-white font-medium text-right break-all text-xs sm:text-sm">{purchaseDetails.customerEmail}</span>
                     </div>
                     
                     <div className="flex justify-between items-center">
@@ -615,14 +620,14 @@ export default function TicketsPage() {
                     
                     <div className="border-t border-amber-400/20 pt-2 mt-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-amber-200 font-semibold">Total Amount:</span>
-                        <span className="text-amber-400 font-bold text-lg">GHC {purchaseDetails.total}</span>
+                        <span className="text-amber-200 font-semibold text-sm sm:text-base">Total Amount:</span>
+                        <span className="text-amber-400 font-bold text-base sm:text-lg">GHC {purchaseDetails.total}</span>
                       </div>
                       
                       {purchaseDetails.paymentReference && (
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="text-amber-200/80 text-xs">Payment Ref:</span>
-                          <span className="text-amber-300 text-xs font-mono">{purchaseDetails.paymentReference}</span>
+                        <div className="flex justify-between items-center mt-2 gap-2">
+                          <span className="text-amber-200/80 text-xs flex-shrink-0">Payment Ref:</span>
+                          <span className="text-amber-300 text-xs font-mono break-all text-right">{purchaseDetails.paymentReference}</span>
                         </div>
                       )}
                       
@@ -638,11 +643,11 @@ export default function TicketsPage() {
 
                 {/* Next steps */}
                 <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg p-4 border border-blue-400/20">
-                  <h5 className="font-semibold text-blue-200 mb-2 flex items-center gap-2">
+                  <h5 className="font-semibold text-blue-200 mb-2 flex items-center gap-2 text-sm sm:text-base">
                     <Calendar className="h-4 w-4" />
                     What's Next?
                   </h5>
-                  <ul className="text-sm text-blue-200/80 space-y-1">
+                  <ul className="text-xs sm:text-sm text-blue-200/80 space-y-1">
                     <li>• Check your email for Hotel 734 ticket confirmation with QR codes</li>
                     <li>• Individual QR codes for each ticket will be in your email</li>
                     <li>• You can download and share individual tickets</li>
@@ -655,7 +660,7 @@ export default function TicketsPage() {
               {/* Action button */}
               <Button
                 onClick={() => setShowSuccessAlert(false)}
-                className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-amber-500/30"
+                className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-white font-semibold py-3 h-12 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-amber-500/30 text-base"
               >
                 Perfect! Got it
               </Button>
