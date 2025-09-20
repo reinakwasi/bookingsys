@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, memo } from "react"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
@@ -12,13 +12,13 @@ import { cn } from "@/lib/utils"
 const navItems = [
   { name: "Home", href: "/" },
   { name: "Rooms", href: "/rooms" },
-  { name: "Gallery", href: "/gallery" },
   { name: "Facilities", href: "/facilities" },
   { name: "Events", href: "/events" },
+  { name: "Tickets", href: "/tickets" },
   { name: "Contact", href: "/contact" },
 ]
 
-export default function Navbar() {
+const Navbar = memo(function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
 
@@ -54,14 +54,6 @@ export default function Navbar() {
               )}
             </Link>
           ))}
-          <Link href="/booking">
-            <Button 
-              size="sm" 
-              className="bg-amber-400 text-slate-900 hover:bg-amber-300 transition-all duration-300 hover:scale-105 shadow-lg shadow-amber-400/20"
-            >
-              Book Now
-            </Button>
-          </Link>
         </nav>
 
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -96,18 +88,12 @@ export default function Navbar() {
                   )}
                 </Link>
               ))}
-              <Link href="/booking" onClick={() => setIsOpen(false)}>
-                <Button 
-                  className="w-full bg-amber-400 text-slate-900 hover:bg-amber-300 transition-all duration-300 shadow-lg shadow-amber-400/20" 
-                  size="lg"
-                >
-                  Book Now
-                </Button>
-              </Link>
             </nav>
           </SheetContent>
         </Sheet>
       </div>
     </header>
   )
-}
+})
+
+export default Navbar

@@ -5,10 +5,19 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import SiteFrame from "./SiteFrame"
 
+// Start MSW in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  import('../mocks/browser').then(({ worker }) => {
+    worker.start({
+      onUnhandledRequest: 'bypass',
+    });
+  });
+}
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Luxury Hotel & Resort",
+  title: "Hotel 734",
   description: "Experience luxury and comfort at our premium hotel and resort",
     generator: 'v0.dev'
 }

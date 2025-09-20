@@ -4,8 +4,8 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Card, CardContent } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { ChevronLeft, ChevronRight, Camera, Star, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 // Gallery images data
@@ -243,179 +243,266 @@ export default function GalleryPage() {
   }
 
   return (
-    <div className="container py-12 md:py-16">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">Photo Gallery</h1>
-        <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-          Explore our luxury hotel through our collection of stunning images.
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
+      {/* Floating Background Elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-amber-500/10 to-orange-600/10 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-amber-400/5 to-orange-500/5 rounded-full blur-3xl animate-float-delayed"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-amber-300/5 to-orange-400/5 rounded-full blur-2xl animate-pulse"></div>
       </div>
 
-      <Tabs defaultValue="rooms" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex justify-center mb-8">
-          <TabsList className="bg-slate-100 p-1">
-            <TabsTrigger value="rooms" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              Rooms
-            </TabsTrigger>
-            <TabsTrigger value="facilities" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              Facilities
-            </TabsTrigger>
-            <TabsTrigger value="events" className="data-[state=active]:bg-white data-[state=active]:shadow-sm">
-              Events
-            </TabsTrigger>
-          </TabsList>
+      <div className="container py-12 md:py-20 relative z-10">
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-amber-300 mb-8 animate-slide-up">
+            <Camera className="w-5 h-5" />
+            <span className="font-semibold">Luxury Gallery</span>
+          </div>
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-white via-amber-200 to-orange-300 bg-clip-text text-transparent mb-8 animate-slide-up font-serif leading-tight">
+            Visual Journey
+          </h1>
+          <p className="text-xl md:text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed animate-fade-in mb-12">
+            Experience the unparalleled luxury of Hotel 734 through our exclusive collection of breathtaking imagery
+          </p>
+          <div className="flex items-center justify-center gap-8 animate-fade-in">
+            <div className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm rounded-full border border-amber-400/30">
+              <Star className="w-6 h-6 text-amber-400 fill-current" />
+              <span className="text-white font-medium">Premium Collection</span>
+            </div>
+            <div className="w-px h-6 bg-white/30"></div>
+            <div className="flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
+              <Eye className="w-6 h-6 text-white" />
+              <span className="text-white font-medium">4K Resolution</span>
+            </div>
+          </div>
         </div>
 
-        <TabsContent value="rooms" className="mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {galleryImages.rooms.map((image) => (
-              <Card 
-                key={image.id} 
-                className="overflow-hidden group cursor-pointer hover:shadow-lg transition-all duration-300"
-                onClick={() => setSelectedImage(image)}
+        <Tabs defaultValue="rooms" value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex justify-center mb-16">
+            <TabsList className="bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl p-2 rounded-3xl">
+              <TabsTrigger 
+                value="rooms" 
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-xl text-white/70 hover:text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-500"
               >
-                <CardContent className="p-0">
-                  <div className="relative aspect-[4/3] w-full">
-                    <Image
-                      src={image.src}
-                      alt={image.alt}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </div>
-                  <div className="p-4">
-                    <p className="font-medium text-slate-900">{image.title}</p>
-                    <p className="text-sm text-slate-500 mt-1">{image.category}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="facilities" className="mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {galleryImages.facilities.map((image) => (
-              <Card 
-                key={image.id} 
-                className="overflow-hidden group cursor-pointer hover:shadow-lg transition-all duration-300"
-                onClick={() => setSelectedImage(image)}
+                Luxury Suites
+              </TabsTrigger>
+              <TabsTrigger 
+                value="facilities" 
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-xl text-white/70 hover:text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-500"
               >
-                <CardContent className="p-0">
-                  <div className="relative aspect-[4/3] w-full">
-                    <Image
-                      src={image.src}
-                      alt={image.alt}
-                      fill
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </div>
-                  <div className="p-4">
-                    <p className="font-medium text-slate-900">{image.title}</p>
-                    <p className="text-sm text-slate-500 mt-1">{image.category}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                Premium Amenities
+              </TabsTrigger>
+              <TabsTrigger 
+                value="events" 
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-xl text-white/70 hover:text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-500"
+              >
+                Exclusive Events
+              </TabsTrigger>
+            </TabsList>
           </div>
-        </TabsContent>
 
-        <TabsContent value="events" className="mt-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {galleryImages.events.map((event) => {
-              const currentImageIndex = currentImageIndexes[event.id] || 0;
-              const currentImage = event.images[currentImageIndex];
-              
-              return (
+          <TabsContent value="rooms" className="mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {galleryImages.rooms.map((image, index) => (
                 <Card 
-                  key={event.id} 
-                  className="overflow-hidden group cursor-pointer hover:shadow-lg transition-all duration-300"
-                  onClick={() => setSelectedImage({ ...event, src: currentImage.src, alt: currentImage.alt })}
+                  key={image.id} 
+                  className="overflow-hidden group cursor-pointer bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:-translate-y-2 animate-fade-in rounded-2xl"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                  onClick={() => setSelectedImage(image)}
                 >
-                  <CardContent className="p-0">
-                    <div className="relative aspect-[4/3] w-full">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden">
+                    <Image
+                      src={image.src}
+                      alt={image.alt}
+                      fill
+                      className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-600/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                    
+                    {/* Floating overlay content */}
+                    <div className="absolute bottom-4 left-4 right-4 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                      <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                        <h3 className="font-semibold text-slate-900 text-sm">{image.title}</h3>
+                        <p className="text-xs text-slate-600 mt-1">{image.description}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Category badge */}
+                    <div className="absolute top-4 right-4">
+                      <span className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-medium rounded-full shadow-lg">
+                        {image.category}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-6 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm">
+                    <h3 className="font-semibold text-white text-lg mb-1">{image.title}</h3>
+                    <p className="text-sm text-amber-300 font-medium">{image.category} Collection</p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="facilities" className="mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {galleryImages.facilities.map((image, index) => (
+                <Card 
+                  key={image.id} 
+                  className="overflow-hidden group cursor-pointer bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:-translate-y-2 animate-fade-in rounded-2xl"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                  onClick={() => setSelectedImage(image)}
+                >
+                  <div className="relative aspect-[4/3] w-full overflow-hidden">
+                    <Image
+                      src={image.src}
+                      alt={image.alt}
+                      fill
+                      className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-600/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                    
+                    {/* Floating overlay content */}
+                    <div className="absolute bottom-4 left-4 right-4 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                      <div className="bg-white/90 backdrop-blur-sm rounded-xl p-3 border border-white/30">
+                        <h3 className="font-semibold text-slate-900 text-sm">{image.title}</h3>
+                        <p className="text-xs text-slate-600 mt-1">{image.description}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Category badge */}
+                    <div className="absolute top-4 right-4">
+                      <span className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-medium rounded-full shadow-lg">
+                        {image.category}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-6 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm">
+                    <h3 className="font-semibold text-white text-lg mb-1">{image.title}</h3>
+                    <p className="text-sm text-amber-300 font-medium">{image.category} Experience</p>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="events" className="mt-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {galleryImages.events.map((event, index) => {
+                const currentImageIndex = currentImageIndexes[event.id] || 0;
+                const currentImage = event.images[currentImageIndex];
+                
+                return (
+                  <Card 
+                    key={event.id} 
+                    className="overflow-hidden group cursor-pointer bg-black/20 backdrop-blur-xl border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-500 hover:scale-105 hover:-translate-y-2 animate-fade-in rounded-2xl"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                    onClick={() => setSelectedImage({ ...event, src: currentImage.src, alt: currentImage.alt })}
+                  >
+                    <div className="relative aspect-[4/3] w-full overflow-hidden">
                       <Image
                         src={currentImage.src}
                         alt={currentImage.alt}
                         fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        className="object-cover transition-all duration-700 group-hover:scale-110"
                         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                         priority
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                      <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-600/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
                       
                       {/* Navigation buttons */}
                       <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full bg-white/80 hover:bg-white text-slate-900"
+                          className="h-10 w-10 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white text-slate-900 shadow-lg border border-white/20"
                           onClick={(e) => handlePreviousImage(event.id, e)}
                         >
-                          <ChevronLeft className="h-4 w-4" />
+                          <ChevronLeft className="h-5 w-5" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 rounded-full bg-white/80 hover:bg-white text-slate-900"
+                          className="h-10 w-10 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white text-slate-900 shadow-lg border border-white/20"
                           onClick={(e) => handleNextImage(event.id, e)}
                         >
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="h-5 w-5" />
                         </Button>
                       </div>
 
                       {/* Image indicators */}
-                      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 space-x-1.5">
-                        {event.images.map((_, index) => (
+                      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 space-x-2">
+                        {event.images.map((_, imgIndex) => (
                           <div
-                            key={index}
-                            className={`h-1.5 rounded-full transition-all duration-300 ${
-                              index === currentImageIndex
-                                ? "w-4 bg-white"
-                                : "w-1.5 bg-white/50"
+                            key={imgIndex}
+                            className={`h-2 rounded-full transition-all duration-300 ${
+                              imgIndex === currentImageIndex
+                                ? "w-6 bg-white shadow-lg"
+                                : "w-2 bg-white/60"
                             }`}
                           />
                         ))}
                       </div>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-medium text-slate-900">{event.title}</h3>
-                      <p className="text-sm text-slate-500 mt-1">{event.category}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        </TabsContent>
-      </Tabs>
 
-      <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-        <DialogContent className="max-w-4xl">
-          {selectedImage && (
-            <div className="space-y-4">
-              <div className="relative aspect-[16/9] w-full">
-                <Image
-                  src={selectedImage.images ? selectedImage.images[currentImageIndexes[selectedImage.id] || 0].src : selectedImage.src}
-                  alt={selectedImage.images ? selectedImage.images[currentImageIndexes[selectedImage.id] || 0].alt : selectedImage.alt}
-                  fill
-                  className="object-cover rounded-lg"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
-                />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-slate-900">{selectedImage.title}</h3>
-                <p className="text-sm text-slate-500 mt-1">{selectedImage.category}</p>
-                <p className="text-slate-600 mt-2">{selectedImage.description}</p>
-              </div>
+                      {/* Category badge */}
+                      <div className="absolute top-4 right-4">
+                        <span className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-medium rounded-full shadow-lg">
+                          {event.category}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-6 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm">
+                      <h3 className="font-semibold text-white text-lg mb-1">{event.title}</h3>
+                      <p className="text-sm text-amber-300 font-medium">{event.category} Events</p>
+                      <p className="text-xs text-white/70 mt-2 line-clamp-2">{event.description}</p>
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
-          )}
-        </DialogContent>
-      </Dialog>
+          </TabsContent>
+        </Tabs>
+
+        {/* Enhanced Dialog */}
+        <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
+          <DialogContent className="max-w-5xl bg-white/95 backdrop-blur-md border border-white/20 shadow-2xl">
+            <DialogTitle className="sr-only">
+              {selectedImage?.title || "Gallery Image"}
+            </DialogTitle>
+            {selectedImage && (
+              <div className="space-y-6">
+                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
+                  <Image
+                    src={selectedImage.src}
+                    alt={selectedImage.alt}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-2xl font-bold text-slate-900 mb-2">{selectedImage.title}</h3>
+                      <div className="flex items-center gap-3">
+                        <span className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium rounded-full">
+                          {selectedImage.category}
+                        </span>
+                        <span className="text-sm text-slate-500">Premium Collection</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-slate-600 text-lg leading-relaxed">{selectedImage.description}</p>
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   )
 }

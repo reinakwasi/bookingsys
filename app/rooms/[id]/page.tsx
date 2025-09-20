@@ -15,13 +15,14 @@ import { format } from "date-fns"
 // This would typically come from your API or database
 const rooms = {
   1: {
-    name: "Luxury Suite",
-    description: "Luxurious suite with ocean view and premium amenities",
-    price: 300,
+    name: "Royal Suite",
+    type: "royal_suite",
+    description: "Luxurious room with ocean view and premium amenities",
+    price: 500,
     images: [
-      { src: "/room1.jpg", alt: "Luxury Suite Main" },
-      { src: "/view.jpg", alt: "Luxury Suite View" },
-      { src: "/poolview1.jpg", alt: "Luxury Suite Pool View" },
+      { src: "/room1.jpg", alt: "Expensive Room Main" },
+      { src: "/view.jpg", alt: "Expensive Room View" },
+      { src: "/poolview1.jpg", alt: "Expensive Room Pool View" },
     ],
     features: [
       { icon: Bed, text: "King Size Bed" },
@@ -31,18 +32,19 @@ const rooms = {
       { icon: Tv, text: "55\" Smart TV" },
       { icon: Users, text: "Up to 4 Guests" },
     ],
-    longDescription: `Experience unparalleled luxury in our Luxury Suite. This spacious suite features a king-size bed, 
+    longDescription: `Experience unparalleled luxury in our Royal Suite. This spacious room features a king-size bed, 
     premium amenities, and breathtaking ocean views. Enjoy the comfort of a private balcony, a luxurious bathroom with 
     a jacuzzi, and 24/7 room service. Perfect for those seeking the ultimate luxury experience.`,
   },
   2: {
-    name: "Deluxe Room",
+    name: "Superior Room",
+    type: "superior_room",
     description: "Comfortable room with modern amenities and city view",
     price: 250,
     images: [
-      { src: "/room2.jpg", alt: "Deluxe Room Main" },
-      { src: "/one.jpg", alt: "Deluxe Room Alt 1" },
-      { src: "/two.jpg", alt: "Deluxe Room Alt 2" },
+      { src: "/room2.jpg", alt: "Standard Room Main" },
+      { src: "/one.jpg", alt: "Standard Room Alt 1" },
+      { src: "/two.jpg", alt: "Standard Room Alt 2" },
     ],
     features: [
       { icon: Bed, text: "Queen Size Bed" },
@@ -50,20 +52,21 @@ const rooms = {
       { icon: Coffee, text: "Coffee Maker" },
       { icon: Bath, text: "Modern Bathroom" },
       { icon: Tv, text: "43\" Smart TV" },
-      { icon: Users, text: "Up to 2 Guests" },
+      { icon: Users, text: "Up to 3 Guests" },
     ],
-    longDescription: `Our Deluxe Room offers the perfect balance of comfort and value. Featuring a queen-size bed, 
+    longDescription: `Our Standard Room offers the perfect balance of comfort and value. Featuring a queen-size bed, 
     modern amenities, and a city view, this room is ideal for both business and leisure travelers. Enjoy the convenience 
     of high-speed WiFi, a smart TV, and a well-appointed bathroom.`,
   },
   3: {
-    name: "Executive Suite",
+    name: "Classic Room",
+    type: "classic_room",
     description: "Cozy room with essential amenities and garden view",
-    price: 200,
+    price: 150,
     images: [
-      { src: "/room3.jpg", alt: "Executive Suite Main" },
-      { src: "/three.jpg", alt: "Executive Suite Alt 1" },
-      { src: "/four.jpg", alt: "Executive Suite Alt 2" },
+      { src: "/room3.jpg", alt: "Regular Room Main" },
+      { src: "/three.jpg", alt: "Regular Room Alt 1" },
+      { src: "/four.jpg", alt: "Regular Room Alt 2" },
     ],
     features: [
       { icon: Bed, text: "Double Bed" },
@@ -73,7 +76,7 @@ const rooms = {
       { icon: Tv, text: "32\" TV" },
       { icon: Users, text: "Up to 2 Guests" },
     ],
-    longDescription: `The Executive Suite provides a comfortable and affordable stay with all essential amenities. 
+    longDescription: `The Regular Room provides a comfortable and affordable stay with all essential amenities. 
     Enjoy a peaceful garden view, a cozy double bed, and a private bathroom. Perfect for budget-conscious travelers 
     who don't want to compromise on comfort.`,
   },
@@ -100,6 +103,8 @@ export default function RoomPage() {
     setCurrentIndex(0)
   }, [roomId])
   useEffect(() => {
+    if (!room || !room.images || room.images.length === 0) return
+    
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % room.images.length)
     }, 4000)
@@ -107,9 +112,11 @@ export default function RoomPage() {
   }, [room])
 
   const handlePrev = () => {
+    if (!room || !room.images || room.images.length === 0) return
     setCurrentIndex((prev) => (prev - 1 + room.images.length) % room.images.length)
   }
   const handleNext = () => {
+    if (!room || !room.images || room.images.length === 0) return
     setCurrentIndex((prev) => (prev + 1) % room.images.length)
   }
 
@@ -125,7 +132,7 @@ export default function RoomPage() {
     }
   }
 
-  const handleCheck = (e: React.FormEvent) => {
+  const handleCheck = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
     if (!checkIn || !checkOut) {
@@ -140,7 +147,30 @@ export default function RoomPage() {
       setError("Number of guests must be at least 1.")
       return
     }
-    setChecked(true)
+    
+    try {
+      // Import the bookings API
+      const { bookingsAPI } = await import('@/lib/api')
+      
+      // Check room availability
+      const availability = await bookingsAPI.checkRoomAvailability(
+        room.type, // Use room type as room ID
+        checkIn.toISOString().split('T')[0],
+        checkOut.toISOString().split('T')[0]
+      )
+      
+      if (!availability.available) {
+        setError(`${room.name} is fully booked for your selected dates. Please try different dates or contact us for assistance.`)
+        return
+      } else {
+        console.log('✅ Room available:', availability);
+      }
+      
+      setChecked(true)
+    } catch (error) {
+      console.error('Error checking availability:', error)
+      setError('Unable to check availability. Please try again.')
+    }
   }
 
   if (!room) {
@@ -233,7 +263,7 @@ export default function RoomPage() {
                 size="lg" 
                 className="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white"
               >
-                <Link href="/booking">Book Now</Link>
+                <Link href={`/booking?roomType=${room.type}&roomId=${roomId}&roomName=${encodeURIComponent(room.name)}&price=${room.price}`}>Book Now</Link>
               </Button>
               <Button 
                 variant="outline" 
@@ -250,67 +280,131 @@ export default function RoomPage() {
 
       {/* Check Availability Modal */}
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-slate-900">Check Availability</DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-morphism border-2 border-[#C49B66]/20">
+          <DialogHeader className="text-center pb-2">
+            <DialogTitle className="text-2xl font-display font-bold text-slate-900">Check Availability</DialogTitle>
+            <p className="text-slate-800 mt-1">Select your preferred dates and number of guests</p>
           </DialogHeader>
           {checked ? (
-            <div className="text-center py-8">
-              <p className="text-green-600 text-lg font-semibold mb-2">Available!</p>
-              <p className="text-slate-600">This room is available for your selected dates.</p>
-              <Button 
-                className="mt-4 w-full bg-slate-900 hover:bg-slate-800 text-white"
-                onClick={() => handleOpenChange(false)}
-              >
-                Close
-              </Button>
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <p className="text-green-600 text-xl font-bold mb-3">Room Available!</p>
+              <p className="text-slate-600 mb-8">This room is available for your selected dates. Ready to book?</p>
+              <div className="flex gap-4 justify-center">
+                <Button 
+                  className="gradient-gold hover:shadow-glow text-white font-bold px-8 py-3 rounded-2xl transition-all duration-300 transform hover:scale-105"
+                  onClick={() => handleOpenChange(false)}
+                >
+                  Book Now
+                </Button>
+                <Button 
+                  variant="outline"
+                  className="border-2 border-slate-200 hover:border-[#C49B66] px-8 py-3 rounded-2xl"
+                  onClick={() => handleOpenChange(false)}
+                >
+                  Close
+                </Button>
+              </div>
             </div>
           ) : (
             <form onSubmit={handleCheck} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-900 mb-2">Check-in Date</label>
-                  <Calendar 
-                    selected={checkIn} 
-                    onSelect={setCheckIn} 
-                    mode="single" 
-                    required 
-                    initialFocus 
-                    className="rounded-lg border border-slate-200"
-                  />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <label className="block text-lg font-semibold text-slate-900 mb-4">Check-in Date</label>
+                  <div className="bg-white rounded-2xl p-4 border-2 border-slate-200 shadow-sm">
+                    <Calendar 
+                      selected={checkIn} 
+                      onSelect={setCheckIn} 
+                      mode="single" 
+                      required 
+                      initialFocus 
+                      className="w-full"
+                      classNames={{
+                        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                        month: "space-y-4",
+                        caption: "flex justify-center pt-1 relative items-center",
+                        caption_label: "text-xl font-bold text-slate-900",
+                        nav: "space-x-1 flex items-center",
+                        nav_button: "h-10 w-10 bg-slate-100 hover:bg-slate-200 p-0 rounded-lg transition-colors border border-slate-300 text-slate-700",
+                        nav_button_previous: "absolute left-1",
+                        nav_button_next: "absolute right-1",
+                        table: "w-full border-collapse space-y-1",
+                        head_row: "flex mb-3",
+                        head_cell: "text-slate-800 rounded-md w-10 font-bold text-sm flex-1 text-center py-2",
+                        row: "flex w-full mt-1",
+                        cell: "text-center text-sm p-0 relative flex-1 [&:has([aria-selected])]:bg-slate-50 first:[&:has([aria-selected])]:rounded-l-lg last:[&:has([aria-selected])]:rounded-r-lg focus-within:relative focus-within:z-20",
+                        day: "h-10 w-10 p-0 font-medium aria-selected:opacity-100 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors mx-auto flex items-center justify-center text-slate-700",
+                        day_selected: "bg-slate-800 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-800 focus:text-white font-bold shadow-md",
+                        day_today: "bg-amber-100 text-amber-900 font-bold border-2 border-amber-300",
+                        day_outside: "text-slate-400 opacity-60",
+                        day_disabled: "text-slate-300 opacity-40 cursor-not-allowed",
+                        day_range_middle: "aria-selected:bg-slate-100 aria-selected:text-slate-900",
+                        day_hidden: "invisible",
+                      }}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-900 mb-2">Check-out Date</label>
-                  <Calendar 
-                    selected={checkOut} 
-                    onSelect={setCheckOut} 
-                    mode="single" 
-                    required 
-                    initialFocus 
-                    className="rounded-lg border border-slate-200"
-                  />
+                <div className="space-y-4">
+                  <label className="block text-lg font-semibold text-slate-900 mb-4">Check-out Date</label>
+                  <div className="bg-white rounded-2xl p-4 border-2 border-slate-200 shadow-sm">
+                    <Calendar 
+                      selected={checkOut} 
+                      onSelect={setCheckOut} 
+                      mode="single" 
+                      required 
+                      initialFocus 
+                      className="w-full"
+                      classNames={{
+                        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                        month: "space-y-4",
+                        caption: "flex justify-center pt-1 relative items-center",
+                        caption_label: "text-xl font-bold text-slate-900",
+                        nav: "space-x-1 flex items-center",
+                        nav_button: "h-10 w-10 bg-slate-100 hover:bg-slate-200 p-0 rounded-lg transition-colors border border-slate-300 text-slate-700",
+                        nav_button_previous: "absolute left-1",
+                        nav_button_next: "absolute right-1",
+                        table: "w-full border-collapse space-y-1",
+                        head_row: "flex mb-3",
+                        head_cell: "text-slate-800 rounded-md w-10 font-bold text-sm flex-1 text-center py-2",
+                        row: "flex w-full mt-1",
+                        cell: "text-center text-sm p-0 relative flex-1 [&:has([aria-selected])]:bg-slate-50 first:[&:has([aria-selected])]:rounded-l-lg last:[&:has([aria-selected])]:rounded-r-lg focus-within:relative focus-within:z-20",
+                        day: "h-10 w-10 p-0 font-medium aria-selected:opacity-100 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors mx-auto flex items-center justify-center text-slate-700",
+                        day_selected: "bg-slate-800 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-800 focus:text-white font-bold shadow-md",
+                        day_today: "bg-amber-100 text-amber-900 font-bold border-2 border-amber-300",
+                        day_outside: "text-slate-400 opacity-60",
+                        day_disabled: "text-slate-300 opacity-40 cursor-not-allowed",
+                        day_range_middle: "aria-selected:bg-slate-100 aria-selected:text-slate-900",
+                        day_hidden: "invisible",
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-900 mb-2">Number of Guests</label>
+              <div className="space-y-4">
+                <label className="block text-lg font-semibold text-slate-900">Number of Guests</label>
                 <input
                   type="number"
                   min={1}
                   max={8}
                   value={guests}
                   onChange={e => setGuests(Number(e.target.value))}
-                  className="w-full border border-slate-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:border-transparent"
+                  className="w-full h-14 border-2 border-slate-200 rounded-2xl px-6 text-lg focus:outline-none focus:ring-2 focus:ring-[#C49B66]/20 focus:border-[#C49B66] transition-all duration-300"
                   required
                 />
               </div>
               {error && (
-                <div className="text-red-600 text-sm bg-red-50 p-3 rounded-lg">
+                <div className="text-red-600 bg-red-50 border border-red-200 p-4 rounded-2xl">
                   {error}
                 </div>
               )}
               <Button 
                 type="submit" 
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white"
+                size="lg"
+                className="w-full h-14 gradient-gold hover:shadow-glow text-white font-bold text-lg rounded-2xl transition-all duration-300 transform hover:scale-105"
               >
                 Check Availability
               </Button>
@@ -320,4 +414,4 @@ export default function RoomPage() {
       </Dialog>
     </main>
   )
-} 
+}

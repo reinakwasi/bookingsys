@@ -1,423 +1,266 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { format } from "date-fns"
-import { CalendarIcon } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { CheckCircle2 } from "lucide-react"
-import Image from "next/image"
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import Image from "next/image";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import EventBookingForm from "@/components/EventBookingForm";
+import { Calendar, Users, ArrowRight, Sparkles, Award, Star, Zap, PartyPopper, Building2 } from "lucide-react";
 
-const formSchema = z.object({
-  name: z.string().min(2, {
-    message: "Name must be at least 2 characters.",
-  }),
-  email: z.string().email({
-    message: "Please enter a valid email address.",
-  }),
-  phone: z.string().min(10, {
-    message: "Phone number must be at least 10 digits.",
-  }),
-  date: z.date({
-    required_error: "Event date is required.",
-  }),
-  eventType: z.string({
-    required_error: "Please select an event type.",
-  }),
-  guests: z.string().min(1, {
-    message: "Please enter the number of guests.",
-  }),
-})
-
-// Event types data
-const eventTypes = {
-  compound: {
-    title: "Compound Events",
-    description: "Perfect for outdoor gatherings, parties, and celebrations.",
-    capacity: "Up to 200 guests",
-    price: "Starting from 5000 GHS",
-    features: ["Spacious outdoor area", "Catering services", "Sound system", "Decorations", "Event coordination"],
-    images: [
-      { src: "/poolview1.jpg", alt: "Compound Event Space 1" },
-      { src: "/poolview2.jpg", alt: "Compound Event Space 2" },
-      { src: "/pool.jpg", alt: "Compound Event Space 3" },
-    ],
+// Static event data - focusing on the two main events
+const mainEvents = [
+  {
+    _id: 'compound',
+    name: 'Compound Events',
+    description: 'Perfect for large gatherings and celebrations. Our spacious compound can accommodate weddings, parties, corporate events, and family reunions with comprehensive event setup.',
+    type: 'Compound',
+    price: 1000,
+    capacity: 300,
+    image: '/cont.jpg',
+    features: ['Outdoor Space', 'Premium Chairs', 'Professional Speakers', 'Event Tent', 'Parking', 'Sound System', 'Lighting Setup'],
+    category: 'Large Events'
   },
-  conference: {
-    title: "Conference Events",
-    description: "Ideal for business meetings, seminars, and corporate events.",
-    capacity: "Up to 150 guests",
-    price: "Starting from 3500 GHS",
-    features: [
-      "Modern conference rooms",
-      "Audiovisual equipment",
-      "High-speed internet",
-      "Catering options",
-      "Business services",
-    ],
-    images: [
-      { src: "/outline.jpg", alt: "Conference Room 1" },
-      { src: "/view.jpg", alt: "Conference Room 2" },
-      { src: "/four.jpg", alt: "Conference Room 3" },
-    ],
-  },
-}
+  {
+    _id: 'conference',
+    name: 'Conference Events',
+    description: 'Professional settings for business meetings and conferences. Equipped with state-of-the-art AV equipment, high-speed internet, and comfortable seating arrangements.',
+    type: 'Conference',
+    price: 800,
+    capacity: 150,
+    image: '/backimg2.jpg',
+    features: ['AV Equipment', 'High-Speed WiFi', 'Projectors', 'Whiteboards', 'Coffee Service', 'Climate Control'],
+    category: 'Business Events'
+  }
+];
 
 export default function EventsPage() {
-  const [activeTab, setActiveTab] = useState("compound")
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Carousel state
-  const [currentIndexes, setCurrentIndexes] = useState({ compound: 0, conference: 0 })
+  const handleBookEvent = (event: any) => {
+    setSelectedEvent(event);
+    setIsDialogOpen(true);
+  };
 
-  // Auto-rotate images
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndexes((prev) => {
-        const key = activeTab as "compound" | "conference"
-        const images = eventTypes[key].images
-        return {
-          ...prev,
-          [key]: (prev[key] + 1) % images.length,
-        }
-      })
-    }, 5000)
-    return () => clearInterval(interval)
-  }, [activeTab])
-
-  // Manual navigation
-  const handlePrev = (type: "compound" | "conference") => {
-    setCurrentIndexes((prev) => {
-      const images = eventTypes[type].images
-      return {
-        ...prev,
-        [type]: (prev[type] - 1 + images.length) % images.length,
-      }
-    })
-  }
-  const handleNext = (type: "compound" | "conference") => {
-    setCurrentIndexes((prev) => {
-      const images = eventTypes[type].images
-      return {
-        ...prev,
-        [type]: (prev[type] + 1) % images.length,
-      }
-    })
-  }
-
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
-      eventType: activeTab,
-      guests: "50",
-    },
-  })
-
-  // Update form when tab changes
-  const handleTabChange = (value: string) => {
-    setActiveTab(value)
-    form.setValue("eventType", value)
-  }
-
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
-    setIsSubmitted(true)
-  }
-
-  if (isSubmitted) {
-    return (
-      <div className="container py-12 md:py-16 max-w-md mx-auto">
-        <Alert className="bg-green-50 border-green-200">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <AlertTitle className="text-green-800">Event Booking Successful!</AlertTitle>
-          <AlertDescription className="text-green-700">
-            Your event reservation has been confirmed. We've sent a confirmation email with all the details.
-          </AlertDescription>
-        </Alert>
-        <div className="mt-6 text-center">
-          <Button onClick={() => setIsSubmitted(false)}>Book Another Event</Button>
-        </div>
-      </div>
-    )
-  }
+  const handleBookingSuccess = () => {
+    setIsDialogOpen(false);
+    setSelectedEvent(null);
+  };
 
   return (
-    <div className="container py-12 md:py-16">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">Event Spaces</h1>
-        <p className="mt-4 text-muted-foreground max-w-2xl mx-auto">
-          Host your special events at our luxury hotel with dedicated spaces and professional services.
-        </p>
+    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
+      {/* Dynamic background pattern */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute inset-0 opacity-30 bg-gradient-to-br from-amber-500/10 to-yellow-500/10"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-amber-400/5 via-transparent to-yellow-400/5"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-amber-400/15 to-yellow-400/15 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-yellow-400/15 to-orange-400/15 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-amber-300/8 to-yellow-300/8 rounded-full blur-3xl animate-pulse" style={{animationDelay: '4s'}}></div>
       </div>
 
-      <Tabs defaultValue="compound" value={activeTab} onValueChange={handleTabChange}>
-        <div className="flex justify-center mb-8">
-          <TabsList>
-            <TabsTrigger value="compound">Compound Events</TabsTrigger>
-            <TabsTrigger value="conference">Conference Events</TabsTrigger>
-          </TabsList>
+      <div className="container-responsive py-12 sm:py-16 lg:py-24 relative z-10">
+        {/* Header Section */}
+        <div className="text-center mb-16 sm:mb-20 lg:mb-24 animate-fade-in-up">
+          <div className="relative inline-block mb-6 sm:mb-8">
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-yellow-400 rounded-full blur-xl opacity-60 animate-glow"></div>
+            <div className="relative bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-full border border-amber-300/30 backdrop-blur-sm shadow-2xl">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <PartyPopper className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 animate-bounce" />
+                <span className="font-bold text-sm sm:text-base lg:text-lg">Premium Event Experiences</span>
+                <Zap className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 animate-bounce" style={{animationDelay: '0.5s'}} />
+              </div>
+            </div>
+          </div>
+          <h1 className="text-responsive-4xl font-black mb-6 sm:mb-8 bg-gradient-to-r from-amber-100 via-yellow-100 to-white bg-clip-text text-transparent leading-tight drop-shadow-2xl">
+            Unforgettable Event Spaces
+          </h1>
+          <div className="max-w-4xl mx-auto mb-8 sm:mb-12">
+            <p className="text-responsive-base text-amber-50 leading-relaxed mb-4 sm:mb-6 drop-shadow-lg">
+              Transform your vision into reality with our spectacular event venues
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 lg:gap-8 text-amber-200">
+              <div className="flex items-center gap-2">
+                <Star className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-400 fill-yellow-400" />
+                <span className="font-semibold text-sm sm:text-base">Premium Quality</span>
+              </div>
+              <div className="hidden sm:block w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />
+                <span className="font-semibold text-sm sm:text-base">450+ Capacity</span>
+              </div>
+              <div className="hidden sm:block w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
+              <div className="flex items-center gap-2">
+                <Award className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
+                <span className="font-semibold text-sm sm:text-base">Full Service</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <TabsContent value="compound" className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="relative h-64 md:h-full rounded-lg overflow-hidden flex items-center justify-center bg-slate-100">
-              <button
-                className="absolute left-2 z-10 bg-white/80 hover:bg-white rounded-full p-1"
-                onClick={() => handlePrev("compound")}
-                type="button"
-                aria-label="Previous image"
-              >
-                <ChevronLeft className="h-6 w-6 text-slate-700" />
-              </button>
-              <Image
-                src={eventTypes.compound.images[currentIndexes.compound].src}
-                alt={eventTypes.compound.images[currentIndexes.compound].alt}
-                fill
-                className="object-cover"
-                priority
-              />
-              <button
-                className="absolute right-2 z-10 bg-white/80 hover:bg-white rounded-full p-1"
-                onClick={() => handleNext("compound")}
-                type="button"
-                aria-label="Next image"
-              >
-                <ChevronRight className="h-6 w-6 text-slate-700" />
-              </button>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1">
-                {eventTypes.compound.images.map((_, idx) => (
-                  <div
-                    key={idx}
-                    className={`h-1.5 w-3 rounded-full transition-all ${idx === currentIndexes.compound ? "bg-slate-700" : "bg-slate-300"}`}
-                  />
-                ))}
-              </div>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold">{eventTypes.compound.title}</h2>
-              <p className="mt-2 text-muted-foreground">{eventTypes.compound.description}</p>
-              <div className="mt-4 space-y-2">
-                <p>
-                  <strong>Capacity:</strong> {eventTypes.compound.capacity}
-                </p>
-                <p>
-                  <strong>Pricing:</strong> {eventTypes.compound.price}
-                </p>
-              </div>
-              <div className="mt-4">
-                <h3 className="font-semibold mb-2">Features:</h3>
-                <ul className="space-y-1">
-                  {eventTypes.compound.features.map((feature, index) => (
-                    <li key={index} className="flex items-center">
-                      <span className="mr-2 text-primary">•</span> {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
+        {/* Events Grid - Unique Card Design */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16">
+          {mainEvents.map((event, index) => (
+            <div key={event._id} className="group animate-fade-in-up" style={{animationDelay: `${index * 0.3}s`}}>
+              <div className="relative">
+                {/* Glowing border effect */}
+                <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 rounded-2xl sm:rounded-3xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500 animate-glow"></div>
+                
+                <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl overflow-hidden border border-amber-400/20 shadow-2xl transform transition-all duration-500 hover:scale-105 hover:shadow-amber-500/20">
+                  {/* Header with icon and category */}
+                  <div className="relative p-4 sm:p-6 bg-gradient-to-r from-amber-500/25 to-yellow-500/25 border-b border-amber-400/20">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+                      <div className="flex items-center gap-3">
+                        {event.type === 'Compound' ? (
+                          <PartyPopper className="h-6 w-6 sm:h-8 sm:w-8 text-amber-400" />
+                        ) : (
+                          <Building2 className="h-6 w-6 sm:h-8 sm:w-8 text-amber-400" />
+                        )}
+                        <div className="flex-1">
+                          <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white drop-shadow-lg">{event.name}</h3>
+                          <p className="text-amber-200 text-xs sm:text-sm font-medium">{event.category}</p>
+                        </div>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <div className="text-2xl sm:text-3xl font-black text-transparent bg-gradient-to-r from-amber-300 to-yellow-300 bg-clip-text drop-shadow-lg">
+                          ${event.price}
+                        </div>
+                        <p className="text-amber-200 text-xs sm:text-sm">per event</p>
+                      </div>
+                    </div>
+                  </div>
 
-        <TabsContent value="conference" className="space-y-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-            <div className="relative h-64 md:h-full rounded-lg overflow-hidden flex items-center justify-center bg-slate-100">
-              <button
-                className="absolute left-2 z-10 bg-white/80 hover:bg-white rounded-full p-1"
-                onClick={() => handlePrev("conference")}
-                type="button"
-                aria-label="Previous image"
-              >
-                <ChevronLeft className="h-6 w-6 text-slate-700" />
-              </button>
-              <Image
-                src={eventTypes.conference.images[currentIndexes.conference].src}
-                alt={eventTypes.conference.images[currentIndexes.conference].alt}
-                fill
-                className="object-cover"
-                priority
-              />
-              <button
-                className="absolute right-2 z-10 bg-white/80 hover:bg-white rounded-full p-1"
-                onClick={() => handleNext("conference")}
-                type="button"
-                aria-label="Next image"
-              >
-                <ChevronRight className="h-6 w-6 text-slate-700" />
-              </button>
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex space-x-1">
-                {eventTypes.conference.images.map((_, idx) => (
-                  <div
-                    key={idx}
-                    className={`h-1.5 w-3 rounded-full transition-all ${idx === currentIndexes.conference ? "bg-slate-700" : "bg-slate-300"}`}
-                  />
-                ))}
-              </div>
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold">{eventTypes.conference.title}</h2>
-              <p className="mt-2 text-muted-foreground">{eventTypes.conference.description}</p>
-              <div className="mt-4 space-y-2">
-                <p>
-                  <strong>Capacity:</strong> {eventTypes.conference.capacity}
-                </p>
-                <p>
-                  <strong>Pricing:</strong> {eventTypes.conference.price}
-                </p>
-              </div>
-              <div className="mt-4">
-                <h3 className="font-semibold mb-2">Features:</h3>
-                <ul className="space-y-1">
-                  {eventTypes.conference.features.map((feature, index) => (
-                    <li key={index} className="flex items-center">
-                      <span className="mr-2 text-primary">•</span> {feature}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      <div className="mt-12">
-        <Card>
-          <CardHeader>
-            <CardTitle>Event Reservation Form</CardTitle>
-            <CardDescription>Please provide your details to book your event.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Full Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
+                  {/* Image section with overlay */}
+                  <div className="relative h-48 sm:h-56 lg:h-64 overflow-hidden">
+                    <Image
+                      src={event.image || '/cont.jpg'}
+                      alt={event.name}
+                      fill
+                      className="object-cover transition-all duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-slate-900/40 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-400/25 via-transparent to-yellow-400/25 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  
+                    {/* Capacity indicator */}
+                    <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
+                      <div className="bg-black/70 backdrop-blur-md rounded-lg sm:rounded-xl p-2 sm:p-3 border border-amber-400/30 shadow-lg">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-white">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
+                            <span className="font-semibold text-sm sm:text-base">Up to {event.capacity} guests</span>
+                          </div>
+                          <div className="flex gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-400 fill-yellow-400" />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                
+                  {/* Content section */}
+                  <div className="p-4 sm:p-6">
+                    <p className="text-slate-300 leading-relaxed mb-4 sm:mb-6 text-sm sm:text-base">{event.description}</p>
+                  
+                    {/* Features with modern styling */}
+                    {event.features && (
+                      <div className="mb-4 sm:mb-6">
+                        <h4 className="text-xs sm:text-sm font-bold text-amber-200 mb-3 sm:mb-4 uppercase tracking-wider flex items-center gap-2">
+                          <Sparkles className="h-3 w-3 sm:h-4 sm:w-4" />
+                          What's Included
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+                          {event.features.map((feature: string, idx: number) => (
+                            <div key={idx} className="flex items-center gap-2 p-2 sm:p-3 bg-gradient-to-r from-amber-400/15 to-yellow-400/15 rounded-lg border border-amber-400/30 hover:border-amber-400/50 transition-all duration-300 hover:bg-amber-400/20">
+                              <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-amber-400 to-yellow-400 rounded-full animate-pulse flex-shrink-0"></div>
+                              <span className="text-xs sm:text-sm text-slate-200 font-medium">{feature}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Email</FormLabel>
-                        <FormControl>
-                          <Input placeholder="john.doe@example.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phone Number</FormLabel>
-                        <FormControl>
-                          <Input placeholder="+233 123 456 789" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="guests"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Number of Guests</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="1" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel>Event Date</FormLabel>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={`w-full pl-3 text-left font-normal ${!field.value && "text-muted-foreground"}`}
-                              >
-                                {field.value ? format(field.value, "PPP") : <span>Select date</span>}
-                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={field.onChange}
-                              disabled={(date) => date < new Date()}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="eventType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Event Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select an event type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="compound">Compound Event</SelectItem>
-                            <SelectItem value="conference">Conference Event</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>Select the type of event you would like to host.</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  
+                    {/* Action button */}
+                    <div className="pt-3 sm:pt-4 border-t border-white/10">
+                      <Button 
+                        size="lg" 
+                        className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-900 font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-amber-500/30 border border-amber-300/50 shadow-lg text-sm sm:text-base"
+                        onClick={() => handleBookEvent(event)}
+                      >
+                        <Calendar className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
+                        Book {event.type} Event
+                        <ArrowRight className="ml-2 sm:ml-3 h-4 w-4 sm:h-5 sm:w-5 transition-transform group-hover:translate-x-1" />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-                <Button type="submit" className="w-full">
-                  Reserve Event Space
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Call to Action - Futuristic Design */}
+        <div className="text-center mt-24 animate-fade-in-up">
+          <div className="relative max-w-5xl mx-auto">
+            {/* Glowing background */}
+            <div className="absolute inset-0 bg-gradient-to-r from-amber-400/25 via-yellow-400/25 to-orange-400/25 rounded-3xl blur-2xl"></div>
+            
+            <div className="relative bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-xl rounded-3xl p-12 border border-amber-400/20 shadow-2xl">
+              <div className="flex items-center justify-center mb-8">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-amber-400 to-yellow-400 rounded-full blur-xl opacity-70 animate-glow"></div>
+                  <div className="relative bg-gradient-to-r from-amber-500 to-yellow-500 rounded-full p-6 border border-amber-300/30 shadow-xl">
+                    <Award className="h-12 w-12 text-white" />
+                  </div>
+                </div>
+              </div>
+              
+              <h3 className="text-4xl font-black mb-6 bg-gradient-to-r from-amber-100 via-yellow-100 to-white bg-clip-text text-transparent drop-shadow-lg">
+                Need Custom Planning?
+              </h3>
+              <p className="text-xl text-amber-50 leading-relaxed mb-10 max-w-3xl mx-auto drop-shadow-md">
+                Our expert event coordinators are standing by to bring your vision to life. 
+                Get personalized consultation and tailored packages for your special occasion.
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                <a href="/contact">
+                  <Button size="lg" className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-900 font-bold px-10 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-amber-500/30 border border-amber-300/50 shadow-lg">
+                    <Calendar className="mr-3 h-6 w-6" />
+                    Get Expert Consultation
+                  </Button>
+                </a>
+                <a href="/facilities">
+                  <Button size="lg" variant="outline" className="border-2 border-amber-400/60 text-amber-100 hover:bg-amber-400/20 hover:border-amber-300 font-bold px-10 py-4 rounded-xl transition-all duration-300 backdrop-blur-sm shadow-lg hover:shadow-amber-500/20">
+                    <Sparkles className="mr-3 h-6 w-6" />
+                    Explore All Facilities
+                  </Button>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  )
+
+      {/* Booking Dialog - Dark Theme */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900/95 backdrop-blur-xl border border-amber-400/40 shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-amber-300 to-yellow-300 bg-clip-text text-transparent drop-shadow-lg">
+              Book {selectedEvent?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedEvent && (
+            <EventBookingForm
+              eventId={selectedEvent._id}
+              eventType={selectedEvent.type}
+              price={selectedEvent.price}
+              capacity={selectedEvent.capacity}
+              onSuccess={handleBookingSuccess}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </main>
+  );
 }
