@@ -141,17 +141,17 @@ export default function Home() {
                   <MapPin className="h-5 w-5 text-[#C49B66]" />
                   <span>New Edubiase off Bronikrom road</span>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-                  <Link href="/facilities" className="w-full sm:w-auto">
-                    <Button size="lg" className="w-full sm:w-auto gradient-gold hover:shadow-glow text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105">
-                      <Sparkles className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                      Explore Amenities
+                <div className="flex flex-row gap-3 sm:gap-4">
+                  <Link href="/facilities" className="flex-1 sm:w-auto">
+                    <Button size="lg" className="w-full gradient-gold hover:shadow-glow text-white font-bold px-4 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
+                      <Sparkles className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="hidden xs:inline">Explore </span>Amenities
                     </Button>
                   </Link>
-                  <Link href="/contact" className="w-full sm:w-auto">
-                    <Button size="lg" variant="outline" className="w-full sm:w-auto glass-morphism border-[#C49B66]/30 text-[#C49B66] hover:bg-[#C49B66] hover:text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300">
-                      <MapPin className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                      Get Directions
+                  <Link href="/contact" className="flex-1 sm:w-auto">
+                    <Button size="lg" variant="outline" className="w-full glass-morphism border-[#C49B66]/30 text-[#C49B66] hover:bg-[#C49B66] hover:text-white font-bold px-4 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 text-sm sm:text-base">
+                      <MapPin className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="hidden xs:inline">Get </span>Directions
                     </Button>
                   </Link>
                 </div>
@@ -568,17 +568,17 @@ export default function Home() {
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed mb-8 sm:mb-12">
               Don't wait to experience the pinnacle of luxury and comfort. Book your stay at Hotel 734 today and create memories that will last a lifetime.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center">
-              <Link href="/booking" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full sm:w-auto gradient-gold hover:shadow-glow text-white font-bold px-8 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105">
-                  <Calendar className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
-                  Book Your Stay
-                  <ArrowRight className="ml-2 h-5 w-5 sm:h-6 sm:w-6" />
+            <div className="flex flex-row gap-4 sm:gap-6 justify-center max-w-md mx-auto sm:max-w-none">
+              <Link href="/booking" className="flex-1 sm:w-auto">
+                <Button size="lg" className="w-full gradient-gold hover:shadow-glow text-white font-bold px-4 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
+                  <Calendar className="mr-1 sm:mr-2 h-4 w-4 sm:h-6 sm:w-6" />
+                  <span className="hidden xs:inline">Book Your </span>Stay
+                  <ArrowRight className="ml-1 sm:ml-2 h-4 w-4 sm:h-6 sm:w-6" />
                 </Button>
               </Link>
-              <Link href="/contact" className="w-full sm:w-auto">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto glass-morphism border-[#C49B66]/30 text-[#C49B66] hover:bg-[#C49B66] hover:text-white font-bold px-8 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300">
-                  <Users className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
+              <Link href="/contact" className="flex-1 sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full glass-morphism border-[#C49B66]/30 text-[#C49B66] hover:bg-[#C49B66] hover:text-white font-bold px-4 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 text-sm sm:text-base">
+                  <Users className="mr-1 sm:mr-2 h-4 w-4 sm:h-6 sm:w-6" />
                   Contact Us
                 </Button>
               </Link>
