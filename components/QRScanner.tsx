@@ -32,14 +32,46 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
         throw new Error('Camera API not supported in this browser')
       }
       
-      // Request camera access
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment', // Try to use back camera
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+      // Request camera access with multiple fallback options
+      let mediaStream
+      
+      try {
+        // Try high resolution with back camera first
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: 'environment',
+            width: { ideal: 1920, min: 640 },
+            height: { ideal: 1080, min: 480 }
+          }
+        })
+      } catch (err) {
+        console.log('High-res back camera failed, trying standard back camera:', err)
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          })
+        } catch (err2) {
+          console.log('Back camera failed, trying front camera:', err2)
+          try {
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+              video: { 
+                facingMode: 'user',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+              }
+            })
+          } catch (err3) {
+            console.log('Front camera failed, trying any camera:', err3)
+            mediaStream = await navigator.mediaDevices.getUserMedia({
+              video: true
+            })
+          }
         }
-      })
+      }
       
       setDebugInfo('Camera access granted, setting up video...')
       
@@ -53,10 +85,17 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           console.log('Video loaded, starting QR scan loop')
           setTimeout(() => {
             if (videoRef.current) {
-              setDebugInfo(`Video ready: ${videoRef.current.videoWidth}x${videoRef.current.videoHeight}`)
+              const width = videoRef.current.videoWidth
+              const height = videoRef.current.videoHeight
+              setDebugInfo(`📹 Camera ready: ${width}x${height}px`)
+              console.log('Camera capabilities:', {
+                width,
+                height,
+                readyState: videoRef.current.readyState
+              })
               startScanLoop()
             }
-          }, 500) // Wait 500ms for video to fully initialize
+          }, 1000) // Wait 1 second for video to fully initialize
         }
         
         // Add error handler for video
@@ -130,28 +169,63 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       
       // Update scan count
       setScanCount(prev => prev + 1)
-      setDebugInfo(`Scanning... (${scanCount} attempts)`)
+      setDebugInfo(`Scanning... (${scanCount} attempts) - ${canvas.width}x${canvas.height}`)
       
-      // Try to decode QR code with enhanced options
-      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+      // Try multiple QR detection approaches
+      let code = null
+      
+      // Approach 1: Normal detection
+      code = jsQR(imageData.data, imageData.width, imageData.height, {
         inversionAttempts: 'dontInvert'
       })
       
-      if (code && code.data) {
+      // Approach 2: Try with inversion if first attempt fails
+      if (!code) {
+        code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'onlyInvert'
+        })
+      }
+      
+      // Approach 3: Try with both inversion attempts
+      if (!code) {
+        code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: 'attemptBoth'
+        })
+      }
+      
+      // Approach 4: Try scanning a cropped center area (sometimes helps with focus)
+      if (!code && canvas.width > 200 && canvas.height > 200) {
+        const cropSize = Math.min(canvas.width, canvas.height) * 0.8
+        const cropX = (canvas.width - cropSize) / 2
+        const cropY = (canvas.height - cropSize) / 2
+        
+        const croppedImageData = context.getImageData(cropX, cropY, cropSize, cropSize)
+        code = jsQR(croppedImageData.data, croppedImageData.width, croppedImageData.height, {
+          inversionAttempts: 'attemptBoth'
+        })
+      }
+      
+      if (code && code.data && code.data.trim()) {
         console.log('🎉 QR Code detected:', code.data)
-        setDebugInfo(`QR Code found: ${code.data.substring(0, 20)}...`)
+        console.log('QR Code location:', code.location)
+        setDebugInfo(`✅ QR Code found: ${code.data.substring(0, 30)}...`)
         
         // Prevent duplicate scans
         const now = Date.now()
-        if (now - lastScanTime.current > 1000) {
+        if (now - lastScanTime.current > 500) { // Reduced to 500ms for faster response
           lastScanTime.current = now
-          onScan(code.data)
+          onScan(code.data.trim())
           stopScanning()
+        }
+      } else {
+        // Show more detailed debug info
+        if (scanCount % 20 === 0) { // Every 20 scans, show detailed info
+          console.log('QR scan attempt:', scanCount, 'Canvas:', canvas.width + 'x' + canvas.height)
         }
       }
     } catch (error) {
       console.error('Scan error:', error)
-      setDebugInfo('Scan error occurred')
+      setDebugInfo(`Scan error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }, [isScanning, scanCount, onScan])
   
@@ -164,7 +238,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     
     scanIntervalRef.current = setInterval(() => {
       scanForQR()
-    }, 150) // Scan every 150ms for better performance
+    }, 100) // Scan every 100ms for faster detection
   }, [scanForQR])
 
 

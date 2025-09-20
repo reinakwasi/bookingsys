@@ -1579,42 +1579,77 @@ export default function AdminDashboard() {
                     
                     {/* Test Button for the ticket from the image */}
                     <div className="mt-3 pt-3 border-t border-emerald-100 space-y-2">
-                      <p className="text-xs text-emerald-600 font-medium mb-2">Test Validation:</p>
+                      <p className="text-xs text-emerald-600 font-medium mb-2">Quick Test Validation:</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         <Button 
                           onClick={(e) => {
                             e.preventDefault();
-                            console.log('TEST BUTTON CLICKED - Setting qrCode to TKT-1757889231-001');
+                            console.log('📝 TEST: Validating TKT-1757889231-001');
                             setQrCode('TKT-1757889231-001');
-                            setTimeout(() => {
-                              console.log('Calling handleValidateTicket with TKT-1757889231-001');
-                              handleValidateTicket('TKT-1757889231-001');
-                            }, 100);
+                            handleValidateTicket('TKT-1757889231-001');
                           }}
                           variant="outline"
                           size="sm"
-                          className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full"
+                          className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full font-medium"
                           type="button"
                         >
-                          Test: TKT-1757889231-001
+                          🎫 Test Ticket #001
                         </Button>
                         <Button 
                           onClick={(e) => {
                             e.preventDefault();
-                            console.log('TEST BUTTON 2 CLICKED - Setting qrCode to TKT-1757889232-002');
+                            console.log('📝 TEST: Validating TKT-1757889232-002');
                             setQrCode('TKT-1757889232-002');
-                            setTimeout(() => {
-                              console.log('Calling handleValidateTicket with TKT-1757889232-002');
-                              handleValidateTicket('TKT-1757889232-002');
-                            }, 100);
+                            handleValidateTicket('TKT-1757889232-002');
                           }}
                           variant="outline"
                           size="sm"
-                          className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full"
+                          className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full font-medium"
                           type="button"
                         >
-                          Test: TKT-1757889232-002
+                          🎫 Test Ticket #002
                         </Button>
+                      </div>
+                      <div className="mt-2 p-2 bg-emerald-50 rounded text-xs text-emerald-700">
+                        💡 <strong>Tip:</strong> Use these buttons to test validation, or scan any QR code with the camera above.
+                      </div>
+                      
+                      {/* Manual QR Test Input */}
+                      <div className="mt-3 pt-3 border-t border-emerald-100">
+                        <Label className="text-xs text-emerald-600 font-medium">Manual QR Test:</Label>
+                        <div className="mt-1 flex gap-2">
+                          <Input
+                            placeholder="Paste QR code content here"
+                            className="text-xs flex-1"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const value = (e.target as HTMLInputElement).value.trim()
+                                if (value) {
+                                  console.log('📝 MANUAL TEST: Validating', value)
+                                  setQrCode(value)
+                                  handleValidateTicket(value)
+                                }
+                              }
+                            }}
+                          />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs px-2"
+                            onClick={(e) => {
+                              const input = e.currentTarget.parentElement?.querySelector('input') as HTMLInputElement
+                              const value = input?.value.trim()
+                              if (value) {
+                                console.log('📝 MANUAL TEST: Validating', value)
+                                setQrCode(value)
+                                handleValidateTicket(value)
+                              }
+                            }}
+                          >
+                            Test
+                          </Button>
+                        </div>
+                        <p className="text-xs text-emerald-600 mt-1">Enter any QR code content and press Enter or click Test</p>
                       </div>
                     </div>
                   </div>
