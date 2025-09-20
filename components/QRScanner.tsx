@@ -13,11 +13,13 @@ interface QRScannerProps {
 export function QRScanner({ onScan, onError }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const debugCanvasRef = useRef<HTMLCanvasElement>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [error, setError] = useState<string>('')
   const [debugInfo, setDebugInfo] = useState<string>('')
   const [scanCount, setScanCount] = useState(0)
+  const [showDebugCanvas, setShowDebugCanvas] = useState(false)
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
   const lastScanTime = useRef<number>(0)
 
@@ -153,56 +155,85 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     
     try {
       // Set canvas size to match video
-      canvas.width = video.videoWidth
-      canvas.height = video.videoHeight
+      const videoWidth = video.videoWidth
+      const videoHeight = video.videoHeight
       
-      if (canvas.width === 0 || canvas.height === 0) {
+      if (videoWidth === 0 || videoHeight === 0) {
         setDebugInfo('Invalid video dimensions')
         return
       }
       
-      // Draw video frame to canvas
+      canvas.width = videoWidth
+      canvas.height = videoHeight
+      
+      // Clear canvas and draw video frame
+      context.clearRect(0, 0, canvas.width, canvas.height)
       context.drawImage(video, 0, 0, canvas.width, canvas.height)
       
-      // Get image data
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+      // Update debug canvas if enabled
+      if (showDebugCanvas && debugCanvasRef.current) {
+        const debugCanvas = debugCanvasRef.current
+        const debugContext = debugCanvas.getContext('2d')
+        if (debugContext) {
+          debugCanvas.width = Math.min(canvas.width, 400)
+          debugCanvas.height = Math.min(canvas.height, 300)
+          debugContext.drawImage(canvas, 0, 0, debugCanvas.width, debugCanvas.height)
+        }
+      }
       
       // Update scan count
-      setScanCount(prev => prev + 1)
-      setDebugInfo(`Scanning... (${scanCount} attempts) - ${canvas.width}x${canvas.height}`)
+      const currentScanCount = scanCount + 1
+      setScanCount(currentScanCount)
+      setDebugInfo(`🔍 Scanning... (${currentScanCount} attempts) - ${canvas.width}x${canvas.height}`)
       
-      // Try multiple QR detection approaches
+      // Get image data for the entire canvas
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+      
+      // Try to decode QR code with jsQR
       let code = null
       
-      // Approach 1: Normal detection
-      code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'dontInvert'
-      })
+      // Method 1: Standard detection
+      code = jsQR(imageData.data, imageData.width, imageData.height)
       
-      // Approach 2: Try with inversion if first attempt fails
+      // Method 2: Try with different scan regions if no code found
       if (!code) {
-        code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: 'onlyInvert'
-        })
-      }
-      
-      // Approach 3: Try with both inversion attempts
-      if (!code) {
-        code = jsQR(imageData.data, imageData.width, imageData.height, {
-          inversionAttempts: 'attemptBoth'
-        })
-      }
-      
-      // Approach 4: Try scanning a cropped center area (sometimes helps with focus)
-      if (!code && canvas.width > 200 && canvas.height > 200) {
-        const cropSize = Math.min(canvas.width, canvas.height) * 0.8
-        const cropX = (canvas.width - cropSize) / 2
-        const cropY = (canvas.height - cropSize) / 2
+        // Try scanning different regions of the image
+        const regions = [
+          // Full image
+          { x: 0, y: 0, w: canvas.width, h: canvas.height },
+          // Center 80%
+          { 
+            x: Math.floor(canvas.width * 0.1), 
+            y: Math.floor(canvas.height * 0.1), 
+            w: Math.floor(canvas.width * 0.8), 
+            h: Math.floor(canvas.height * 0.8) 
+          },
+          // Center 60%
+          { 
+            x: Math.floor(canvas.width * 0.2), 
+            y: Math.floor(canvas.height * 0.2), 
+            w: Math.floor(canvas.width * 0.6), 
+            h: Math.floor(canvas.height * 0.6) 
+          }
+        ]
         
-        const croppedImageData = context.getImageData(cropX, cropY, cropSize, cropSize)
-        code = jsQR(croppedImageData.data, croppedImageData.width, croppedImageData.height, {
-          inversionAttempts: 'attemptBoth'
-        })
+        for (const region of regions) {
+          if (region.w > 50 && region.h > 50) { // Minimum size check
+            const regionImageData = context.getImageData(region.x, region.y, region.w, region.h)
+            code = jsQR(regionImageData.data, regionImageData.width, regionImageData.height)
+            if (code) {
+              console.log(`QR found in region: ${region.x},${region.y} ${region.w}x${region.h}`)
+              break
+            }
+          }
+        }
+      }
+      
+      // Method 3: Try with image preprocessing if still no code
+      if (!code) {
+        // Enhance contrast
+        const enhancedImageData = enhanceImageContrast(imageData)
+        code = jsQR(enhancedImageData.data, enhancedImageData.width, enhancedImageData.height)
       }
       
       if (code && code.data && code.data.trim()) {
@@ -212,15 +243,20 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
         
         // Prevent duplicate scans
         const now = Date.now()
-        if (now - lastScanTime.current > 500) { // Reduced to 500ms for faster response
+        if (now - lastScanTime.current > 300) {
           lastScanTime.current = now
           onScan(code.data.trim())
           stopScanning()
         }
       } else {
-        // Show more detailed debug info
-        if (scanCount % 20 === 0) { // Every 20 scans, show detailed info
-          console.log('QR scan attempt:', scanCount, 'Canvas:', canvas.width + 'x' + canvas.height)
+        // Show debug info every 30 scans
+        if (currentScanCount % 30 === 0) {
+          console.log(`QR scan attempt ${currentScanCount}: No QR code found in ${canvas.width}x${canvas.height} image`)
+          
+          // Log a sample of the image data to verify we're getting video frames
+          const sampleData = imageData.data.slice(0, 100)
+          const hasVariation = new Set(sampleData).size > 10
+          console.log('Image data variation:', hasVariation ? 'Good' : 'Poor (static image?)')
         }
       }
     } catch (error) {
@@ -228,6 +264,25 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       setDebugInfo(`Scan error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }, [isScanning, scanCount, onScan])
+  
+  // Helper function to enhance image contrast
+  const enhanceImageContrast = (imageData: ImageData): ImageData => {
+    const data = new Uint8ClampedArray(imageData.data)
+    const factor = 1.5 // Contrast factor
+    
+    for (let i = 0; i < data.length; i += 4) {
+      // Convert to grayscale and enhance contrast
+      const gray = (data[i] + data[i + 1] + data[i + 2]) / 3
+      const enhanced = Math.min(255, Math.max(0, (gray - 128) * factor + 128))
+      
+      data[i] = enhanced     // R
+      data[i + 1] = enhanced // G
+      data[i + 2] = enhanced // B
+      // Alpha stays the same
+    }
+    
+    return new ImageData(data, imageData.width, imageData.height)
+  }
   
   const startScanLoop = useCallback(() => {
     if (scanIntervalRef.current) {
@@ -238,7 +293,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     
     scanIntervalRef.current = setInterval(() => {
       scanForQR()
-    }, 100) // Scan every 100ms for faster detection
+    }, 200) // Scan every 200ms to reduce CPU load while maintaining responsiveness
   }, [scanForQR])
 
 
@@ -286,6 +341,15 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           ref={canvasRef}
           className="hidden"
         />
+        
+        {/* Debug canvas for troubleshooting */}
+        {showDebugCanvas && (
+          <canvas
+            ref={debugCanvasRef}
+            className="absolute top-2 right-2 border-2 border-yellow-400 bg-black/80 rounded"
+            style={{ width: '120px', height: '90px' }}
+          />
+        )}
         
         {!isScanning && (
           <div className="w-full h-80 bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center">
@@ -339,11 +403,19 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       )}
       
       {isScanning && (
-        <div className="text-center">
+        <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-2 text-emerald-600 text-sm font-medium">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
             Scanning for QR codes... ({scanCount} attempts)
           </div>
+          <Button
+            onClick={() => setShowDebugCanvas(!showDebugCanvas)}
+            variant="outline"
+            size="sm"
+            className="text-xs border-yellow-300 text-yellow-700 hover:bg-yellow-50"
+          >
+            {showDebugCanvas ? 'Hide' : 'Show'} Debug View
+          </Button>
         </div>
       )}
 
