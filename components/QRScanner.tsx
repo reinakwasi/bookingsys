@@ -21,15 +21,27 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
   const startScanning = async () => {
     try {
       setError('')
-      console.log('Starting camera...')
+      console.log('📹 Starting camera for QR scanning...')
       
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment', // Use back camera
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        }
-      })
+      // Try to get camera with back camera preference
+      let mediaStream
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: 'environment', // Back camera
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
+          }
+        })
+      } catch (backCameraError) {
+        console.log('Back camera failed, trying front camera')
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            width: { ideal: 1280, min: 640 },
+            height: { ideal: 720, min: 480 }
+          }
+        })
+      }
       
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream
@@ -38,14 +50,22 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
         
         // Start scanning when video is ready
         videoRef.current.onloadedmetadata = () => {
-          console.log('Video ready, starting scan loop')
+          console.log('✅ Camera ready, starting QR scan loop')
+          console.log('Video dimensions:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight)
           startScanLoop()
+        }
+        
+        // Handle video errors
+        videoRef.current.onerror = (e) => {
+          console.error('Video error:', e)
+          setError('Video playback failed')
+          setIsScanning(false)
         }
       }
       
     } catch (err) {
       console.error('Camera error:', err)
-      const errorMsg = 'Camera access denied or not available'
+      const errorMsg = 'Camera access denied. Please allow camera access and try again.'
       setError(errorMsg)
       onError?.(errorMsg)
     }
@@ -76,19 +96,35 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     const context = canvas.getContext('2d')
     if (!context) return
     
-    // Set canvas size and draw video frame
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    context.drawImage(video, 0, 0, canvas.width, canvas.height)
-    
-    // Get image data and try to decode QR
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
-    const code = jsQR(imageData.data, imageData.width, imageData.height)
-    
-    if (code && code.data) {
-      console.log('QR Code detected:', code.data)
-      onScan(code.data)
-      stopScanning()
+    try {
+      // Set canvas size and draw video frame
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      context.drawImage(video, 0, 0, canvas.width, canvas.height)
+      
+      // Get image data and try to decode QR
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+      
+      // Try to decode QR code with jsQR
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: 'attemptBoth'
+      })
+      
+      if (code && code.data && code.data.trim()) {
+        const qrData = code.data.trim()
+        console.log('🎉 QR Code detected:', qrData)
+        
+        // Validate that it looks like a ticket number or contains ticket info
+        if (qrData.includes('TKT-') || qrData.length > 5) {
+          console.log('✅ Valid ticket QR code detected')
+          onScan(qrData)
+          stopScanning()
+        } else {
+          console.log('⚠️ QR code detected but doesn\'t look like a ticket:', qrData)
+        }
+      }
+    } catch (error) {
+      console.error('QR scan error:', error)
     }
   }
   
@@ -97,7 +133,8 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       clearInterval(scanIntervalRef.current)
     }
     
-    scanIntervalRef.current = setInterval(scanForQR, 100) // Scan every 100ms
+    console.log('🔍 Starting QR scan loop...')
+    scanIntervalRef.current = setInterval(scanForQR, 150) // Scan every 150ms for better performance
   }
 
 

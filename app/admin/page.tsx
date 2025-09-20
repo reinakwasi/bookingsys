@@ -1651,6 +1651,73 @@ export default function AdminDashboard() {
                         </div>
                         <p className="text-xs text-emerald-600 mt-1">Enter any QR code content and press Enter or click Test</p>
                       </div>
+                      
+                      {/* QR Code Generator for Testing */}
+                      <div className="mt-3 pt-3 border-t border-emerald-100">
+                        <Label className="text-xs text-emerald-600 font-medium mb-2 block">Test QR Code Generator:</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
+                            onClick={() => {
+                              const canvas = document.createElement('canvas')
+                              const ctx = canvas.getContext('2d')
+                              if (ctx) {
+                                canvas.width = 200
+                                canvas.height = 200
+                                
+                                // Create a simple QR-like pattern for TKT-1757889231-001
+                                ctx.fillStyle = '#000'
+                                ctx.fillRect(0, 0, 200, 200)
+                                ctx.fillStyle = '#fff'
+                                
+                                // Create pattern
+                                for(let i = 0; i < 20; i++) {
+                                  for(let j = 0; j < 20; j++) {
+                                    if((i + j) % 3 === 0) {
+                                      ctx.fillRect(i * 10, j * 10, 8, 8)
+                                    }
+                                  }
+                                }
+                                
+                                // Open in new window
+                                const newWindow = window.open('', '_blank', 'width=300,height=350')
+                                if (newWindow) {
+                                  newWindow.document.write(`
+                                    <html>
+                                      <head><title>Test QR Code - TKT-1757889231-001</title></head>
+                                      <body style="text-align:center; padding:20px; font-family:Arial;">
+                                        <h3>Test QR Code</h3>
+                                        <p><strong>TKT-1757889231-001</strong></p>
+                                        <div style="font-size:200px; line-height:1;">⬛</div>
+                                        <p style="font-size:12px; color:#666;">Point your camera at this window to test QR scanning</p>
+                                        <p style="font-size:10px; margin-top:20px;">This is a visual placeholder. Use a real QR generator for actual QR codes.</p>
+                                      </body>
+                                    </html>
+                                  `)
+                                }
+                              }
+                            }}
+                          >
+                            📱 Generate QR #001
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
+                            onClick={() => {
+                              // Open QR generator website
+                              window.open('https://qr-code-generator.com/', '_blank')
+                            }}
+                          >
+                            🌐 Online QR Generator
+                          </Button>
+                        </div>
+                        <p className="text-xs text-blue-600 mt-1">
+                          Generate QR codes containing "TKT-1757889231-001" or "TKT-1757889232-002" to test scanning
+                        </p>
+                      </div>
                     </div>
                   </div>
 
