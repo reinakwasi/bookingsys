@@ -22,6 +22,55 @@ export class AdminAuthService {
    */
   static async login(username: string, password: string): Promise<LoginResult> {
     try {
+      console.log('🔐 AdminAuthService: Attempting login for:', username);
+      
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const result = await response.json();
+      console.log('📊 Login API response:', result);
+
+      if (!response.ok) {
+        console.error('❌ Login API error:', result);
+        return {
+          success: false,
+          error: result.error || 'Authentication failed. Please try again.',
+          isLocked: result.isLocked
+        };
+      }
+
+      if (!result.success) {
+        return {
+          success: false,
+          error: result.error || 'Invalid username or password.'
+        };
+      }
+
+      console.log('✅ Login successful for:', result.user.username);
+      return {
+        success: true,
+        user: result.user
+      };
+
+    } catch (error) {
+      console.error('💥 AdminAuthService login error:', error);
+      return {
+        success: false,
+        error: 'Network error. Please check your connection and try again.'
+      };
+    }
+  }
+
+  /**
+   * Legacy Supabase RPC method (kept as fallback)
+   */
+  static async loginDirect(username: string, password: string): Promise<LoginResult> {
+    try {
       const { data, error } = await supabase.rpc('verify_admin_login', {
         p_username: username,
         p_password: password
