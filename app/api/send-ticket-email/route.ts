@@ -5,9 +5,28 @@ export async function POST(request: NextRequest) {
   try {
     const { purchase_id, access_token, customer_email, customer_name } = await request.json()
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-    const ticketUrl = `${baseUrl}/my-tickets/${access_token}`
+    // Get the proper base URL for the email link
+    let baseUrl;
+    
+    if (process.env.NEXT_PUBLIC_APP_URL) {
+      // Use the explicitly set app URL
+      baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+    } else if (process.env.VERCEL_URL) {
+      // Use Vercel's automatically provided URL
+      baseUrl = `https://${process.env.VERCEL_URL}`;
+    } else {
+      // Fallback for local development
+      baseUrl = 'http://localhost:3000';
+    }
+    
+    const ticketUrl = `${baseUrl}/my-tickets/${access_token}`;
+    
+    console.log('🔗 Generated ticket URL:', ticketUrl);
+    console.log('📧 Environment check:', {
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ? 'SET' : 'NOT SET',
+      VERCEL_URL: process.env.VERCEL_URL ? 'SET' : 'NOT SET',
+      baseUrl
+    });
     
     // Check for required email credentials
     const emailUser = process.env.GMAIL_USER || process.env.SMTP_USER
