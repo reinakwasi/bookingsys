@@ -165,8 +165,10 @@ export default function TicketsPage() {
   const handlePaymentError = (error: string) => {
     setShowPaymentModal(false);
     toast.error(error);
-    // Reopen the purchase dialog
-    setIsPurchaseDialogOpen(true);
+    // Reopen the purchase dialog after a short delay
+    setTimeout(() => {
+      setIsPurchaseDialogOpen(true);
+    }, 300);
   };
 
   const formatDate = (dateString: string) => {
@@ -595,7 +597,7 @@ export default function TicketsPage() {
           isOpen={showPaymentModal}
           onClose={() => {
             setShowPaymentModal(false);
-            setIsPurchaseDialogOpen(true); // Reopen form if payment is cancelled
+            // Don't immediately reopen the purchase dialog to avoid conflicts
           }}
           ticketDetails={{
             id: selectedTicket.id,

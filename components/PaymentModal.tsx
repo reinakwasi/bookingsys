@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Shield, Lock, CheckCircle, X, Loader2 } from "lucide-react";
 import { PaystackService } from "@/lib/paystack";
@@ -63,6 +63,12 @@ export default function PaymentModal({
 
       const initResponse = await PaystackService.initializePayment(paymentData);
 
+      // Close our modal first to avoid z-index conflicts
+      onClose();
+      
+      // Small delay to ensure our modal closes before Paystack opens
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // Open Paystack modal with custom styling
       await PaystackService.openPaymentModal({
         key: '',
@@ -72,16 +78,12 @@ export default function PaymentModal({
         ref: initResponse.data.reference,
         metadata: paymentData.metadata,
         callback: async (response: any) => {
-          setPaymentStep('success');
-          setTimeout(() => {
-            onPaymentSuccess(response.reference);
-            onClose();
-          }, 1500);
+          onPaymentSuccess(response.reference);
         },
         onClose: () => {
           setIsProcessing(false);
           setPaymentStep('confirm');
-          onClose();
+          // Don't call onClose here as it might reopen the purchase form
         }
       });
 
@@ -95,7 +97,8 @@ export default function PaymentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto p-0">
+      <DialogContent className="w-[95vw] max-w-md mx-auto max-h-[90vh] overflow-y-auto p-0 z-[100]">
+        <DialogTitle className="sr-only">Hotel 734 Secure Payment</DialogTitle>
         <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-lg overflow-hidden">
           {/* Header with Hotel 734 branding */}
           <div className="relative bg-gradient-to-r from-amber-600 to-yellow-600 p-6 text-white">
