@@ -54,33 +54,19 @@ export async function POST(request: NextRequest) {
       
       // Check if the function doesn't exist (error code 42883)
       if (error.code === '42883' || error.message?.includes('function') || error.message?.includes('does not exist')) {
-        console.log('🔄 Database function not found, using fallback authentication...')
-        
-        // Fallback authentication for deployment
-        if (username === 'admin' && password === 'Hotel734!SecureAdmin2024') {
-          console.log('✅ Fallback authentication successful')
-          return NextResponse.json({
-            success: true,
-            user: {
-              id: 'fallback-admin-id',
-              username: 'admin',
-              email: 'admin@hotel734.com',
-              full_name: 'Hotel 734 Administrator',
-              last_login: new Date().toISOString()
-            },
-            fallback: true
-          })
-        } else {
-          console.log('❌ Fallback authentication failed')
-          return NextResponse.json(
-            { 
-              success: false, 
-              error: 'Invalid username or password. (Using fallback auth - please run database migration)',
-              fallback: true
-            },
-            { status: 401 }
-          )
-        }
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: 'Database function not found. Please run the admin users migration in Supabase SQL Editor.',
+            debug: {
+              errorCode: error.code,
+              errorMessage: error.message,
+              migrationRequired: true,
+              migrationFile: 'migration-admin-users.sql'
+            }
+          },
+          { status: 500 }
+        )
       }
       
       return NextResponse.json(
@@ -129,11 +115,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       user: {
-        id: adminData.id,
+        id: adminData.admin_id,
         username: adminData.username,
         email: adminData.email,
         full_name: adminData.full_name,
-        last_login: adminData.last_login
+        last_login: new Date().toISOString()
       }
     })
 

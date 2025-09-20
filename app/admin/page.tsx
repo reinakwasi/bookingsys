@@ -1516,41 +1516,41 @@ export default function AdminDashboard() {
 
         {/* Ticket Validation */}
         {activeMenu === 'ticket-validation' && (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="font-bold text-2xl text-[#1a233b]">Ticket Validation</h2>
-              <Button onClick={resetValidation} variant="outline">
+          <div className="space-y-4 sm:space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="font-bold text-xl sm:text-2xl text-[#1a233b]">Ticket Validation</h2>
+              <Button onClick={resetValidation} variant="outline" className="w-full sm:w-auto">
                 <Scan className="h-4 w-4 mr-2" />
                 New Scan
               </Button>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               {/* Ticket Validation */}
-              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl shadow-xl border border-emerald-100 p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-emerald-900 flex items-center gap-2">
-                    <QrCode className="h-6 w-6 text-emerald-600" />
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl shadow-xl border border-emerald-100 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+                  <h3 className="text-lg sm:text-xl font-bold text-emerald-900 flex items-center gap-2">
+                    <QrCode className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
                     Ticket Validation
                   </h3>
-                  <div className="bg-emerald-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                  <div className="bg-emerald-600 text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium self-start sm:self-auto">
                     Admin Only
                   </div>
                 </div>
                 
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Manual Entry */}
-                  <div className="bg-white rounded-xl p-4 shadow-sm border border-emerald-100">
-                    <Label htmlFor="ticket-input" className="text-emerald-900 font-medium">
+                  <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-emerald-100">
+                    <Label htmlFor="ticket-input" className="text-emerald-900 font-medium text-sm sm:text-base">
                       Enter Ticket Number
                     </Label>
-                    <div className="mt-2 flex gap-2">
+                    <div className="mt-2 flex flex-col sm:flex-row gap-2">
                       <Input
                         id="ticket-input"
                         value={qrCode}
                         onChange={(e) => setQrCode(e.target.value)}
                         placeholder="Enter ticket number (e.g., TKT-123456)"
-                        className="flex-1 border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500"
+                        className="flex-1 border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500 text-sm sm:text-base"
                       />
                       <Button 
                         onClick={(e) => {
@@ -1560,7 +1560,7 @@ export default function AdminDashboard() {
                           handleValidateTicket();
                         }}
                         disabled={isValidating || !qrCode.trim()}
-                        className="bg-emerald-600 hover:bg-emerald-700 px-6"
+                        className="bg-emerald-600 hover:bg-emerald-700 px-4 sm:px-6 w-full sm:w-auto"
                         type="button"
                       >
                         {isValidating ? (
@@ -1578,59 +1578,62 @@ export default function AdminDashboard() {
                     </p>
                     
                     {/* Test Button for the ticket from the image */}
-                    <div className="mt-3 pt-3 border-emerald-100 space-y-2">
-                      <Button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          console.log('TEST BUTTON CLICKED - Setting qrCode to TKT-1757889231-001');
-                          setQrCode('TKT-1757889231-001');
-                          setTimeout(() => {
-                            console.log('Calling handleValidateTicket with TKT-1757889231-001');
-                            handleValidateTicket('TKT-1757889231-001');
-                          }, 100);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full"
-                        type="button"
-                      >
-                        Test with: TKT-1757889231-001
-                      </Button>
-                      <Button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          console.log('TEST BUTTON 2 CLICKED - Setting qrCode to TKT-1757889232-002');
-                          setQrCode('TKT-1757889232-002');
-                          setTimeout(() => {
-                            console.log('Calling handleValidateTicket with TKT-1757889232-002');
-                            handleValidateTicket('TKT-1757889232-002');
-                          }, 100);
-                        }}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full"
-                        type="button"
-                      >
-                        Test with: TKT-1757889232-002
-                      </Button>
+                    <div className="mt-3 pt-3 border-t border-emerald-100 space-y-2">
+                      <p className="text-xs text-emerald-600 font-medium mb-2">Test Validation:</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <Button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            console.log('TEST BUTTON CLICKED - Setting qrCode to TKT-1757889231-001');
+                            setQrCode('TKT-1757889231-001');
+                            setTimeout(() => {
+                              console.log('Calling handleValidateTicket with TKT-1757889231-001');
+                              handleValidateTicket('TKT-1757889231-001');
+                            }, 100);
+                          }}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full"
+                          type="button"
+                        >
+                          Test: TKT-1757889231-001
+                        </Button>
+                        <Button 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            console.log('TEST BUTTON 2 CLICKED - Setting qrCode to TKT-1757889232-002');
+                            setQrCode('TKT-1757889232-002');
+                            setTimeout(() => {
+                              console.log('Calling handleValidateTicket with TKT-1757889232-002');
+                              handleValidateTicket('TKT-1757889232-002');
+                            }, 100);
+                          }}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full"
+                          type="button"
+                        >
+                          Test: TKT-1757889232-002
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
                   {/* QR Scanner */}
-                  <div className="bg-white rounded-xl p-4 shadow-sm border border-emerald-100">
-                    <div className="flex items-center justify-between mb-3">
-                      <Label className="text-emerald-900 font-medium">QR Code Scanner</Label>
-                      <div className="text-xs text-emerald-600 bg-emerald-100 px-2 py-1 rounded">
+                  <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-emerald-100">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+                      <Label className="text-emerald-900 font-medium text-sm sm:text-base">QR Code Scanner</Label>
+                      <div className="text-xs text-emerald-600 bg-emerald-100 px-2 py-1 rounded self-start sm:self-auto">
                         Camera Required
                       </div>
                     </div>
                     
                     {!isScanning ? (
-                      <div className="bg-gray-100 rounded-lg p-8 text-center">
-                        <Camera className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                        <p className="text-gray-600 mb-4">Point camera at QR code to scan</p>
+                      <div className="bg-gray-100 rounded-lg p-6 sm:p-8 text-center">
+                        <Camera className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3" />
+                        <p className="text-gray-600 mb-4 text-sm sm:text-base">Point camera at QR code to scan</p>
                         <Button 
-                          className="bg-emerald-600 hover:bg-emerald-700"
+                          className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-auto"
                           onClick={() => setIsScanning(true)}
                         >
                           <Camera className="h-4 w-4 mr-2" />
@@ -1665,15 +1668,15 @@ export default function AdminDashboard() {
               </div>
 
               {/* Validation Result */}
-              <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl border border-gray-100 p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-gray-900">Validation Result</h3>
+              <div className="bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-xl border border-gray-100 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900">Validation Result</h3>
                   {validationResult && (
                     <Button 
                       onClick={resetValidation}
                       variant="outline"
                       size="sm"
-                      className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                      className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full sm:w-auto"
                     >
                       Clear Result
                     </Button>
@@ -1681,32 +1684,32 @@ export default function AdminDashboard() {
                 </div>
                 
                 {!validationResult ? (
-                  <div className="text-center py-12">
-                    <div className="bg-emerald-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
-                      <QrCode className="h-10 w-10 text-emerald-600" />
+                  <div className="text-center py-8 sm:py-12">
+                    <div className="bg-emerald-100 rounded-full w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center mx-auto mb-4">
+                      <QrCode className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-600" />
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Ready to Validate</h4>
-                    <p className="text-gray-600">Enter ticket number or scan QR code to validate entry</p>
+                    <h4 className="font-semibold text-gray-900 mb-2 text-sm sm:text-base">Ready to Validate</h4>
+                    <p className="text-gray-600 text-sm sm:text-base px-4">Enter ticket number or scan QR code to validate entry</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
                     {validationResult.success ? (
-                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6">
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-4 sm:p-6">
                         <div className="flex items-center gap-3 mb-4">
-                          <div className="bg-green-600 rounded-full p-2">
-                            <CheckCircle className="h-6 w-6 text-white" />
+                          <div className="bg-green-600 rounded-full p-2 flex-shrink-0">
+                            <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                           </div>
-                          <div>
-                            <h4 className="font-bold text-green-900 text-lg">✅ VALID TICKET</h4>
-                            <p className="text-green-700">Entry approved - Welcome to the event!</p>
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-green-900 text-base sm:text-lg">✅ VALID TICKET</h4>
+                            <p className="text-green-700 text-sm sm:text-base">Entry approved - Welcome to the event!</p>
                           </div>
                         </div>
                         
-                        <div className="bg-white rounded-lg p-4 space-y-3">
-                          <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="bg-white rounded-lg p-3 sm:p-4 space-y-3">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
                             <div>
                               <span className="text-gray-600">Event:</span>
-                              <p className="font-semibold text-gray-900">{validationResult.ticket?.event?.title || validationResult.ticket?.event?.name}</p>
+                              <p className="font-semibold text-gray-900 break-words">{validationResult.ticket?.event?.title || validationResult.ticket?.event?.name}</p>
                             </div>
                             <div>
                               <span className="text-gray-600">Date & Time:</span>
@@ -1731,14 +1734,14 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     ) : (
-                      <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-xl p-6">
+                      <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-xl p-4 sm:p-6">
                         <div className="flex items-center gap-3 mb-4">
-                          <div className="bg-red-600 rounded-full p-2">
-                            <XCircle className="h-6 w-6 text-white" />
+                          <div className="bg-red-600 rounded-full p-2 flex-shrink-0">
+                            <XCircle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                           </div>
-                          <div>
-                            <h4 className="font-bold text-red-900 text-lg">❌ INVALID TICKET</h4>
-                            <p className="text-red-700">Entry denied - Please check ticket details</p>
+                          <div className="min-w-0">
+                            <h4 className="font-bold text-red-900 text-base sm:text-lg">❌ INVALID TICKET</h4>
+                            <p className="text-red-700 text-sm sm:text-base break-words">{validationResult.message || validationResult.error || 'Ticket validation failed'}</p>
                           </div>
                         </div>
                         
