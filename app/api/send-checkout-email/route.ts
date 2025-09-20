@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    const reviewUrl = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/review?booking=${bookingId}`;
+    const reviewUrl = `${process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000'}/review?booking=${bookingId}`;
 
     // Get booking details to determine if it's room or event
     const { data: booking } = await supabase

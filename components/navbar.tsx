@@ -61,9 +61,9 @@ const Navbar = memo(function Navbar() {
             <Button 
               variant="outline" 
               size="icon" 
-              className="border-white/20 text-white/80 hover:bg-white/10 hover:text-white transition-all duration-300"
+              className="border-white/40 bg-white/10 text-white hover:bg-white/20 hover:text-white transition-all duration-300 shadow-lg"
             >
-              <Menu className="h-5 w-5" />
+              <Menu className="h-6 w-6" />
               <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
