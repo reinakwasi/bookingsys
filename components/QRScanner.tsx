@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
-import { Camera, CameraOff, RotateCcw } from 'lucide-react'
+import { Camera, CameraOff, RotateCcw, Zap } from 'lucide-react'
 import jsQR from 'jsqr'
 
 interface QRScannerProps {
@@ -17,7 +17,9 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
   const [stream, setStream] = useState<MediaStream | null>(null)
   const [error, setError] = useState<string>('')
   const [debugInfo, setDebugInfo] = useState<string>('')
+  const [scanCount, setScanCount] = useState(0)
   const scanIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const lastScanTime = useRef<number>(0)
 
   const startScanning = async () => {
     try {
@@ -49,8 +51,12 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
         // Wait for video to be ready and start scanning
         videoRef.current.onloadedmetadata = () => {
           console.log('Video loaded, starting QR scan loop')
-          setDebugInfo(`Video ready: ${videoRef.current?.videoWidth}x${videoRef.current?.videoHeight}`)
-          startScanLoop()
+          setTimeout(() => {
+            if (videoRef.current) {
+              setDebugInfo(`Video ready: ${videoRef.current.videoWidth}x${videoRef.current.videoHeight}`)
+              startScanLoop()
+            }
+          }, 500) // Wait 500ms for video to fully initialize
         }
         
         // Add error handler for video
@@ -91,47 +97,75 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     setDebugInfo('')
   }
   
-  const startScanLoop = () => {
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current)
-    }
-    
-    scanIntervalRef.current = setInterval(() => {
-      scanForQR()
-    }, 100) // Scan every 100ms
-  }
-  
-  const scanForQR = () => {
+  const scanForQR = useCallback(() => {
     const video = videoRef.current
     const canvas = canvasRef.current
     
     if (!video || !canvas || !isScanning) return
     
     // Check if video is ready
-    if (video.readyState !== video.HAVE_ENOUGH_DATA) return
+    if (video.readyState !== video.HAVE_ENOUGH_DATA) {
+      setDebugInfo('Video not ready...')
+      return
+    }
     
     const context = canvas.getContext('2d')
     if (!context) return
     
-    // Set canvas size to match video
-    canvas.width = video.videoWidth
-    canvas.height = video.videoHeight
-    
-    // Draw video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height)
-    
-    // Get image data
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
-    
-    // Try to decode QR code
-    const code = jsQR(imageData.data, imageData.width, imageData.height)
-    
-    if (code) {
-      console.log('QR Code detected:', code.data)
-      onScan(code.data)
-      stopScanning()
+    try {
+      // Set canvas size to match video
+      canvas.width = video.videoWidth
+      canvas.height = video.videoHeight
+      
+      if (canvas.width === 0 || canvas.height === 0) {
+        setDebugInfo('Invalid video dimensions')
+        return
+      }
+      
+      // Draw video frame to canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height)
+      
+      // Get image data
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height)
+      
+      // Update scan count
+      setScanCount(prev => prev + 1)
+      setDebugInfo(`Scanning... (${scanCount} attempts)`)
+      
+      // Try to decode QR code with enhanced options
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: 'dontInvert'
+      })
+      
+      if (code && code.data) {
+        console.log('🎉 QR Code detected:', code.data)
+        setDebugInfo(`QR Code found: ${code.data.substring(0, 20)}...`)
+        
+        // Prevent duplicate scans
+        const now = Date.now()
+        if (now - lastScanTime.current > 1000) {
+          lastScanTime.current = now
+          onScan(code.data)
+          stopScanning()
+        }
+      }
+    } catch (error) {
+      console.error('Scan error:', error)
+      setDebugInfo('Scan error occurred')
     }
-  }
+  }, [isScanning, scanCount, onScan])
+  
+  const startScanLoop = useCallback(() => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current)
+    }
+    
+    setScanCount(0)
+    
+    scanIntervalRef.current = setInterval(() => {
+      scanForQR()
+    }, 150) // Scan every 150ms for better performance
+  }, [scanForQR])
 
 
   useEffect(() => {
@@ -139,16 +173,34 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       stopScanning()
     }
   }, [])
+  
+  // Add CSS for scan line animation
+  useEffect(() => {
+    const style = document.createElement('style')
+    style.textContent = `
+      @keyframes scan-line {
+        0% { top: 10%; }
+        50% { top: 50%; }
+        100% { top: 90%; }
+      }
+    `
+    document.head.appendChild(style)
+    return () => {
+      if (document.head.contains(style)) {
+        document.head.removeChild(style)
+      }
+    }
+  }, [])
 
   return (
     <div className="space-y-4">
-      <div className="relative bg-black rounded-lg overflow-hidden">
+      <div className="relative bg-gradient-to-br from-emerald-900 to-teal-900 rounded-xl overflow-hidden shadow-2xl border border-emerald-200">
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted
-          className="w-full h-64 object-cover"
+          className="w-full h-80 object-cover"
           style={{ 
             display: isScanning ? 'block' : 'none',
             backgroundColor: '#000'
@@ -162,23 +214,37 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
         />
         
         {!isScanning && (
-          <div className="w-full h-64 bg-gray-100 flex items-center justify-center">
-            <div className="text-center text-gray-500">
-              <Camera className="h-12 w-12 mx-auto mb-2" />
-              <p>Camera not active</p>
+          <div className="w-full h-80 bg-gradient-to-br from-emerald-50 to-teal-50 flex items-center justify-center">
+            <div className="text-center text-emerald-700">
+              <div className="bg-emerald-100 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-4">
+                <Camera className="h-10 w-10 text-emerald-600" />
+              </div>
+              <h3 className="font-semibold text-lg mb-2">QR Code Scanner</h3>
+              <p className="text-sm text-emerald-600">Click start to activate camera</p>
             </div>
           </div>
         )}
         
         {isScanning && (
           <div className="absolute inset-0 pointer-events-none">
-            <div className="absolute inset-4 border-2 border-emerald-500 rounded-lg">
-              <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-emerald-500"></div>
-              <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-emerald-500"></div>
-              <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-emerald-500"></div>
-              <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-emerald-500"></div>
+            {/* Animated scanning overlay */}
+            <div className="absolute inset-6 border-2 border-emerald-400 rounded-lg animate-pulse">
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-400 rounded-tl-lg"></div>
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-400 rounded-tr-lg"></div>
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-400 rounded-bl-lg"></div>
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-400 rounded-br-lg"></div>
             </div>
-            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-3 py-1 rounded text-sm">
+            
+            {/* Scanning line animation */}
+            <div className="absolute inset-6 overflow-hidden rounded-lg">
+              <div className="absolute w-full h-0.5 bg-gradient-to-r from-transparent via-emerald-400 to-transparent animate-bounce" style={{
+                top: '50%',
+                animation: 'scan-line 2s ease-in-out infinite'
+              }}></div>
+            </div>
+            
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-emerald-600/90 text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+              <Zap className="h-4 w-4 animate-pulse" />
               Position QR code within the frame
             </div>
           </div>
@@ -192,28 +258,38 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
       )}
       
       {debugInfo && (
-        <div className="text-blue-600 text-sm bg-blue-50 p-3 rounded-lg">
-          Debug: {debugInfo}
+        <div className="text-emerald-700 text-sm bg-emerald-50 p-3 rounded-lg border border-emerald-200 flex items-center gap-2">
+          <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+          <span className="font-medium">Status:</span> {debugInfo}
+        </div>
+      )}
+      
+      {isScanning && (
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 text-emerald-600 text-sm font-medium">
+            <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></div>
+            Scanning for QR codes... ({scanCount} attempts)
+          </div>
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         {!isScanning ? (
           <Button 
             onClick={startScanning}
-            className="flex-1 bg-emerald-600 hover:bg-emerald-700"
+            className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
           >
-            <Camera className="h-4 w-4 mr-2" />
-            Start Camera
+            <Camera className="h-5 w-5 mr-2" />
+            Start QR Scanner
           </Button>
         ) : (
           <Button 
             onClick={stopScanning}
             variant="outline"
-            className="flex-1"
+            className="flex-1 border-2 border-red-300 text-red-600 hover:bg-red-50 font-semibold py-3 px-6 rounded-xl transition-all duration-300"
           >
-            <CameraOff className="h-4 w-4 mr-2" />
-            Stop Camera
+            <CameraOff className="h-5 w-5 mr-2" />
+            Stop Scanner
           </Button>
         )}
         
@@ -221,12 +297,12 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           <Button 
             onClick={() => {
               stopScanning()
-              setTimeout(startScanning, 100)
+              setTimeout(startScanning, 500)
             }}
             variant="outline"
-            size="icon"
+            className="border-2 border-emerald-300 text-emerald-600 hover:bg-emerald-50 px-4 rounded-xl transition-all duration-300"
           >
-            <RotateCcw className="h-4 w-4" />
+            <RotateCcw className="h-5 w-5" />
           </Button>
         )}
       </div>
