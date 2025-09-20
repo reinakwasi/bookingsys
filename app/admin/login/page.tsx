@@ -17,11 +17,16 @@ export default function AdminLogin() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    console.log(' Login attempt for:', username);
     try {
       await login(username, password);
+      console.log(' Login successful, redirecting...');
+      toast.success('Login successful!');
       router.push('/admin');
     } catch (error) {
-      toast.error('Invalid credentials');
+      console.error(' Login failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Invalid credentials';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

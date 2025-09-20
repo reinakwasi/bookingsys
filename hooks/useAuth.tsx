@@ -68,10 +68,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (username: string, password: string) => {
     setLoading(true);
     try {
+      console.log('useAuth: Starting login process for:', username);
       const result = await AdminAuthService.login(username, password);
+      console.log('useAuth: Login result:', result);
       
       if (!result.success) {
-        throw new Error(result.error || 'Login failed');
+        const errorMessage = result.error || 'Login failed';
+        console.error('useAuth: Login failed:', errorMessage);
+        throw new Error(errorMessage);
       }
 
       if (result.user) {
@@ -83,11 +87,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           role: 'admin'
         };
         
+        console.log('useAuth: Setting authenticated user:', authUser);
         setUser(authUser);
         setIsAuthenticated(true);
         localStorage.setItem('adminUser', JSON.stringify(authUser));
         localStorage.setItem('adminSessionTimestamp', Date.now().toString());
+        console.log('useAuth: Login successful, user stored');
+      } else {
+        throw new Error('No user data received from login');
       }
+    } catch (error) {
+      console.error('useAuth: Login error:', error);
+      throw error; // Re-throw to be handled by the login component
     } finally {
       setLoading(false);
     }

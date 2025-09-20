@@ -51,6 +51,38 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('❌ Supabase RPC error:', error)
+      
+      // Check if the function doesn't exist (error code 42883)
+      if (error.code === '42883' || error.message?.includes('function') || error.message?.includes('does not exist')) {
+        console.log('🔄 Database function not found, using fallback authentication...')
+        
+        // Fallback authentication for deployment
+        if (username === 'admin' && password === 'Hotel734!SecureAdmin2024') {
+          console.log('✅ Fallback authentication successful')
+          return NextResponse.json({
+            success: true,
+            user: {
+              id: 'fallback-admin-id',
+              username: 'admin',
+              email: 'admin@hotel734.com',
+              full_name: 'Hotel 734 Administrator',
+              last_login: new Date().toISOString()
+            },
+            fallback: true
+          })
+        } else {
+          console.log('❌ Fallback authentication failed')
+          return NextResponse.json(
+            { 
+              success: false, 
+              error: 'Invalid username or password. (Using fallback auth - please run database migration)',
+              fallback: true
+            },
+            { status: 401 }
+          )
+        }
+      }
+      
       return NextResponse.json(
         { 
           success: false, 
