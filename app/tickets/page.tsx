@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { ticketsAPI, ticketPurchasesAPI } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import PaymentModal from "@/components/PaymentModal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, Clock, DollarSign, Users, MapPin, Minus, Plus, CheckCircle, X, Sparkles, CreditCard } from "lucide-react";
@@ -26,6 +27,7 @@ export default function TicketsPage() {
   const [purchaseDetails, setPurchaseDetails] = useState<any>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [loadingTicketId, setLoadingTicketId] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     loadTickets();
@@ -90,107 +92,27 @@ export default function TicketsPage() {
       return;
     }
 
-    console.log('Starting payment process...');
-    console.log('Selected ticket:', selectedTicket);
-    console.log('Customer form:', customerForm);
-    console.log('Quantity:', quantity);
-
-    setIsProcessingPayment(true);
-
-    try {
-      // Validate Paystack configuration first
-      const configValidation = PaystackService.validateConfiguration();
-      console.log('Paystack configuration validation:', configValidation);
-      
-      if (!configValidation.isValid) {
-        console.error('Paystack configuration issues:', configValidation.issues);
-        toast.error(`Payment system not configured properly: ${configValidation.issues.join(', ')}`);
-        setIsProcessingPayment(false);
-        return;
-      }
-
-      // Prepare payment data - use dummy email for Paystack to prevent their emails
-      const paymentData: PaymentData = {
-        email: `noreply+${Date.now()}@hotel734.com`, // Dummy email to prevent Paystack emails
-        amount: selectedTicket.price * quantity,
-        metadata: {
-          ticket_id: selectedTicket.id,
-          ticket_title: selectedTicket.title,
-          quantity: quantity,
-          customer_name: customerForm.name,
-          customer_phone: customerForm.phone,
-          real_customer_email: customerForm.email // Store real email in metadata
-        }
-      };
-
-      // Initialize payment with Paystack
-      console.log('Initializing payment with data:', paymentData);
-      const initResponse = await PaystackService.initializePayment(paymentData);
-      console.log('Payment initialization response:', initResponse);
-      
-      // Close the purchase dialog before opening Paystack modal
-      setIsPurchaseDialogOpen(false);
-      
-      // Small delay to ensure dialog closes before Paystack modal opens
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
-      // Open Paystack payment modal
-      await PaystackService.openPaymentModal({
-        key: '', // Will be set by PaystackService
-        email: paymentData.email, // Use dummy email to prevent Paystack emails
-        amount: selectedTicket.price * quantity * 100, // Convert to kobo
-        currency: 'GHS',
-        ref: initResponse.data.reference,
-        metadata: paymentData.metadata,
-        callback: async (response: any) => {
-          console.log('Payment successful:', response);
-          await handlePaymentSuccess(response.reference);
-        },
-        onClose: () => {
-          console.log('Payment modal closed by user or error');
-          setIsProcessingPayment(false);
-          // Reopen purchase dialog since payment was cancelled/closed
-          setIsPurchaseDialogOpen(true);
-        }
-      });
-
-    } catch (error) {
-      console.error('Payment error:', error);
-      console.error('Error details:', error);
-      
-      // Check if it's a specific Paystack error
-      if (error instanceof Error) {
-        if (error.message.includes('Paystack')) {
-          toast.error(`Payment system error: ${error.message}`);
-        } else {
-          toast.error('Payment failed. Please try again.');
-        }
-      } else {
-        toast.error('Payment failed. Please try again.');
-      }
-      
-      setIsProcessingPayment(false);
-    }
+    // Close the form dialog and open the payment modal
+    setIsPurchaseDialogOpen(false);
+    setShowPaymentModal(true);
   };
 
   const handlePaymentSuccess = async (reference: string) => {
     try {
+      setShowPaymentModal(false);
       console.log('Starting payment success handling for reference:', reference);
       
       // Verify payment with backend
-      console.log('Verifying payment with backend...');
       const verificationResponse = await PaystackService.verifyPayment(reference);
       console.log('Payment verification response:', verificationResponse);
       
       if (!verificationResponse.success) {
         console.error('Payment verification failed:', verificationResponse);
         toast.error('Payment verification failed');
-        setIsProcessingPayment(false);
         return;
       }
 
       // Create ticket purchase record
-      console.log('Creating ticket purchase record...');
       const purchaseData = {
         ticket_id: selectedTicket.id,
         customer_name: customerForm.name,
@@ -202,13 +124,11 @@ export default function TicketsPage() {
         payment_reference: reference,
         payment_method: 'paystack'
       };
-      console.log('Purchase data:', purchaseData);
       
       const purchase = await ticketPurchasesAPI.create(purchaseData);
       console.log('Ticket purchase created:', purchase);
-      console.log('Email sent automatically by the database API');
 
-      // Show custom success alert immediately
+      // Show success alert immediately
       setPurchaseDetails({
         ticketTitle: selectedTicket.title,
         quantity: quantity,
@@ -219,34 +139,34 @@ export default function TicketsPage() {
         paymentMethod: verificationResponse.data?.channel || 'Paystack'
       });
       
-      // Show alert immediately without delay
       setTimeout(() => {
         setShowSuccessAlert(true);
       }, 100);
       
       toast.success(`Payment successful! Tickets purchased.`);
       
-      setIsPurchaseDialogOpen(false);
+      // Reset form
       setSelectedTicket(null);
       setQuantity(1);
       setCustomerForm({ name: '', email: '', phone: '' });
       
-      // Refresh tickets to update availability
+      // Refresh tickets
       loadTickets();
     } catch (error) {
       console.error('Purchase completion error:', error);
-      console.error('Error type:', typeof error);
-      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error');
-      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-      
       if (error instanceof Error) {
         toast.error(`Payment successful but ticket creation failed: ${error.message}`);
       } else {
         toast.error('Payment successful but ticket creation failed. Please contact support.');
       }
-    } finally {
-      setIsProcessingPayment(false);
     }
+  };
+
+  const handlePaymentError = (error: string) => {
+    setShowPaymentModal(false);
+    toast.error(error);
+    // Reopen the purchase dialog
+    setIsPurchaseDialogOpen(true);
   };
 
   const formatDate = (dateString: string) => {
@@ -667,6 +587,27 @@ export default function TicketsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Custom Payment Modal */}
+      {selectedTicket && (
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => {
+            setShowPaymentModal(false);
+            setIsPurchaseDialogOpen(true); // Reopen form if payment is cancelled
+          }}
+          ticketDetails={{
+            id: selectedTicket.id,
+            title: selectedTicket.title,
+            price: selectedTicket.price,
+            quantity: quantity,
+            total: selectedTicket.price * quantity
+          }}
+          customerDetails={customerForm}
+          onPaymentSuccess={handlePaymentSuccess}
+          onPaymentError={handlePaymentError}
+        />
       )}
     </div>
   );
