@@ -314,8 +314,8 @@ export default function RoomPage() {
             <form onSubmit={handleCheck} className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <label className="block text-lg font-semibold text-slate-900 mb-4">Check-in Date</label>
-                  <div className="bg-white rounded-2xl p-4 border-2 border-slate-200 shadow-sm">
+                  <label className="block text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Check-in Date</label>
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border-2 border-slate-200 shadow-sm">
                     <Calendar 
                       selected={checkIn} 
                       onSelect={setCheckIn} 
@@ -325,19 +325,19 @@ export default function RoomPage() {
                       className="w-full"
                       classNames={{
                         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                        month: "space-y-4",
-                        caption: "flex justify-center pt-1 relative items-center",
-                        caption_label: "text-xl font-bold text-slate-900",
+                        month: "space-y-3 sm:space-y-4 w-full",
+                        caption: "flex justify-center pt-1 relative items-center mb-2 sm:mb-3",
+                        caption_label: "text-base sm:text-xl font-bold text-slate-900 px-8 sm:px-10",
                         nav: "space-x-1 flex items-center",
-                        nav_button: "h-10 w-10 bg-slate-100 hover:bg-slate-200 p-0 rounded-lg transition-colors border border-slate-300 text-slate-700",
-                        nav_button_previous: "absolute left-1",
-                        nav_button_next: "absolute right-1",
+                        nav_button: "h-8 w-8 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 p-0 rounded-lg transition-colors border border-slate-300 text-slate-700",
+                        nav_button_previous: "absolute left-0 sm:left-1",
+                        nav_button_next: "absolute right-0 sm:right-1",
                         table: "w-full border-collapse space-y-1",
-                        head_row: "flex mb-3",
-                        head_cell: "text-slate-800 rounded-md w-10 font-bold text-sm flex-1 text-center py-2",
+                        head_row: "flex mb-2 sm:mb-3 w-full",
+                        head_cell: "text-slate-800 rounded-md w-8 sm:w-10 font-bold text-xs sm:text-sm flex-1 text-center py-1 sm:py-2",
                         row: "flex w-full mt-1",
-                        cell: "text-center text-sm p-0 relative flex-1 [&:has([aria-selected])]:bg-slate-50 first:[&:has([aria-selected])]:rounded-l-lg last:[&:has([aria-selected])]:rounded-r-lg focus-within:relative focus-within:z-20",
-                        day: "h-10 w-10 p-0 font-medium aria-selected:opacity-100 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors mx-auto flex items-center justify-center text-slate-700",
+                        cell: "text-center text-xs sm:text-sm p-0 relative flex-1 [&:has([aria-selected])]:bg-slate-50 first:[&:has([aria-selected])]:rounded-l-lg last:[&:has([aria-selected])]:rounded-r-lg focus-within:relative focus-within:z-20",
+                        day: "h-8 w-8 sm:h-10 sm:w-10 p-0 font-medium aria-selected:opacity-100 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors mx-auto flex items-center justify-center text-slate-700 text-xs sm:text-sm",
                         day_selected: "bg-slate-800 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-800 focus:text-white font-bold shadow-md",
                         day_today: "bg-amber-100 text-amber-900 font-bold border-2 border-amber-300",
                         day_outside: "text-slate-400 opacity-60",
@@ -349,8 +349,8 @@ export default function RoomPage() {
                   </div>
                 </div>
                 <div className="space-y-4">
-                  <label className="block text-lg font-semibold text-slate-900 mb-4">Check-out Date</label>
-                  <div className="bg-white rounded-2xl p-4 border-2 border-slate-200 shadow-sm">
+                  <label className="block text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Check-out Date</label>
+                  <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 border-2 border-slate-200 shadow-sm">
                     <Calendar 
                       selected={checkOut} 
                       onSelect={setCheckOut} 
@@ -360,19 +360,19 @@ export default function RoomPage() {
                       className="w-full"
                       classNames={{
                         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-                        month: "space-y-4",
-                        caption: "flex justify-center pt-1 relative items-center",
-                        caption_label: "text-xl font-bold text-slate-900",
+                        month: "space-y-3 sm:space-y-4 w-full",
+                        caption: "flex justify-center pt-1 relative items-center mb-2 sm:mb-3",
+                        caption_label: "text-base sm:text-xl font-bold text-slate-900 px-8 sm:px-10",
                         nav: "space-x-1 flex items-center",
-                        nav_button: "h-10 w-10 bg-slate-100 hover:bg-slate-200 p-0 rounded-lg transition-colors border border-slate-300 text-slate-700",
-                        nav_button_previous: "absolute left-1",
-                        nav_button_next: "absolute right-1",
+                        nav_button: "h-8 w-8 sm:h-10 sm:w-10 bg-slate-100 hover:bg-slate-200 p-0 rounded-lg transition-colors border border-slate-300 text-slate-700",
+                        nav_button_previous: "absolute left-0 sm:left-1",
+                        nav_button_next: "absolute right-0 sm:right-1",
                         table: "w-full border-collapse space-y-1",
-                        head_row: "flex mb-3",
-                        head_cell: "text-slate-800 rounded-md w-10 font-bold text-sm flex-1 text-center py-2",
+                        head_row: "flex mb-2 sm:mb-3 w-full",
+                        head_cell: "text-slate-800 rounded-md w-8 sm:w-10 font-bold text-xs sm:text-sm flex-1 text-center py-1 sm:py-2",
                         row: "flex w-full mt-1",
-                        cell: "text-center text-sm p-0 relative flex-1 [&:has([aria-selected])]:bg-slate-50 first:[&:has([aria-selected])]:rounded-l-lg last:[&:has([aria-selected])]:rounded-r-lg focus-within:relative focus-within:z-20",
-                        day: "h-10 w-10 p-0 font-medium aria-selected:opacity-100 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors mx-auto flex items-center justify-center text-slate-700",
+                        cell: "text-center text-xs sm:text-sm p-0 relative flex-1 [&:has([aria-selected])]:bg-slate-50 first:[&:has([aria-selected])]:rounded-l-lg last:[&:has([aria-selected])]:rounded-r-lg focus-within:relative focus-within:z-20",
+                        day: "h-8 w-8 sm:h-10 sm:w-10 p-0 font-medium aria-selected:opacity-100 hover:bg-slate-100 hover:text-slate-900 rounded-lg transition-colors mx-auto flex items-center justify-center text-slate-700 text-xs sm:text-sm",
                         day_selected: "bg-slate-800 text-white hover:bg-slate-900 hover:text-white focus:bg-slate-800 focus:text-white font-bold shadow-md",
                         day_today: "bg-amber-100 text-amber-900 font-bold border-2 border-amber-300",
                         day_outside: "text-slate-400 opacity-60",

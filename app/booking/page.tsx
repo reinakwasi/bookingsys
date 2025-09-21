@@ -391,14 +391,14 @@ export default function BookingPage() {
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 glass-morphism border-2 border-[#C49B66]/20" align="start">
+                            <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] p-0 glass-morphism border-2 border-[#C49B66]/20 mx-4 sm:mx-0" align="start">
                               <Calendar
                                 mode="single"
                                 selected={field.value}
                                 onSelect={field.onChange}
                                 disabled={(date) => date < new Date()}
                                 initialFocus
-                                className="rounded-2xl"
+                                className="rounded-xl sm:rounded-2xl"
                               />
                             </PopoverContent>
                           </Popover>
@@ -427,7 +427,7 @@ export default function BookingPage() {
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0 glass-morphism border-2 border-[#C49B66]/20" align="start">
+                            <PopoverContent className="w-auto max-w-[calc(100vw-2rem)] p-0 glass-morphism border-2 border-[#C49B66]/20 mx-4 sm:mx-0" align="start">
                               <Calendar
                                 mode="single"
                                 selected={field.value}
@@ -437,7 +437,7 @@ export default function BookingPage() {
                                   return date < new Date() || (checkIn && date <= checkIn)
                                 }}
                                 initialFocus
-                                className="rounded-2xl"
+                                className="rounded-xl sm:rounded-2xl"
                               />
                             </PopoverContent>
                           </Popover>
