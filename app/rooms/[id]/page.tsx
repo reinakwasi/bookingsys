@@ -315,28 +315,28 @@ export default function RoomPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <label className="block text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Check-in Date</label>
-                  <div className="bg-white/95 backdrop-blur-md rounded-2xl p-2 sm:p-4 border-2 border-[#C49B66]/20 shadow-xl">
+                  <div className="bg-white rounded-3xl p-0 border-2 border-[#C49B66]/30 shadow-2xl">
                     <Calendar 
                       selected={checkIn} 
                       onSelect={setCheckIn} 
                       mode="single" 
                       required 
                       initialFocus 
-                      className="w-full max-w-none"
+                      className="w-full rounded-3xl"
                       disabled={(date) => date < new Date()}
                     />
                   </div>
                 </div>
                 <div className="space-y-4">
                   <label className="block text-base sm:text-lg font-semibold text-slate-900 mb-3 sm:mb-4">Check-out Date</label>
-                  <div className="bg-white/95 backdrop-blur-md rounded-2xl p-2 sm:p-4 border-2 border-[#C49B66]/20 shadow-xl">
+                  <div className="bg-white rounded-3xl p-0 border-2 border-[#C49B66]/30 shadow-2xl">
                     <Calendar 
                       selected={checkOut} 
                       onSelect={setCheckOut} 
                       mode="single" 
                       required 
                       initialFocus 
-                      className="w-full max-w-none"
+                      className="w-full rounded-3xl"
                       disabled={(date) => {
                         const today = new Date()
                         return date < today || (checkIn ? date <= checkIn : false)

@@ -391,14 +391,14 @@ export default function BookingPage() {
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto max-w-[calc(100vw-1rem)] p-0 bg-white/95 backdrop-blur-md border-2 border-[#C49B66]/30 shadow-2xl rounded-2xl mx-2 sm:mx-0" align="start" sideOffset={8}>
+                            <PopoverContent className="w-auto max-w-[calc(100vw-1rem)] p-0 bg-white border-2 border-[#C49B66]/30 shadow-2xl rounded-3xl mx-2 sm:mx-0" align="start" sideOffset={12}>
                               <Calendar
                                 mode="single"
                                 selected={field.value}
                                 onSelect={field.onChange}
                                 disabled={(date) => date < new Date()}
                                 initialFocus
-                                className="rounded-2xl"
+                                className="rounded-3xl"
                               />
                             </PopoverContent>
                           </Popover>
@@ -427,7 +427,7 @@ export default function BookingPage() {
                                 </Button>
                               </FormControl>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto max-w-[calc(100vw-1rem)] p-0 bg-white/95 backdrop-blur-md border-2 border-[#C49B66]/30 shadow-2xl rounded-2xl mx-2 sm:mx-0" align="start" sideOffset={8}>
+                            <PopoverContent className="w-auto max-w-[calc(100vw-1rem)] p-0 bg-white border-2 border-[#C49B66]/30 shadow-2xl rounded-3xl mx-2 sm:mx-0" align="start" sideOffset={12}>
                               <Calendar
                                 mode="single"
                                 selected={field.value}
@@ -437,7 +437,7 @@ export default function BookingPage() {
                                   return date < new Date() || (checkIn && date <= checkIn)
                                 }}
                                 initialFocus
-                                className="rounded-2xl"
+                                className="rounded-3xl"
                               />
                             </PopoverContent>
                           </Popover>
