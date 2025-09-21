@@ -78,25 +78,25 @@ export default function RoomsPage() {
         <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-[#C49B66]/10 to-amber-200/20 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
       </div>
       
-      <div className="container px-4 py-24 relative z-10">
-        <div className="text-center mb-20 animate-fade-in-up">
-          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full glass-morphism text-[#C49B66] mb-8 animate-glow">
-            <Bed className="h-5 w-5 animate-pulse" />
-            <span className="font-medium">Luxury Accommodations</span>
-            <Star className="h-5 w-5 animate-spin-slow" />
+      <div className="container-responsive py-12 sm:py-16 lg:py-24 relative z-10">
+        <div className="text-center mb-12 sm:mb-16 lg:mb-20 animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 rounded-full glass-morphism text-[#C49B66] mb-6 sm:mb-8 animate-glow">
+            <Bed className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
+            <span className="font-medium text-sm sm:text-base">Luxury Accommodations</span>
+            <Star className="h-4 w-4 sm:h-5 sm:w-5 animate-spin-slow" />
           </div>
-          <h1 className="text-6xl md:text-7xl font-display font-bold mb-8 text-gradient">Our Exquisite Rooms</h1>
-          <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+          <h1 className="text-responsive-4xl font-display font-bold mb-6 sm:mb-8 text-gradient">Our Exquisite Rooms</h1>
+          <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
             Choose from our selection of luxurious rooms and suites, each designed to provide the perfect blend of comfort, style, and unparalleled service.
           </p>
         </div>
 
-        <div className="space-y-16">
+        <div className="space-y-8 sm:space-y-12 lg:space-y-16">
           {rooms.map((room, index) => (
-            <div key={room.id} className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch animate-fade-in-up" style={{animationDelay: `${index * 0.2}s`}}>
+            <div key={room.id} className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-stretch animate-fade-in-up" style={{animationDelay: `${index * 0.2}s`}}>
               {/* Room Image */}
               <div className="relative group">
-                <div className="relative h-[600px] overflow-hidden rounded-3xl shadow-luxury hover:shadow-glow transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
+                <div className="relative h-[300px] sm:h-[400px] lg:h-[600px] overflow-hidden rounded-2xl sm:rounded-3xl shadow-luxury hover:shadow-glow transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
                   <Image
                     src={room.image}
                     alt={room.name}
@@ -107,49 +107,49 @@ export default function RoomsPage() {
                   <div className="absolute inset-0 bg-gradient-to-br from-[#C49B66]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                   
                   {/* Rating Badge */}
-                  <div className="absolute top-6 right-6 z-10">
-                    <div className="glass-morphism rounded-2xl px-4 py-2 border border-white/20">
-                      <div className="flex items-center gap-2 text-white">
-                        <Star className="h-5 w-5 text-[#C49B66] fill-[#C49B66]" />
-                        <span className="font-bold">{room.rating}</span>
+                  <div className="absolute top-3 right-3 sm:top-6 sm:right-6 z-10">
+                    <div className="glass-morphism rounded-xl sm:rounded-2xl px-3 py-1.5 sm:px-4 sm:py-2 border border-white/20">
+                      <div className="flex items-center gap-1 sm:gap-2 text-white">
+                        <Star className="h-3 w-3 sm:h-5 sm:w-5 text-[#C49B66] fill-[#C49B66]" />
+                        <span className="font-bold text-sm sm:text-base">{room.rating}</span>
                       </div>
                     </div>
                   </div>
                   
                   {/* Price Badge */}
-                  <div className="absolute bottom-6 left-6">
-                    <div className="gradient-gold text-white font-bold text-2xl px-6 py-3 rounded-2xl shadow-luxury animate-float border border-white/20">
-                      GHC{room.price}
-                      <span className="text-sm font-medium ml-1">- Per Night</span>
+                  <div className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6">
+                    <div className="gradient-gold text-white font-bold text-lg sm:text-2xl px-3 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl shadow-luxury animate-float border border-white/20">
+                      ${room.price}
+                      <span className="text-xs sm:text-sm font-medium ml-1">/night</span>
                     </div>
                   </div>
                 </div>
               </div>
               
               {/* Room Details */}
-              <div className="space-y-8 flex flex-col justify-center">
-                <div className="glass-morphism rounded-3xl p-8 shadow-luxury">
-                  <h2 className="text-4xl font-display font-bold mb-4 text-slate-800">{room.name}</h2>
-                  <p className="text-lg text-slate-600 leading-relaxed mb-8">
+              <div className="space-y-6 sm:space-y-8 flex flex-col justify-center">
+                <div className="glass-morphism rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 shadow-luxury">
+                  <h2 className="text-responsive-2xl font-display font-bold mb-3 sm:mb-4 text-slate-800">{room.name}</h2>
+                  <p className="text-responsive-base text-slate-600 leading-relaxed mb-6 sm:mb-8">
                     {room.description}
                   </p>
                   
                   {/* Features List */}
-                  <div className="space-y-4 mb-8">
+                  <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
                     {room.features.map((feature, idx) => (
-                      <div key={idx} className="flex items-center group/item hover:bg-[#C49B66]/5 rounded-xl p-3 transition-colors">
-                        <div className="w-6 h-6 rounded-full bg-[#C49B66] flex items-center justify-center mr-4 group-hover/item:animate-pulse">
-                          <Check className="h-4 w-4 text-white" />
+                      <div key={idx} className="flex items-center group/item hover:bg-[#C49B66]/5 rounded-xl p-2 sm:p-3 transition-colors">
+                        <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#C49B66] flex items-center justify-center mr-3 sm:mr-4 group-hover/item:animate-pulse flex-shrink-0">
+                          <Check className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
                         </div>
-                        <span className="text-slate-600 group-hover/item:text-slate-800 transition-colors font-medium">{feature}</span>
+                        <span className="text-slate-600 group-hover/item:text-slate-800 transition-colors font-medium text-sm sm:text-base">{feature}</span>
                       </div>
                     ))}
                   </div>
                   
                   {/* Action Button */}
                   <Link href={`/rooms/${room.id}`}>
-                    <Button size="lg" className="gradient-gold hover:shadow-glow text-white font-bold px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-105">
-                      <Bed className="mr-2 h-5 w-5" />
+                    <Button size="lg" className="w-full sm:w-auto gradient-gold hover:shadow-glow text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
+                      <Bed className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       More Details
                     </Button>
                   </Link>
