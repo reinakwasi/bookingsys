@@ -251,57 +251,57 @@ export default function GalleryPage() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-amber-300/5 to-orange-400/5 rounded-full blur-2xl animate-pulse"></div>
       </div>
 
-      <div className="container py-12 md:py-20 relative z-10">
-        <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-amber-300 mb-8 animate-slide-up">
-            <Camera className="w-5 h-5" />
-            <span className="font-semibold">Luxury Gallery</span>
+      <div className="container px-4 sm:px-6 lg:px-8 py-8 sm:py-12 md:py-20 relative z-10">
+        <div className="text-center mb-12 sm:mb-16 lg:mb-20">
+          <div className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-amber-300 mb-6 sm:mb-8 animate-slide-up">
+            <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="font-semibold text-sm sm:text-base">Luxury Gallery</span>
           </div>
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-white via-amber-200 to-orange-300 bg-clip-text text-transparent mb-8 animate-slide-up font-serif leading-tight">
+          <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-bold bg-gradient-to-r from-white via-amber-200 to-orange-300 bg-clip-text text-transparent mb-6 sm:mb-8 animate-slide-up font-serif leading-tight">
             Visual Journey
           </h1>
-          <p className="text-xl md:text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed animate-fade-in mb-12">
+          <p className="text-base sm:text-xl md:text-2xl text-white/80 max-w-4xl mx-auto leading-relaxed animate-fade-in mb-8 sm:mb-12 px-4">
             Experience the unparalleled luxury of Hotel 734 through our exclusive collection of breathtaking imagery
           </p>
-          <div className="flex items-center justify-center gap-8 animate-fade-in">
-            <div className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm rounded-full border border-amber-400/30">
-              <Star className="w-6 h-6 text-amber-400 fill-current" />
-              <span className="text-white font-medium">Premium Collection</span>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 animate-fade-in">
+            <div className="flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm rounded-full border border-amber-400/30">
+              <Star className="w-4 h-4 sm:w-6 sm:h-6 text-amber-400 fill-current" />
+              <span className="text-white font-medium text-sm sm:text-base">Premium Collection</span>
             </div>
-            <div className="w-px h-6 bg-white/30"></div>
-            <div className="flex items-center gap-3 px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
-              <Eye className="w-6 h-6 text-white" />
-              <span className="text-white font-medium">4K Resolution</span>
+            <div className="w-6 h-px sm:w-px sm:h-6 bg-white/30"></div>
+            <div className="flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20">
+              <Eye className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+              <span className="text-white font-medium text-sm sm:text-base">4K Resolution</span>
             </div>
           </div>
         </div>
 
         <Tabs defaultValue="rooms" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="flex justify-center mb-16">
-            <TabsList className="bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl p-2 rounded-3xl">
+          <div className="flex justify-center mb-12 sm:mb-16 px-4">
+            <TabsList className="bg-black/40 backdrop-blur-xl border border-white/10 shadow-2xl p-1 sm:p-2 rounded-2xl sm:rounded-3xl w-full max-w-2xl">
               <TabsTrigger 
                 value="rooms" 
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-xl text-white/70 hover:text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-500"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-xl text-white/70 hover:text-white px-3 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-lg transition-all duration-500 flex-1"
               >
-                Luxury Suites
+                <span className="hidden sm:inline">Luxury </span>Suites
               </TabsTrigger>
               <TabsTrigger 
                 value="facilities" 
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-xl text-white/70 hover:text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-500"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-xl text-white/70 hover:text-white px-3 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-lg transition-all duration-500 flex-1"
               >
-                Premium Amenities
+                <span className="hidden sm:inline">Premium </span>Amenities
               </TabsTrigger>
               <TabsTrigger 
                 value="events" 
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-xl text-white/70 hover:text-white px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-500"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-amber-500 data-[state=active]:to-orange-500 data-[state=active]:text-white data-[state=active]:shadow-xl text-white/70 hover:text-white px-3 sm:px-8 py-2 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-xs sm:text-lg transition-all duration-500 flex-1"
               >
-                Exclusive Events
+                <span className="hidden sm:inline">Exclusive </span>Events
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <TabsContent value="rooms" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <TabsContent value="rooms" className="mt-0 px-4 sm:px-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {galleryImages.rooms.map((image, index) => (
                 <Card 
                   key={image.id} 
@@ -335,17 +335,17 @@ export default function GalleryPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="p-6 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm">
-                    <h3 className="font-semibold text-white text-lg mb-1">{image.title}</h3>
-                    <p className="text-sm text-amber-300 font-medium">{image.category} Collection</p>
+                  <div className="p-4 sm:p-6 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm">
+                    <h3 className="font-semibold text-white text-base sm:text-lg mb-1">{image.title}</h3>
+                    <p className="text-xs sm:text-sm text-amber-300 font-medium">{image.category} Collection</p>
                   </div>
                 </Card>
               ))}
             </div>
           </TabsContent>
 
-          <TabsContent value="facilities" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <TabsContent value="facilities" className="mt-0 px-4 sm:px-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {galleryImages.facilities.map((image, index) => (
                 <Card 
                   key={image.id} 
@@ -379,17 +379,17 @@ export default function GalleryPage() {
                       </span>
                     </div>
                   </div>
-                  <div className="p-6 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm">
-                    <h3 className="font-semibold text-white text-lg mb-1">{image.title}</h3>
-                    <p className="text-sm text-amber-300 font-medium">{image.category} Experience</p>
+                  <div className="p-4 sm:p-6 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm">
+                    <h3 className="font-semibold text-white text-base sm:text-lg mb-1">{image.title}</h3>
+                    <p className="text-xs sm:text-sm text-amber-300 font-medium">{image.category} Experience</p>
                   </div>
                 </Card>
               ))}
             </div>
           </TabsContent>
 
-          <TabsContent value="events" className="mt-0">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <TabsContent value="events" className="mt-0 px-4 sm:px-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
               {galleryImages.events.map((event, index) => {
                 const currentImageIndex = currentImageIndexes[event.id] || 0;
                 const currentImage = event.images[currentImageIndex];
@@ -454,9 +454,9 @@ export default function GalleryPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="p-6 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm">
-                      <h3 className="font-semibold text-white text-lg mb-1">{event.title}</h3>
-                      <p className="text-sm text-amber-300 font-medium">{event.category} Events</p>
+                    <div className="p-4 sm:p-6 bg-gradient-to-br from-white/80 to-white/60 backdrop-blur-sm">
+                      <h3 className="font-semibold text-white text-base sm:text-lg mb-1">{event.title}</h3>
+                      <p className="text-xs sm:text-sm text-amber-300 font-medium">{event.category} Events</p>
                       <p className="text-xs text-white/70 mt-2 line-clamp-2">{event.description}</p>
                     </div>
                   </Card>
@@ -468,13 +468,13 @@ export default function GalleryPage() {
 
         {/* Enhanced Dialog */}
         <Dialog open={!!selectedImage} onOpenChange={() => setSelectedImage(null)}>
-          <DialogContent className="max-w-5xl bg-white/95 backdrop-blur-md border border-white/20 shadow-2xl">
+          <DialogContent className="max-w-5xl mx-4 sm:mx-auto bg-white/95 backdrop-blur-md border border-white/20 shadow-2xl">
             <DialogTitle className="sr-only">
               {selectedImage?.title || "Gallery Image"}
             </DialogTitle>
             {selectedImage && (
-              <div className="space-y-6">
-                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl">
+              <div className="space-y-4 sm:space-y-6">
+                <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl sm:rounded-2xl">
                   <Image
                     src={selectedImage.src}
                     alt={selectedImage.alt}
@@ -484,19 +484,19 @@ export default function GalleryPage() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 </div>
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     <div>
-                      <h3 className="text-2xl font-bold text-slate-900 mb-2">{selectedImage.title}</h3>
-                      <div className="flex items-center gap-3">
-                        <span className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium rounded-full">
+                      <h3 className="text-xl sm:text-2xl font-bold text-slate-900 mb-2">{selectedImage.title}</h3>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                        <span className="inline-block px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-medium rounded-full w-fit">
                           {selectedImage.category}
                         </span>
                         <span className="text-sm text-slate-500">Premium Collection</span>
                       </div>
                     </div>
                   </div>
-                  <p className="text-slate-600 text-lg leading-relaxed">{selectedImage.description}</p>
+                  <p className="text-slate-600 text-base sm:text-lg leading-relaxed">{selectedImage.description}</p>
                 </div>
               </div>
             )}

@@ -85,8 +85,8 @@ export default function DynamicHeader() {
         {headerImages.map((image, index) => (
           <div
             key={image}
-            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-              index === currentImageIndex ? "opacity-100 scale-100" : "opacity-0 scale-105"
+            className={`absolute inset-0 transition-opacity duration-1500 ease-in-out ${
+              index === currentImageIndex ? "opacity-100" : "opacity-0"
             }`}
           >
             <Image
@@ -97,10 +97,10 @@ export default function DynamicHeader() {
               priority={index === 0}
               style={{
                 transform: isMobile 
-                  ? 'scale(1.05)' 
+                  ? 'scale(1.02)' 
                   : `scale(1.1) translate(${mousePosition.x * 20}px, ${mousePosition.y * 20}px)`,
                 transition: isMobile 
-                  ? 'transform 1s ease-in-out' 
+                  ? 'transform 2s ease-in-out' 
                   : 'transform 0.3s ease-out'
               }}
             />

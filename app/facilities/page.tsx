@@ -218,15 +218,15 @@ export default function FacilitiesPage() {
                     </Button>
                   </div>
 
-                  {/* Image indicators */}
-                  <div className="absolute bottom-24 sm:bottom-32 left-1/2 flex -translate-x-1/2 space-x-2 sm:space-x-3 bg-black/30 backdrop-blur-sm rounded-full px-3 sm:px-4 py-1.5 sm:py-2">
+                  {/* Image indicators - mobile optimized position */}
+                  <div className="absolute bottom-16 sm:bottom-32 left-1/2 flex -translate-x-1/2 space-x-2 sm:space-x-3 bg-black/40 backdrop-blur-sm rounded-full px-2 sm:px-4 py-1 sm:py-2">
                     {facility.images.map((_, imgIndex) => (
                       <div
                         key={imgIndex}
-                        className={`h-2 sm:h-3 rounded-full transition-all duration-500 ${
+                        className={`h-1.5 sm:h-3 rounded-full transition-all duration-500 ${
                           imgIndex === currentImageIndex
-                            ? "w-6 sm:w-8 bg-white shadow-lg"
-                            : "w-2 sm:w-3 bg-white/50 hover:bg-white/70"
+                            ? "w-4 sm:w-8 bg-white shadow-lg"
+                            : "w-1.5 sm:w-3 bg-white/50 hover:bg-white/70"
                         }`}
                       />
                     ))}
@@ -241,32 +241,43 @@ export default function FacilitiesPage() {
                   </div>
 
 
-                  {/* Large facility name overlay - always visible at bottom */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/80 to-transparent p-4 sm:p-6 md:p-10 lg:p-12">
+                  {/* Large facility name overlay - mobile optimized */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/70 to-transparent p-3 sm:p-6 md:p-10 lg:p-12">
                     <div className="max-w-6xl mx-auto">
-                      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 sm:gap-6">
+                      <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-2 sm:gap-6">
                         <div className="flex-1">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-                            <div className="h-12 w-12 sm:h-16 sm:w-16 lg:h-20 lg:w-20 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/30 flex-shrink-0">
-                              <facility.icon className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-white" />
+                          <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-6">
+                            <div className="h-8 w-8 sm:h-16 sm:w-16 lg:h-20 lg:w-20 rounded-full bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-md flex items-center justify-center shadow-2xl border border-white/30 flex-shrink-0">
+                              <facility.icon className="h-4 w-4 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-white" />
                             </div>
-                            <div className="flex-1">
-                              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-2 sm:mb-3 font-serif leading-tight">{facility.name}</h2>
-                              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                                <span className="px-3 sm:px-4 lg:px-5 py-1.5 sm:py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs sm:text-sm font-semibold rounded-full shadow-xl">
+                            <div className="flex-1 min-w-0">
+                              <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-1 sm:mb-3 font-serif leading-tight">{facility.name}</h2>
+                              <div className="flex flex-wrap items-center gap-1 sm:gap-3">
+                                <span className="px-2 sm:px-4 lg:px-5 py-1 sm:py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs sm:text-sm font-semibold rounded-full shadow-xl">
                                   Premium Experience
                                 </span>
-                                <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 backdrop-blur-sm text-white text-xs sm:text-sm font-medium rounded-full border border-white/30">
+                                <span className="px-2 sm:px-4 py-1 sm:py-2 bg-white/20 backdrop-blur-sm text-white text-xs sm:text-sm font-medium rounded-full border border-white/30">
                                   24/7 Access
                                 </span>
                               </div>
                             </div>
+                            {/* Mobile facility number indicator - moved inline */}
+                            <div className="flex-shrink-0 sm:hidden">
+                              <div className="text-right">
+                                <div className="text-2xl font-bold text-white/30 font-serif leading-none">
+                                  {String(index + 1).padStart(2, '0')}
+                                </div>
+                                <div className="text-white/50 text-xs font-medium">
+                                  of 8 facilities
+                                </div>
+                              </div>
+                            </div>
                           </div>
-                          <p className="text-white/95 text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl leading-relaxed font-light max-w-4xl">{facility.description}</p>
+                          <p className="text-white/90 text-xs sm:text-base md:text-lg lg:text-xl xl:text-2xl leading-relaxed font-light max-w-4xl line-clamp-2 sm:line-clamp-none">{facility.description}</p>
                         </div>
                         
-                        {/* Facility number indicator */}
-                        <div className="flex-shrink-0 self-end">
+                        {/* Desktop facility number indicator */}
+                        <div className="hidden sm:flex flex-shrink-0 self-end">
                           <div className="text-right">
                             <div className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white/20 font-serif leading-none">
                               {String(index + 1).padStart(2, '0')}
