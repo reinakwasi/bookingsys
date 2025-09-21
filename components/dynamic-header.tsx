@@ -95,18 +95,18 @@ export default function DynamicHeader() {
             Where Luxury Meets Unforgettable Experiences
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center animate-slide-up-delay-2">
+          <div className="flex flex-row gap-3 sm:gap-4 justify-center animate-slide-up-delay-2 max-w-md mx-auto sm:max-w-none">
             <a
               href="/booking"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-amber-400 text-slate-900 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:bg-amber-300 transition-all transform hover:scale-105 shadow-lg relative overflow-hidden group"
+              className="flex-1 sm:w-auto inline-flex items-center justify-center gap-1 sm:gap-2 bg-amber-400 text-slate-900 px-4 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:bg-amber-300 transition-all transform hover:scale-105 shadow-lg relative overflow-hidden group text-sm sm:text-base"
             >
               <span className="relative z-10">Book Your Stay</span>
-              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 relative z-10 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="h-3 w-3 sm:h-5 sm:w-5 relative z-10 transition-transform group-hover:translate-x-1" />
               <div className="absolute inset-0 bg-white/20 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
             </a>
             <a
               href="/rooms"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm text-white border border-white/20 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:bg-white/20 transition-all transform hover:scale-105 relative overflow-hidden group"
+              className="flex-1 sm:w-auto inline-flex items-center justify-center gap-1 sm:gap-2 bg-white/10 backdrop-blur-sm text-white border border-white/20 px-4 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold hover:bg-white/20 transition-all transform hover:scale-105 relative overflow-hidden group text-sm sm:text-base"
             >
               <span className="relative z-10">Explore Rooms</span>
               <div className="absolute inset-0 bg-white/10 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
