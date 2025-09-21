@@ -23,24 +23,51 @@ export default function DynamicHeader() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [isHovering, setIsHovering] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    // Check if device is mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || 'ontouchstart' in window)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  useEffect(() => {
     const interval = setInterval(() => {
-      if (!isHovering) {
+      // On mobile, always auto-advance. On desktop, pause on hover
+      if (isMobile || !isHovering) {
         setCurrentImageIndex((prevIndex) => (prevIndex + 1) % headerImages.length)
       }
-    }, 5000)
+    }, isMobile ? 4000 : 5000) // Faster transitions on mobile
 
     return () => clearInterval(interval)
-  }, [isHovering])
+  }, [isHovering, isMobile])
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (containerRef.current) {
+    // Only apply mouse effects on desktop
+    if (!isMobile && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect()
       const x = (e.clientX - rect.left) / rect.width
       const y = (e.clientY - rect.top) / rect.height
       setMousePosition({ x, y })
+    }
+  }
+
+  const handleTouchStart = () => {
+    if (isMobile) {
+      setIsHovering(true)
+    }
+  }
+
+  const handleTouchEnd = () => {
+    if (isMobile) {
+      setTimeout(() => setIsHovering(false), 2000) // Resume auto-advance after 2 seconds
     }
   }
 
@@ -49,15 +76,17 @@ export default function DynamicHeader() {
       ref={containerRef}
       className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] lg:h-[90vh] w-full overflow-hidden bg-black"
       onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
+      onMouseEnter={() => !isMobile && setIsHovering(true)}
+      onMouseLeave={() => !isMobile && setIsHovering(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       <div className="absolute inset-0">
         {headerImages.map((image, index) => (
           <div
             key={image}
-            className={`absolute inset-0 transition-opacity duration-1000 ${
-              index === currentImageIndex ? "opacity-100" : "opacity-0"
+            className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
+              index === currentImageIndex ? "opacity-100 scale-100" : "opacity-0 scale-105"
             }`}
           >
             <Image
@@ -67,8 +96,12 @@ export default function DynamicHeader() {
               className="object-cover"
               priority={index === 0}
               style={{
-                transform: `scale(1.1) translate(${mousePosition.x * 20}px, ${mousePosition.y * 20}px)`,
-                transition: 'transform 0.3s ease-out'
+                transform: isMobile 
+                  ? 'scale(1.05)' 
+                  : `scale(1.1) translate(${mousePosition.x * 20}px, ${mousePosition.y * 20}px)`,
+                transition: isMobile 
+                  ? 'transform 1s ease-in-out' 
+                  : 'transform 0.3s ease-out'
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
