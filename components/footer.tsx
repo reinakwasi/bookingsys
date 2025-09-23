@@ -55,12 +55,9 @@ export default function Footer() {
               {[
                 { name: "Home", href: "/" },
                 { name: "Rooms & Suites", href: "/rooms" },
-                { name: "Facilities", href: "/facilities" },
                 { name: "Events", href: "/events" },
                 { name: "Tickets", href: "/tickets" },
                 { name: "Gallery", href: "/gallery" },
-                { name: "Book Now", href: "/booking" },
-                { name: "Contact", href: "/contact" },
               ].map((link) => (
                 <li key={link.name}>
                   <Link 

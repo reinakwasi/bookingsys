@@ -177,8 +177,30 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
   
+  /* High-contrast gradient for price tags only */
+  .gradient-price-tag {
+    background: linear-gradient(135deg, #B8860B 0%, #2D1810 30%, #1A1A1A 50%, #2D1810 70%, #B8860B 100%);
+    box-shadow: 0 4px 15px rgba(184, 134, 11, 0.3);
+  }
+  
+  /* Improved button gradient - more elegant and visible */
   .gradient-gold {
-    background: linear-gradient(135deg, #C49B66 0%, #F4E4BC 50%, #C49B66 100%);
+    background: linear-gradient(135deg, #D4AF37 0%, #B8860B 50%, #D4AF37 100%);
+    box-shadow: 0 4px 20px rgba(212, 175, 55, 0.4);
+    border: 1px solid rgba(212, 175, 55, 0.3);
+  }
+  
+  .gradient-gold:hover {
+    background: linear-gradient(135deg, #FFD700 0%, #D4AF37 50%, #FFD700 100%);
+    box-shadow: 0 6px 25px rgba(255, 215, 0, 0.5);
+    transform: translateY(-1px);
+  }
+  
+  /* Alternative luxury button gradient */
+  .gradient-gold-luxury {
+    background: linear-gradient(135deg, #C9B037 0%, #E6D35A 25%, #F7EF8A 50%, #E6D35A 75%, #C9B037 100%);
+    box-shadow: 0 4px 20px rgba(201, 176, 55, 0.4);
+    border: 1px solid rgba(230, 211, 90, 0.5);
   }
   
   .gradient-luxury {
@@ -440,4 +462,64 @@ button, a, [role="button"] {
     rgba(196, 155, 102, 0.2) 0%, 
     rgba(244, 228, 188, 0.1) 50%, 
     transparent 100%);
+}
+
+/* Improved text gradients for better visibility */
+.text-gradient {
+  background: linear-gradient(135deg, 
+    #C49B66 0%,     /* Gold */
+    #2D1810 25%,    /* Dark brown/black */
+    #1A1A1A 50%,    /* Black */
+    #2D1810 75%,    /* Dark brown/black */
+    #C49B66 100%    /* Gold */
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Alternative high-contrast text gradient */
+.text-gradient-bold {
+  background: linear-gradient(135deg, 
+    #D4AF37 0%,     /* Bright gold */
+    #000000 30%,    /* Pure black */
+    #1A1A1A 50%,    /* Dark black */
+    #000000 70%,    /* Pure black */
+    #D4AF37 100%    /* Bright gold */
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 600;
+}
+
+/* High contrast gold text for light backgrounds */
+.text-gold-contrast {
+  color: #B8860B;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  font-weight: 600;
+}
+
+/* Dark text with gold accent for better readability */
+.text-dark-gold {
+  background: linear-gradient(135deg, 
+    #2D1810 0%,     /* Dark brown */
+    #C49B66 50%,    /* Gold */
+    #2D1810 100%    /* Dark brown */
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 600;
 }

@@ -118,8 +118,8 @@ export default function RoomsPage() {
                   
                   {/* Price Badge */}
                   <div className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6">
-                    <div className="gradient-gold text-white font-bold text-lg sm:text-2xl px-3 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl shadow-luxury animate-float border border-white/20">
-                      ${room.price}
+                    <div className="gradient-price-tag text-white font-bold text-lg sm:text-2xl px-3 py-2 sm:px-6 sm:py-3 rounded-xl sm:rounded-2xl shadow-luxury animate-float border border-white/20">
+                      GH₵{room.price}
                       <span className="text-xs sm:text-sm font-medium ml-1">/night</span>
                     </div>
                   </div>

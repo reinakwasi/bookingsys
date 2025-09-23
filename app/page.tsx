@@ -116,7 +116,7 @@ export default function Home() {
               <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="text-sm sm:text-base font-medium">New Edubiase, Ghana</span>
             </div>
-            <h1 className="text-responsive-4xl font-display font-bold mb-6 sm:mb-8 text-gradient animate-slide-up">
+            <h1 className="text-responsive-4xl font-display font-bold mb-6 sm:mb-8 text-gradient-bold animate-slide-up">
               Hotel 734
             </h1>
             <div className="flex items-center justify-center mb-12 animate-fade-in">
@@ -149,7 +149,7 @@ export default function Home() {
                     </Button>
                   </Link>
                   <Link href="/contact" className="flex-1 sm:w-auto">
-                    <Button size="lg" variant="outline" className="w-full glass-morphism border-[#C49B66]/30 text-[#C49B66] hover:bg-[#C49B66] hover:text-white font-bold px-4 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 text-sm sm:text-base">
+                    <Button size="lg" className="w-full gradient-gold hover:shadow-glow text-white font-bold px-4 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl hover-transition text-sm sm:text-base">
                       <MapPin className="mr-1 sm:mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       <span className="hidden xs:inline">Get </span>Directions
                     </Button>
@@ -200,7 +200,7 @@ export default function Home() {
               <span className="text-sm sm:text-base font-medium">Luxury Accommodations</span>
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
             </div>
-            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-gradient">Experience Unparalleled Comfort</h2>
+            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Experience Unparalleled Comfort</h2>
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
               Discover our carefully curated selection of rooms and suites, each designed to provide the perfect blend of luxury and comfort.
             </p>
@@ -222,8 +222,8 @@ export default function Home() {
                     
                     {/* Floating price badge */}
                     <div className="absolute top-6 right-6 z-10">
-                      <div className="gradient-gold text-white font-bold text-lg px-6 py-3 rounded-2xl shadow-luxury animate-float border border-white/20">
-                        ${room.price}/night
+                      <div className="gradient-price-tag text-white font-bold text-lg px-6 py-3 rounded-2xl shadow-luxury animate-float border border-white/20">
+                        GH₵{room.price}/night
                       </div>
                     </div>
                     
@@ -278,7 +278,7 @@ export default function Home() {
               <span className="text-sm sm:text-base font-medium">Guest Experiences</span>
               <Heart className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
             </div>
-            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-gradient">What Our Guests Say</h2>
+            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">What Our Guests Say</h2>
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
               Discover why thousands of guests choose Hotel 734 for their most memorable experiences.
             </p>
@@ -353,7 +353,7 @@ export default function Home() {
               <span className="text-sm sm:text-base font-medium">Visual Experience</span>
               <Camera className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
             </div>
-            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-gradient">Gallery Preview</h2>
+            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Gallery Preview</h2>
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
               Explore our stunning spaces and luxurious amenities through our curated gallery.
             </p>
@@ -408,7 +408,7 @@ export default function Home() {
               <span className="text-sm sm:text-base font-medium">Event Celebrations</span>
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
             </div>
-            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-gradient">Create Unforgettable Moments</h2>
+            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Create Unforgettable Moments</h2>
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
               From intimate gatherings to grand celebrations, our versatile event spaces are designed to make your special occasions truly memorable.
             </p>
@@ -429,8 +429,8 @@ export default function Home() {
                     
                     {/* Floating price badge */}
                     <div className="absolute top-6 right-6 z-10">
-                      <div className="gradient-gold text-white font-bold text-xl px-6 py-3 rounded-2xl shadow-luxury animate-float border border-white/20">
-                        ${event.price}/event
+                      <div className="gradient-price-tag text-white font-bold text-xl px-6 py-3 rounded-2xl shadow-luxury animate-float border border-white/20">
+                        GH₵{event.price}/event
                       </div>
                     </div>
                     
@@ -474,7 +474,7 @@ export default function Home() {
               <span className="text-sm sm:text-base font-medium">Excellence</span>
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
             </div>
-            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-gradient">Why Choose Hotel 734?</h2>
+            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Why Choose Hotel 734?</h2>
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
               Experience the perfect blend of luxury, comfort, and exceptional service that sets us apart.
             </p>
@@ -564,7 +564,7 @@ export default function Home() {
               <span className="text-sm sm:text-base font-medium">Book Now</span>
               <Clock className="h-4 w-4 sm:h-5 sm:w-5 animate-spin-slow" />
             </div>
-            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-gradient">Ready for Your Luxury Experience?</h2>
+            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Ready for Your Luxury Experience?</h2>
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed mb-8 sm:mb-12">
               Don't wait to experience the pinnacle of luxury and comfort. Book your stay at Hotel 734 today and create memories that will last a lifetime.
             </p>
@@ -577,7 +577,7 @@ export default function Home() {
                 </Button>
               </Link>
               <Link href="/contact" className="flex-1 sm:w-auto">
-                <Button size="lg" variant="outline" className="w-full glass-morphism border-[#C49B66]/30 text-[#C49B66] hover:bg-[#C49B66] hover:text-white font-bold px-4 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 text-sm sm:text-base">
+                <Button size="lg" className="w-full gradient-gold hover:shadow-glow text-white font-bold px-4 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-2xl hover-transition text-sm sm:text-base">
                   <Users className="mr-1 sm:mr-2 h-4 w-4 sm:h-6 sm:w-6" />
                   Contact Us
                 </Button>
