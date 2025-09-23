@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { ticketsAPI, ticketPurchasesAPI } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import PaymentModal from "@/components/PaymentModal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, Clock, DollarSign, Users, MapPin, Minus, Plus, CheckCircle, X, Sparkles, CreditCard } from "lucide-react";
@@ -28,7 +27,6 @@ export default function TicketsPage() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isConfirmingBooking, setIsConfirmingBooking] = useState(false);
   const [loadingTicketId, setLoadingTicketId] = useState<string | null>(null);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     loadTickets();
@@ -93,20 +91,94 @@ export default function TicketsPage() {
       return;
     }
 
-    setIsConfirmingBooking(true);
+    // Prevent multiple simultaneous payment attempts
+    if (isProcessingPayment) {
+      console.log('Payment already in progress, ignoring duplicate request');
+      return;
+    }
+
+    setIsProcessingPayment(true);
     
-    // Add a small delay to show loading state
-    setTimeout(() => {
-      // Close the form dialog and open the payment modal
+    try {
+      // Validate Paystack configuration
+      const configValidation = PaystackService.validateConfiguration();
+      if (!configValidation.isValid) {
+        throw new Error(`Payment system not configured: ${configValidation.issues.join(', ')}`);
+      }
+
+      // Generate unique reference for this payment attempt
+      const uniqueRef = `HTL734_${selectedTicket.id}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Initialize payment directly with Paystack
+      const paymentData = {
+        email: `noreply+${Date.now()}@hotel734.com`,
+        amount: selectedTicket.price * quantity,
+        reference: uniqueRef,
+        metadata: {
+          ticket_id: selectedTicket.id,
+          ticket_title: selectedTicket.title,
+          quantity: quantity,
+          customer_name: customerForm.name,
+          customer_phone: customerForm.phone,
+          real_customer_email: customerForm.email
+        }
+      };
+
+      const initResponse = await PaystackService.initializePayment(paymentData);
+
+      // Close the form dialog first
       setIsPurchaseDialogOpen(false);
-      setShowPaymentModal(true);
-      setIsConfirmingBooking(false);
-    }, 800);
+      
+      // Open Paystack modal directly
+      if (initResponse.success) {
+        const paymentConfig = {
+          key: '', // Will be set by PaystackService
+          email: `noreply+${Date.now()}@hotel734.com`, // Use dummy email to prevent Paystack emails
+          amount: selectedTicket.price * quantity * 100, // Convert to kobo
+          currency: 'GHS',
+          ref: uniqueRef,
+          metadata: {
+            ticket_id: selectedTicket.id,
+            ticket_title: selectedTicket.title,
+            quantity: quantity,
+            customer_name: customerForm.name,
+            customer_phone: customerForm.phone,
+            real_customer_email: customerForm.email
+          },
+          callback: (response: any) => {
+            console.log('Payment successful with reference:', response.reference);
+            handlePaymentSuccess(response.reference);
+          },
+          onClose: () => {
+            console.log('Payment modal closed');
+            // Reopen the purchase dialog if payment was cancelled
+            setTimeout(() => {
+              setIsPurchaseDialogOpen(true);
+            }, 300);
+          }
+        };
+
+        try {
+          await PaystackService.openPaymentModal(paymentConfig);
+        } catch (modalError: any) {
+          console.error('Payment modal error:', modalError);
+          toast.error(modalError.message || 'Failed to open payment modal');
+          handlePaymentError(modalError.message || 'Payment modal failed');
+        }
+      } else {
+        throw new Error('Failed to initialize payment');
+      }
+    } catch (error: any) {
+      console.error('Payment initialization error:', error);
+      toast.error(error.message || 'Failed to initialize payment');
+      handlePaymentError(error.message || 'Payment initialization failed');
+    } finally {
+      setIsProcessingPayment(false);
+    }
   };
 
   const handlePaymentSuccess = async (reference: string) => {
     try {
-      setShowPaymentModal(false);
       console.log('Starting payment success handling for reference:', reference);
       
       // Verify payment with backend
@@ -132,10 +204,7 @@ export default function TicketsPage() {
         payment_method: 'paystack'
       };
       
-      const purchase = await ticketPurchasesAPI.create(purchaseData);
-      console.log('Ticket purchase created:', purchase);
-
-      // Show success alert immediately
+      // Show success alert immediately after payment verification
       setPurchaseDetails({
         ticketTitle: selectedTicket.title,
         quantity: quantity,
@@ -146,19 +215,24 @@ export default function TicketsPage() {
         paymentMethod: verificationResponse.data?.channel || 'Paystack'
       });
       
-      setTimeout(() => {
-        setShowSuccessAlert(true);
-      }, 100);
-      
+      // Show success alert immediately - no delay
+      setShowSuccessAlert(true);
       toast.success(`Payment successful! Tickets purchased.`);
       
-      // Reset form
+      // Reset form immediately
       setSelectedTicket(null);
       setQuantity(1);
       setCustomerForm({ name: '', email: '', phone: '' });
       
-      // Refresh tickets
-      loadTickets();
+      // Create ticket purchase record in background (don't wait for it)
+      ticketPurchasesAPI.create(purchaseData).then(purchase => {
+        console.log('Ticket purchase created:', purchase);
+        // Refresh tickets after background creation
+        loadTickets();
+      }).catch(error => {
+        console.error('Background ticket creation error:', error);
+        // Don't show error to user since payment was successful
+      });
     } catch (error) {
       console.error('Purchase completion error:', error);
       if (error instanceof Error) {
@@ -170,7 +244,6 @@ export default function TicketsPage() {
   };
 
   const handlePaymentError = (error: string) => {
-    setShowPaymentModal(false);
     toast.error(error);
     // Reopen the purchase dialog after a short delay
     setTimeout(() => {
@@ -495,7 +568,7 @@ export default function TicketsPage() {
                   ) : (
                     <div className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4" />
-                      Confirm Booking
+                      Pay Now
                     </div>
                   )}
                 </Button>
@@ -620,26 +693,6 @@ export default function TicketsPage() {
         </div>
       )}
 
-      {/* Custom Payment Modal */}
-      {selectedTicket && (
-        <PaymentModal
-          isOpen={showPaymentModal}
-          onClose={() => {
-            setShowPaymentModal(false);
-            // Don't immediately reopen the purchase dialog to avoid conflicts
-          }}
-          ticketDetails={{
-            id: selectedTicket.id,
-            title: selectedTicket.title,
-            price: selectedTicket.price,
-            quantity: quantity,
-            total: selectedTicket.price * quantity
-          }}
-          customerDetails={customerForm}
-          onPaymentSuccess={handlePaymentSuccess}
-          onPaymentError={handlePaymentError}
-        />
-      )}
     </div>
   );
 }
