@@ -79,6 +79,7 @@ export default function AdminDashboard() {
   const [showDeleteTicketDialog, setShowDeleteTicketDialog] = useState(false);
   const [ticketToDelete, setTicketToDelete] = useState<any>(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
     console.log('Auth check - isAuthenticated:', isAuthenticated);
@@ -254,6 +255,7 @@ export default function AdminDashboard() {
   const confirmStatusUpdate = async () => {
     if (!bookingToUpdate || !newStatus) return;
     
+    setIsUpdatingStatus(true);
     try {
       // Update status first
       await bookingsAPI.updateStatus(bookingToUpdate.id, newStatus);
@@ -307,6 +309,8 @@ export default function AdminDashboard() {
     } catch (error) {
       toast.error('Failed to update booking status');
       // Don't close dialog on error so user can retry
+    } finally {
+      setIsUpdatingStatus(false);
     }
   };
 
@@ -672,7 +676,7 @@ export default function AdminDashboard() {
   console.log('Rendering admin dashboard - activeMenu:', activeMenu);
 
   return (
-    <div className="flex min-h-screen bg-[#f0f2f5]">
+    <div className="min-h-screen bg-[#f0f2f5]">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 bg-[#1a233b] text-white p-4 z-50 flex items-center justify-between">
         <div className="font-serif text-lg" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Hotel 734 Admin</div>
@@ -692,12 +696,14 @@ export default function AdminDashboard() {
         />
       )}
 
-      {/* Sidebar */}
-      <aside className={`${
-        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 fixed lg:static w-64 bg-[#1a233b] text-white p-4 lg:p-6 h-full z-50 lg:z-10 transition-transform duration-300 ease-in-out overflow-y-auto`}>
-        <div className="font-serif text-xl lg:text-2xl mb-6 lg:mb-8 mt-12 lg:mt-0" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Hotel 734 Admin</div>
-        <nav className="space-y-2">
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className={`${
+          isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } lg:translate-x-0 fixed lg:static w-64 bg-[#1a233b] text-white min-h-screen z-50 lg:z-10 transition-transform duration-300 ease-in-out`}>
+          <div className="p-4 lg:p-6 h-full flex flex-col">
+            <div className="font-serif text-xl lg:text-2xl mb-6 lg:mb-8 mt-12 lg:mt-0" style={{ fontFamily: 'Cormorant Garamond, serif' }}>Hotel 734 Admin</div>
+            <nav className="space-y-2 flex-1 overflow-y-auto">
           <SidebarItem label="Dashboard" active={activeMenu === "dashboard"} onClick={() => { setActiveMenu("dashboard"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           <SidebarItem label="Rooms" active={activeMenu === "rooms"} onClick={() => setActiveMenu("rooms")}/>
           {activeMenu === "rooms" && (
@@ -719,20 +725,23 @@ export default function AdminDashboard() {
           <SidebarItem label="Messages" active={activeMenu === "messages"} onClick={() => { setActiveMenu("messages"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           <SidebarItem label="Trash" active={activeMenu === "trash"} onClick={() => { setActiveMenu("trash"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           <SidebarItem label="Security" active={activeMenu === "security"} onClick={() => { setActiveMenu("security"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
-          <SidebarItem label="Logout" active={false} onClick={() => window.location.reload()} />
-        </nav>
-      </aside>
-      {/* Main Content */}
-      <main className="flex-1 lg:ml-64 p-4 sm:p-6 pt-20 lg:pt-6">
-        {/* Header */}
-        {activeMenu === 'dashboard' && (
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
-            <h1 className="font-serif text-2xl sm:text-3xl text-[#1a233b]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
-              Dashboard Overview
-            </h1>
-            <button className="w-full sm:w-auto bg-[#FFD700] hover:bg-[#e6c200] text-[#1a233b] font-bold px-4 sm:px-6 py-2 rounded-md shadow transition-all text-sm sm:text-base">+ New Booking</button>
+              <SidebarItem label="Logout" active={false} onClick={() => window.location.reload()} />
+            </nav>
           </div>
-        )}
+        </aside>
+        
+        {/* Main Content */}
+        <main className="flex-1 lg:ml-0 p-4 sm:p-6 pt-20 lg:pt-6">
+          {/* Header */}
+          {activeMenu === 'dashboard' && (
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+              <h1 className="font-serif text-2xl sm:text-3xl text-[#1a233b]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                Dashboard Overview
+              </h1>
+              <button className="w-full sm:w-auto bg-[#FFD700] hover:bg-[#e6c200] text-[#1a233b] font-bold px-4 sm:px-6 py-2 rounded-md shadow transition-all text-sm sm:text-base">+ New Booking</button>
+            </div>
+          )}
+          {/* Dashboard Content */}
         {/* Dashboard Content */}
         {activeMenu === 'dashboard' && (
           <>
@@ -745,7 +754,7 @@ export default function AdminDashboard() {
               </div>
               <div className="bg-white rounded-xl shadow p-4 sm:p-6 flex flex-col items-center">
                 <h3 className="text-sm sm:text-base text-gray-500 mb-2">Total Revenue</h3>
-                <h2 className="text-xl sm:text-2xl font-bold text-[#1a233b] mb-1">${stats.totalRevenue}</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-[#1a233b] mb-1">GH₵{stats.totalRevenue}</h2>
                 <p className="text-xs text-gray-400">From bookings</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4 sm:p-6 flex flex-col items-center">
@@ -1467,7 +1476,7 @@ export default function AdminDashboard() {
               </div>
             )}
           </DialogContent>
-        </Dialog>)
+        </Dialog>
 
         {/* Trash */}
         {activeMenu === 'trash' && (
@@ -1904,7 +1913,6 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
-      </main>
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
@@ -1965,9 +1973,22 @@ export default function AdminDashboard() {
                   </Button>
                   <Button 
                     onClick={confirmStatusUpdate}
-                    className="bg-[#C49B66] hover:bg-[#b8905c] text-white"
+                    disabled={isUpdatingStatus}
+                    className={`bg-[#C49B66] hover:bg-[#b8905c] text-white font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                      isUpdatingStatus ? 'opacity-80 cursor-not-allowed' : ''
+                    }`}
                   >
-                    Update Status
+                    {isUpdatingStatus ? (
+                      <div className="flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3"></div>
+                        <span>Updating Status...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center">
+                        <CheckCircle className="mr-2 h-5 w-5" />
+                        <span>Update Status</span>
+                      </div>
+                    )}
                   </Button>
                 </div>
               </div>
@@ -2151,19 +2172,26 @@ export default function AdminDashboard() {
                 <Button
                   onClick={isEditingTicket ? handleUpdateTicket : handleCreateTicket}
                   disabled={isCreatingTicket || isUpdatingTicket}
-                  className="bg-[#FFD700] hover:bg-[#e6c200] text-[#1a233b] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`bg-[#FFD700] hover:bg-[#e6c200] text-[#1a233b] font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                    (isCreatingTicket || isUpdatingTicket) ? 'opacity-80 cursor-not-allowed' : ''
+                  }`}
                 >
                   {isCreatingTicket ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#1a233b]"></div>
-                      Creating...
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#1a233b] mr-3"></div>
+                      <span>Creating Ticket...</span>
                     </div>
                   ) : isUpdatingTicket ? (
-                    <div className="flex items-center gap-2">
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#1a233b]"></div>
-                      Updating...
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#1a233b] mr-3"></div>
+                      <span>Updating Ticket...</span>
                     </div>
-                  ) : isEditingTicket ? 'Update Ticket' : 'Create Ticket'}
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <Plus className="mr-2 h-5 w-5" />
+                      <span>{isEditingTicket ? 'Update Ticket' : 'Create Ticket'}</span>
+                    </div>
+                  )}
                 </Button>
               </div>
             </div>
@@ -2212,7 +2240,8 @@ export default function AdminDashboard() {
             </div>
           </DialogContent>
         </Dialog>
-
+        </main>
+      </div>
     </div>
   );
 }
@@ -2237,4 +2266,4 @@ function SidebarSubItem({ label, active, onClick }: { label: string; active: boo
       {label}
     </div>
   );
-} 
+}

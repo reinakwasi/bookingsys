@@ -4,7 +4,13 @@ export const messagesAPI = {
   // Get all reviews and messages, newest first
   async getAll() {
     try {
-      // Try to get reviews first
+      // Try to get contact messages first
+      const { data: contactMessages, error: contactError } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      // Try to get reviews
       const { data: reviews, error: reviewsError } = await supabase
         .from('reviews')
         .select('*')
@@ -17,6 +23,16 @@ export const messagesAPI = {
         .order('created_at', { ascending: false });
       
       const allMessages = [];
+      
+      // Add contact messages with type indicator
+      if (contactMessages && !contactError) {
+        allMessages.push(...contactMessages.map(msg => ({
+          ...msg,
+          type: 'contact',
+          title: msg.subject || 'Contact Message',
+          is_read: msg.status === 'read' || false
+        })));
+      }
       
       // Add reviews with type indicator
       if (reviews && !reviewsError) {
@@ -35,6 +51,7 @@ export const messagesAPI = {
       if (adminMessages && !messagesError) {
         allMessages.push(...adminMessages.map(msg => ({
           ...msg,
+          type: 'admin',
           name: 'System',
           is_read: msg.status === 'read'
         })));
@@ -42,6 +59,13 @@ export const messagesAPI = {
       
       // Sort by created_at
       allMessages.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      
+      console.log('📧 Loaded messages:', {
+        contact: contactMessages?.length || 0,
+        reviews: reviews?.length || 0,
+        admin: adminMessages?.length || 0,
+        total: allMessages.length
+      });
       
       return allMessages;
     } catch (error) {
@@ -55,6 +79,12 @@ export const messagesAPI = {
     try {
       let totalUnread = 0;
       
+      // Count unread contact messages
+      const { count: contactCount } = await supabase
+        .from('messages')
+        .select('*', { count: 'exact', head: true })
+        .or('status.is.null,status.neq.read');
+      
       // Count unread reviews
       const { count: reviewCount } = await supabase
         .from('reviews')
@@ -67,7 +97,7 @@ export const messagesAPI = {
         .select('*', { count: 'exact', head: true })
         .eq('status', 'unread');
       
-      totalUnread = (reviewCount || 0) + (messageCount || 0);
+      totalUnread = (contactCount || 0) + (reviewCount || 0) + (messageCount || 0);
       return totalUnread;
     } catch (error) {
       console.error('❌ Get unread count error:', error);
@@ -76,9 +106,18 @@ export const messagesAPI = {
   },
 
   // Mark as read
-  async markAsRead(id: string, type: string = 'review') {
+  async markAsRead(id: string, type: string = 'contact') {
     try {
-      if (type === 'review') {
+      if (type === 'contact') {
+        const { data, error } = await supabase
+          .from('messages')
+          .update({ status: 'read' })
+          .eq('id', id)
+          .select()
+          .single();
+        if (error) throw error;
+        return data;
+      } else if (type === 'review') {
         const { data, error } = await supabase
           .from('reviews')
           .update({ status: 'read' })

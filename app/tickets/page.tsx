@@ -16,7 +16,7 @@ export default function TicketsPage() {
   const [loading, setLoading] = useState(false); // Disabled loading for faster experience
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false);
-  const [isLoadingTickets, setIsLoadingTickets] = useState(true);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [customerForm, setCustomerForm] = useState({
     name: '',
@@ -26,6 +26,7 @@ export default function TicketsPage() {
   const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [purchaseDetails, setPurchaseDetails] = useState<any>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [isConfirmingBooking, setIsConfirmingBooking] = useState(false);
   const [loadingTicketId, setLoadingTicketId] = useState<string | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
 
@@ -48,7 +49,7 @@ export default function TicketsPage() {
 
   const loadTickets = async () => {
     try {
-      setIsLoadingTickets(true);
+      // Remove loading state for instant display
       console.log('🎫 Loading tickets...');
       
       const allTickets = await ticketsAPI.getAll();
@@ -66,10 +67,10 @@ export default function TicketsPage() {
       
       console.log('🎫 Active tickets:', activeTickets?.length || 0);
       setTickets(activeTickets);
+      setIsLoadingTickets(false);
     } catch (error) {
       console.error('❌ Failed to load tickets:', error);
       toast.error('Failed to load tickets');
-    } finally {
       setIsLoadingTickets(false);
     }
   };
@@ -92,9 +93,15 @@ export default function TicketsPage() {
       return;
     }
 
-    // Close the form dialog and open the payment modal
-    setIsPurchaseDialogOpen(false);
-    setShowPaymentModal(true);
+    setIsConfirmingBooking(true);
+    
+    // Add a small delay to show loading state
+    setTimeout(() => {
+      // Close the form dialog and open the payment modal
+      setIsPurchaseDialogOpen(false);
+      setShowPaymentModal(true);
+      setIsConfirmingBooking(false);
+    }, 800);
   };
 
   const handlePaymentSuccess = async (reference: string) => {
@@ -455,10 +462,17 @@ export default function TicketsPage() {
               <div className="flex flex-col gap-3 pt-4">
                 <Button
                   onClick={handlePurchase}
-                  disabled={isProcessingPayment}
+                  disabled={isConfirmingBooking || isProcessingPayment}
                   className="w-full h-12 text-base bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
                 >
-                  {isProcessingPayment ? (
+                  {isConfirmingBooking ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <Sparkles className="h-4 w-4" />
+                      Confirming Booking...
+                      <Sparkles className="h-4 w-4" />
+                    </div>
+                  ) : isProcessingPayment ? (
                     <div className="flex items-center gap-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                       Processing Payment...
@@ -466,7 +480,7 @@ export default function TicketsPage() {
                   ) : (
                     <div className="flex items-center gap-2">
                       <CreditCard className="h-4 w-4" />
-                      Pay with Paystack
+                      Confirm Booking
                     </div>
                   )}
                 </Button>
