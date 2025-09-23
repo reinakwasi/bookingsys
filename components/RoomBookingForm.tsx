@@ -72,8 +72,8 @@ export default function RoomBookingForm({
       console.log('🔄 Setting loading state to true');
       setIsLoading(true);
       
-      // Add a small delay to make loading state visible
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Add a delay to make loading state visible
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
       // Check room availability before booking - use roomType instead of roomId
       const availability = await bookingsAPI.checkRoomAvailability(roomType, data.checkIn, data.checkOut);
@@ -99,7 +99,6 @@ export default function RoomBookingForm({
           ]
         );
         
-        setIsLoading(false);
         return;
       }
       
@@ -155,8 +154,6 @@ export default function RoomBookingForm({
         console.error('⚠️ Notification sending failed:', notificationError);
       });
       
-      // Set loading to false after successful booking
-      setIsLoading(false);
     } catch (error: any) {
       console.error('Booking error:', error);
       

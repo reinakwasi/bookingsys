@@ -492,16 +492,20 @@ button, a, [role="button"] {
 /* Alternative high-contrast text gradient */
 .text-gradient-bold {
   background: linear-gradient(135deg, 
-    #D4AF37 0%,     /* Bright gold */
+    #FFD700 0%,     /* Bright gold */
+    #FFA500 15%,    /* Orange gold */
     #000000 30%,    /* Pure black */
     #1A1A1A 50%,    /* Dark black */
     #000000 70%,    /* Pure black */
-    #D4AF37 100%    /* Bright gold */
+    #FFA500 85%,    /* Orange gold */
+    #FFD700 100%    /* Bright gold */
   );
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: 600;
+  color: #000000; /* Fallback for browsers that don't support background-clip */
+  font-weight: 700;
+  text-shadow: 0 0 30px rgba(255, 215, 0, 0.3);
 }
 
 /* High contrast gold text for light backgrounds */

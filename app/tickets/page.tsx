@@ -14,9 +14,9 @@ import { PaystackService, PaymentData } from "@/lib/paystack";
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(false); // Disabled loading for faster experience
+  const [isInitialLoad, setIsInitialLoad] = useState(true); // Track initial load
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [isPurchaseDialogOpen, setIsPurchaseDialogOpen] = useState(false);
-  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [customerForm, setCustomerForm] = useState({
     name: '',
@@ -67,11 +67,11 @@ export default function TicketsPage() {
       
       console.log('🎫 Active tickets:', activeTickets?.length || 0);
       setTickets(activeTickets);
-      setIsLoadingTickets(false);
+      setIsInitialLoad(false);
     } catch (error) {
       console.error('❌ Failed to load tickets:', error);
       toast.error('Failed to load tickets');
-      setIsLoadingTickets(false);
+      setIsInitialLoad(false);
     }
   };
 
@@ -222,16 +222,31 @@ export default function TicketsPage() {
 
       {/* Tickets Section */}
       <div className="container-responsive py-12 sm:py-16 relative z-10">
-        {isLoadingTickets ? (
-          <div className="text-center py-12 sm:py-16 lg:py-20">
-            <div className="flex items-center justify-center mb-6">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400"></div>
+        {isInitialLoad ? (
+          // Show skeleton loading that looks like tickets
+          <>
+            <div className="text-center mb-8 sm:mb-12">
+              <h2 className="text-responsive-2xl font-bold text-amber-100 mb-3 sm:mb-4">
+                Available Experiences
+              </h2>
+              <p className="text-responsive-base text-amber-200/80 max-w-2xl mx-auto">
+                Book your spot for these exclusive hotel activities and experiences
+              </p>
             </div>
-            <h2 className="text-responsive-2xl font-bold text-amber-100 mb-3 sm:mb-4">Loading Experiences...</h2>
-            <p className="text-responsive-base text-amber-200/80">
-              Please wait while we fetch the latest available tickets for you.
-            </p>
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-3xl overflow-hidden border border-amber-400/20 shadow-2xl animate-pulse">
+                  <div className="h-48 bg-slate-700/50"></div>
+                  <div className="p-6 sm:p-8">
+                    <div className="h-6 bg-slate-600/50 rounded mb-4"></div>
+                    <div className="h-4 bg-slate-600/30 rounded mb-2"></div>
+                    <div className="h-4 bg-slate-600/30 rounded mb-4 w-3/4"></div>
+                    <div className="h-12 bg-amber-500/30 rounded-xl"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         ) : tickets.length === 0 ? (
           <div className="text-center py-12 sm:py-16 lg:py-20">
             <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">🎟️</div>

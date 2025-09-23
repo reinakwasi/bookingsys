@@ -49,6 +49,7 @@ const formSchema = z
 
 export default function BookingPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
   const { showError, showSuccess, CustomAlert } = useCustomAlert()
   const searchParams = useSearchParams()
   
@@ -87,6 +88,7 @@ export default function BookingPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      setIsLoading(true);
       // Import the bookings API
       const { bookingsAPI, authAPI } = await import('@/lib/api')
       
@@ -191,6 +193,8 @@ export default function BookingPage() {
           ]
         );
       }
+    } finally {
+      setIsLoading(false);
     }
   }
   
@@ -553,11 +557,23 @@ export default function BookingPage() {
                     <Button 
                       type="submit" 
                       size="lg"
-                      className="w-full h-14 sm:h-16 gradient-gold hover:shadow-glow text-white font-bold text-lg sm:text-xl rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105"
+                      disabled={isLoading}
+                      className={`w-full h-14 sm:h-16 gradient-gold hover:shadow-glow text-white font-bold text-lg sm:text-xl rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 ${
+                        isLoading ? 'opacity-80 cursor-not-allowed' : ''
+                      }`}
                     >
-                      <Sparkles className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
-                      Confirm Booking
-                      <Sparkles className="ml-2 sm:ml-3 h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
+                      {isLoading ? (
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mr-3"></div>
+                          <span>Processing Booking...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <Sparkles className="mr-2 sm:mr-3 h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
+                          Confirm Booking
+                          <Sparkles className="ml-2 sm:ml-3 h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
+                        </>
+                      )}
                     </Button>
                   </div>
                 </form>
