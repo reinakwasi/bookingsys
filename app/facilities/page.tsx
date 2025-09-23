@@ -146,9 +146,9 @@ export default function FacilitiesPage() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-amber-50/30 relative overflow-hidden">
       {/* Floating Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-amber-200/20 to-orange-300/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-slate-200/20 to-gray-300/20 rounded-full blur-3xl animate-float-delayed"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-amber-100/10 to-orange-200/10 rounded-full blur-2xl animate-pulse"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-amber-200/20 to-orange-300/20 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-slate-200/20 to-gray-300/20 rounded-full blur-3xl animate-float-slow" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-r from-amber-100/10 to-orange-200/10 rounded-full blur-2xl animate-pulse-slow"></div>
       </div>
 
       <div className="container-responsive py-8 sm:py-12 lg:py-16 relative z-10">
@@ -184,7 +184,7 @@ export default function FacilitiesPage() {
             return (
               <Card 
                 key={facility.id} 
-                className="overflow-hidden group cursor-pointer bg-white/80 backdrop-blur-lg border border-white/30 shadow-2xl hover:shadow-3xl transition-all duration-700 hover:scale-[1.01] animate-fade-in rounded-2xl sm:rounded-3xl"
+                className="overflow-hidden group cursor-pointer bg-white/80 backdrop-blur-lg border border-white/30 shadow-2xl hover:shadow-3xl hover-transition hover:scale-[1.01] animate-fade-in rounded-2xl sm:rounded-3xl"
                 style={{ animationDelay: `${index * 150}ms` }}
               >
                 <div className="relative h-[300px] sm:h-[400px] md:h-[550px] lg:h-[650px] overflow-hidden rounded-2xl sm:rounded-3xl">
@@ -192,18 +192,18 @@ export default function FacilitiesPage() {
                     src={currentImage.src} 
                     alt={currentImage.alt} 
                     fill 
-                    className="object-cover transition-all duration-1000 group-hover:scale-110" 
+                    className="object-cover hover-transition group-hover:scale-105" 
                     priority={index < 3}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-600/20 opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 hover-transition" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-500/20 to-orange-600/20 opacity-0 group-hover:opacity-100 hover-transition" />
                   
                   {/* Navigation buttons */}
-                  <div className="absolute inset-0 flex items-center justify-between px-4 sm:px-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="absolute inset-0 flex items-center justify-between px-4 sm:px-8 opacity-0 group-hover:opacity-100 hover-transition">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-10 w-10 sm:h-14 sm:w-14 rounded-full bg-white/95 backdrop-blur-md hover:bg-white text-slate-900 shadow-xl border border-white/40 hover:scale-110 transition-all duration-300"
+                      className="h-10 w-10 sm:h-14 sm:w-14 rounded-full bg-white/95 backdrop-blur-md hover:bg-white text-slate-900 shadow-xl border border-white/40 hover:scale-110 hover-transition"
                       onClick={(e) => handlePreviousImage(facility.id, e)}
                     >
                       <ChevronLeft className="h-4 w-4 sm:h-6 sm:w-6" />
@@ -211,7 +211,7 @@ export default function FacilitiesPage() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-10 w-10 sm:h-14 sm:w-14 rounded-full bg-white/95 backdrop-blur-md hover:bg-white text-slate-900 shadow-xl border border-white/40 hover:scale-110 transition-all duration-300"
+                      className="h-10 w-10 sm:h-14 sm:w-14 rounded-full bg-white/95 backdrop-blur-md hover:bg-white text-slate-900 shadow-xl border border-white/40 hover:scale-110 hover-transition"
                       onClick={(e) => handleNextImage(facility.id, e)}
                     >
                       <ChevronRight className="h-4 w-4 sm:h-6 sm:w-6" />

@@ -196,8 +196,8 @@ export default function TicketsPage() {
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 opacity-30 bg-gradient-to-br from-amber-500/10 to-yellow-500/10"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-amber-400/5 via-transparent to-yellow-400/5"></div>
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-amber-400/15 to-yellow-400/15 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-yellow-400/15 to-orange-400/15 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-amber-400/15 to-yellow-400/15 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-yellow-400/15 to-orange-400/15 rounded-full blur-3xl animate-float-slow" style={{animationDelay: '2s'}}></div>
       </div>
       
       {/* Hero Section */}
@@ -253,15 +253,15 @@ export default function TicketsPage() {
                     className="relative group"
                   >
                     {/* Glowing border effect */}
-                    <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 rounded-2xl sm:rounded-3xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500"></div>
+                    <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 rounded-2xl sm:rounded-3xl blur-xl opacity-40 group-hover:opacity-70 hover-transition"></div>
                     
-                    <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-amber-400/20 transform transition-all duration-300 hover:scale-105">
+                    <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-amber-400/20 hover-transition hover:scale-[1.02]">
                       {ticket.image_url && (
                         <div className="h-48 sm:h-56 lg:h-64 bg-gradient-to-br from-amber-400/20 to-yellow-500/20 relative overflow-hidden">
                           <img
                             src={ticket.image_url}
                             alt={ticket.title}
-                            className={`w-full h-full object-cover transition-all duration-300 ${isOutOfStock ? 'grayscale opacity-50' : 'group-hover:scale-110'}`}
+                            className={`w-full h-full object-cover hover-transition ${isOutOfStock ? 'grayscale opacity-50' : 'group-hover:scale-105'}`}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                           
@@ -338,7 +338,7 @@ export default function TicketsPage() {
                             className={`${isOutOfStock
                               ? 'bg-gray-600 cursor-not-allowed'
                               : 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400'
-                            } text-white px-4 sm:px-6 py-2 rounded-lg sm:rounded-xl font-semibold transition-all duration-300 text-sm sm:text-base disabled:opacity-50`}
+                            } text-white px-4 sm:px-6 py-2 rounded-lg sm:rounded-xl font-semibold hover-transition text-sm sm:text-base disabled:opacity-50`}
                           >
                             {loadingTicketId === ticket.id ? (
                               <div className="flex items-center gap-2">

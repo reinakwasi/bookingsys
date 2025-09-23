@@ -73,9 +73,9 @@ export default function RoomsPage() {
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
       {/* Floating background elements */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-[#C49B66]/20 to-[#F4E4BC]/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-blue-200/30 to-purple-200/30 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-[#C49B66]/10 to-amber-200/20 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-[#C49B66]/20 to-[#F4E4BC]/20 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-blue-200/30 to-purple-200/30 rounded-full blur-3xl animate-float-slow" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-[#C49B66]/10 to-amber-200/20 rounded-full blur-3xl animate-float-slow" style={{animationDelay: '4s'}}></div>
       </div>
       
       <div className="container-responsive py-12 sm:py-16 lg:py-24 relative z-10">
@@ -96,15 +96,15 @@ export default function RoomsPage() {
             <div key={room.id} className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-12 items-stretch animate-fade-in-up" style={{animationDelay: `${index * 0.2}s`}}>
               {/* Room Image */}
               <div className="relative group">
-                <div className="relative h-[300px] sm:h-[400px] lg:h-[600px] overflow-hidden rounded-2xl sm:rounded-3xl shadow-luxury hover:shadow-glow transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
+                <div className="relative h-[300px] sm:h-[400px] lg:h-[600px] overflow-hidden rounded-2xl sm:rounded-3xl shadow-luxury hover:shadow-glow hover-transition hover:-translate-y-1 hover:scale-[1.02]">
                   <Image
                     src={room.image}
                     alt={room.name}
                     fill
-                    className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
+                    className="object-cover hover-transition group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#C49B66]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#C49B66]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 hover-transition" />
                   
                   {/* Rating Badge */}
                   <div className="absolute top-3 right-3 sm:top-6 sm:right-6 z-10">
@@ -148,7 +148,7 @@ export default function RoomsPage() {
                   
                   {/* Action Button */}
                   <Link href={`/rooms/${room.id}`}>
-                    <Button size="lg" className="w-full sm:w-auto gradient-gold hover:shadow-glow text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
+                    <Button size="lg" className="w-full sm:w-auto gradient-gold hover:shadow-glow text-white font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl hover-transition hover:scale-105 text-sm sm:text-base">
                       <Bed className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
                       More Details
                     </Button>

@@ -53,9 +53,9 @@ export default function EventsPage() {
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute inset-0 opacity-30 bg-gradient-to-br from-amber-500/10 to-yellow-500/10"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-amber-400/5 via-transparent to-yellow-400/5"></div>
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-amber-400/15 to-yellow-400/15 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-yellow-400/15 to-orange-400/15 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-amber-300/8 to-yellow-300/8 rounded-full blur-3xl animate-pulse" style={{animationDelay: '4s'}}></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-amber-400/15 to-yellow-400/15 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-yellow-400/15 to-orange-400/15 rounded-full blur-3xl animate-float-slow" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-amber-300/8 to-yellow-300/8 rounded-full blur-3xl animate-pulse-slow" style={{animationDelay: '4s'}}></div>
       </div>
 
       <div className="container-responsive py-12 sm:py-16 lg:py-24 relative z-10">
@@ -103,9 +103,9 @@ export default function EventsPage() {
             <div key={event._id} className="group animate-fade-in-up" style={{animationDelay: `${index * 0.3}s`}}>
               <div className="relative">
                 {/* Glowing border effect */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 rounded-2xl sm:rounded-3xl blur-xl opacity-40 group-hover:opacity-70 transition-opacity duration-500 animate-glow"></div>
+                <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 rounded-2xl sm:rounded-3xl blur-xl opacity-40 group-hover:opacity-70 hover-transition animate-glow"></div>
                 
-                <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl overflow-hidden border border-amber-400/20 shadow-2xl transform transition-all duration-500 hover:scale-105 hover:shadow-amber-500/20">
+                <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl overflow-hidden border border-amber-400/20 shadow-2xl hover-transition hover:scale-[1.02] hover:shadow-amber-500/20">
                   {/* Header with icon and category */}
                   <div className="relative p-4 sm:p-6 bg-gradient-to-r from-amber-500/25 to-yellow-500/25 border-b border-amber-400/20">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
@@ -135,10 +135,10 @@ export default function EventsPage() {
                       src={event.image || '/cont.jpg'}
                       alt={event.name}
                       fill
-                      className="object-cover transition-all duration-700 group-hover:scale-110"
+                      className="object-cover hover-transition group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-slate-900/40 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-br from-amber-400/25 via-transparent to-yellow-400/25 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-400/25 via-transparent to-yellow-400/25 opacity-0 group-hover:opacity-100 hover-transition" />
                   
                     {/* Capacity indicator */}
                     <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
@@ -171,7 +171,7 @@ export default function EventsPage() {
                         </h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                           {event.features.map((feature: string, idx: number) => (
-                            <div key={idx} className="flex items-center gap-2 p-2 sm:p-3 bg-gradient-to-r from-amber-400/15 to-yellow-400/15 rounded-lg border border-amber-400/30 hover:border-amber-400/50 transition-all duration-300 hover:bg-amber-400/20">
+                            <div key={idx} className="flex items-center gap-2 p-2 sm:p-3 bg-gradient-to-r from-amber-400/15 to-yellow-400/15 rounded-lg border border-amber-400/30 hover:border-amber-400/50 hover-transition hover:bg-amber-400/20">
                               <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-gradient-to-r from-amber-400 to-yellow-400 rounded-full animate-pulse flex-shrink-0"></div>
                               <span className="text-xs sm:text-sm text-slate-200 font-medium">{feature}</span>
                             </div>
@@ -184,7 +184,7 @@ export default function EventsPage() {
                     <div className="pt-3 sm:pt-4 border-t border-white/10">
                       <Button 
                         size="lg" 
-                        className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-900 font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl hover:shadow-amber-500/30 border border-amber-300/50 shadow-lg text-sm sm:text-base"
+                        className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-900 font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl hover-transition hover:scale-105 hover:shadow-xl hover:shadow-amber-500/30 border border-amber-300/50 shadow-lg text-sm sm:text-base"
                         onClick={() => handleBookEvent(event)}
                       >
                         <Calendar className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />

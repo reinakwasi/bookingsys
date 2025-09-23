@@ -211,7 +211,7 @@ export default function RoomPage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
               <button
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-300"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg hover-transition"
                 onClick={handlePrev}
                 type="button"
                 aria-label="Previous image"
@@ -219,7 +219,7 @@ export default function RoomPage() {
                 <ChevronLeft className="h-6 w-6 text-slate-700" />
               </button>
               <button
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg transition-all duration-300"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white rounded-full p-2 shadow-lg hover-transition"
                 onClick={handleNext}
                 type="button"
                 aria-label="Next image"
@@ -248,7 +248,7 @@ export default function RoomPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {room.features.map((feature, index) => (
-                <Card key={index} className="bg-white/50 backdrop-blur-sm border-0 shadow-sm hover:shadow-md transition-all duration-300">
+                <Card key={index} className="bg-white/50 backdrop-blur-sm border-0 shadow-sm hover:shadow-md hover-transition">
                   <CardContent className="flex items-center space-x-3 p-4">
                     <feature.icon className="h-5 w-5 text-slate-900" />
                     <span className="text-sm font-medium text-slate-900">{feature.text}</span>

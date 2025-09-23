@@ -99,9 +99,9 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
       {/* Floating background elements */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-[#C49B66]/20 to-[#F4E4BC]/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-blue-200/30 to-purple-200/30 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-[#C49B66]/10 to-amber-200/20 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-[#C49B66]/20 to-[#F4E4BC]/20 rounded-full blur-3xl animate-float-slow"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-blue-200/30 to-purple-200/30 rounded-full blur-3xl animate-float-slow" style={{animationDelay: '2s'}}></div>
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-[#C49B66]/10 to-amber-200/20 rounded-full blur-3xl animate-float-slow" style={{animationDelay: '4s'}}></div>
       </div>
       
       <DynamicHeader />
@@ -209,16 +209,16 @@ export default function Home() {
           <div className="grid grid-responsive-3 gap-6 sm:gap-8">
             {featuredRooms.map((room, i) => (
               <div key={room.id} className="group relative animate-fade-in-up" style={{animationDelay: `${i * 0.2}s`}}>
-                <div className="glass-morphism rounded-3xl overflow-hidden shadow-luxury hover:shadow-glow transition-all duration-500 transform hover:-translate-y-4 hover:scale-105">
+                <div className="glass-morphism rounded-3xl overflow-hidden shadow-luxury hover:shadow-glow hover-transition hover:-translate-y-2 hover:scale-[1.02]">
                   <div className="relative h-80 overflow-hidden">
                     <Image
                       src={room.image}
                       alt={room.name}
                       fill
-                      className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
+                      className="object-cover hover-transition group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#C49B66]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#C49B66]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 hover-transition" />
                     
                     {/* Floating price badge */}
                     <div className="absolute top-6 right-6 z-10">
@@ -236,9 +236,9 @@ export default function Home() {
                     </div>
                     
                     {/* Hover overlay with enhanced button */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-sm transition-all duration-500">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/40 backdrop-blur-sm hover-transition">
                       <Link href={room.link}>
-                        <Button size="lg" className="gradient-gold hover:shadow-glow text-white font-bold px-8 py-4 rounded-2xl transition-all duration-300 transform hover:scale-110 animate-scale-in">
+                        <Button size="lg" className="gradient-gold hover:shadow-glow text-white font-bold px-8 py-4 rounded-2xl hover-transition hover:scale-105 animate-scale-in">
                           <Camera className="mr-2 h-5 w-5" />
                           View Details
                           <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -309,7 +309,7 @@ export default function Home() {
               },
             ].map((testimonial, idx) => (
               <div key={idx} className="group animate-fade-in-up" style={{animationDelay: `${idx * 0.2}s`}}>
-                <div className="glass-morphism rounded-3xl p-8 shadow-luxury hover:shadow-glow transition-all duration-500 transform hover:-translate-y-2 hover:scale-105">
+                <div className="glass-morphism rounded-3xl p-8 shadow-luxury hover:shadow-glow hover-transition hover:-translate-y-1 hover:scale-[1.02]">
                   <div className="flex items-center mb-6">
                     <div className="relative">
                       <Image 
@@ -362,17 +362,17 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
             {['/room1.jpg','/room2.jpg','/three.jpg','/poolview2.jpg'].map((img, idx) => (
               <div key={idx} className="group relative animate-fade-in-up" style={{animationDelay: `${idx * 0.1}s`}}>
-                <div className="glass-morphism rounded-3xl overflow-hidden shadow-luxury hover:shadow-glow transition-all duration-500 transform hover:-translate-y-2 hover:scale-105 cursor-pointer">
+                <div className="glass-morphism rounded-3xl overflow-hidden shadow-luxury hover:shadow-glow hover-transition hover:-translate-y-1 hover:scale-[1.02] cursor-pointer">
                   <div className="relative h-64 overflow-hidden">
                     <Image 
                       src={img} 
                       alt={`Gallery ${idx+1}`} 
                       fill
-                      className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1" 
+                      className="object-cover hover-transition group-hover:scale-105" 
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-500">
-                      <div className="glass-morphism rounded-2xl px-6 py-3 transform scale-90 group-hover:scale-100 transition-transform">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 hover-transition" />
+                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 hover-transition">
+                      <div className="glass-morphism rounded-2xl px-6 py-3 transform scale-90 group-hover:scale-100 hover-transition">
                         <span className="text-white font-bold flex items-center gap-2">
                           <Camera className="h-5 w-5" />
                           View
@@ -416,16 +416,16 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 lg:gap-12">
             {featuredEvents.map((event, i) => (
               <div key={event.id} className="group animate-fade-in-up" style={{animationDelay: `${i * 0.2}s`}}>
-                <div className="glass-morphism rounded-3xl overflow-hidden shadow-luxury hover:shadow-glow transition-all duration-500 transform hover:-translate-y-4 hover:scale-105">
+                <div className="glass-morphism rounded-3xl overflow-hidden shadow-luxury hover:shadow-glow hover-transition hover:-translate-y-2 hover:scale-[1.02]">
                   <div className="relative h-96 overflow-hidden">
                     <Image
                       src={event.image}
                       alt={event.name}
                       fill
-                      className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
+                      className="object-cover hover-transition group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#C49B66]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#C49B66]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 hover-transition" />
                     
                     {/* Floating price badge */}
                     <div className="absolute top-6 right-6 z-10">
