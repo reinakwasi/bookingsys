@@ -71,7 +71,7 @@ export default function EventsPage() {
               </div>
             </div>
           </div>
-          <h1 className="text-responsive-4xl font-black mb-6 sm:mb-8 bg-gradient-to-r from-amber-100 via-yellow-100 to-white bg-clip-text text-transparent leading-tight drop-shadow-2xl">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-6 sm:mb-8 bg-gradient-to-r from-amber-100 via-yellow-100 to-white bg-clip-text text-transparent leading-tight drop-shadow-2xl px-4">
             Unforgettable Event Spaces
           </h1>
           <div className="max-w-4xl mx-auto mb-8 sm:mb-12">
@@ -122,7 +122,7 @@ export default function EventsPage() {
                       </div>
                       <div className="text-left sm:text-right">
                         <div className="text-2xl sm:text-3xl font-black text-transparent bg-gradient-to-r from-amber-300 to-yellow-300 bg-clip-text drop-shadow-lg">
-                          ${event.price}
+                          GH₵{event.price}
                         </div>
                         <p className="text-amber-200 text-xs sm:text-sm">per event</p>
                       </div>
@@ -231,7 +231,7 @@ export default function EventsPage() {
                   </Button>
                 </a>
                 <a href="/facilities">
-                  <Button size="lg" variant="outline" className="border-2 border-amber-400/60 text-amber-100 hover:bg-amber-400/20 hover:border-amber-300 font-bold px-10 py-4 rounded-xl transition-all duration-300 backdrop-blur-sm shadow-lg hover:shadow-amber-500/20">
+                  <Button size="lg" className="bg-gradient-to-r from-slate-700 to-slate-800 hover:from-slate-600 hover:to-slate-700 text-white border-2 border-slate-500/60 hover:border-slate-400 font-bold px-10 py-4 rounded-xl transition-all duration-300 backdrop-blur-sm shadow-lg hover:shadow-slate-500/30">
                     <Sparkles className="mr-3 h-6 w-6" />
                     Explore All Facilities
                   </Button>

@@ -96,7 +96,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
       {/* Floating background elements */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-[#C49B66]/20 to-[#F4E4BC]/20 rounded-full blur-3xl animate-float-slow"></div>
@@ -287,25 +287,25 @@ export default function Home() {
           <div className="grid grid-responsive-3 gap-6 sm:gap-8">
             {[
               {
-                name: "Ama Boateng",
-                text: "Absolutely stunning! The rooms were spotless and the service was the best I've ever experienced. Every detail was perfect.",
+                name: "Sarah Johnson",
+                text: "Hotel 734 exceeded my expectations! The staff was incredibly attentive, and the room was immaculate. The pool area is absolutely gorgeous - perfect for relaxation after a long day of meetings.",
                 image: "/room3.jpg",
                 rating: 5,
-                location: "Accra, Ghana"
+                location: "Business Traveler, USA"
               },
               {
-                name: "Kwame Mensah",
-                text: "The event spaces are perfect for celebrations. Our wedding was magical thanks to Hotel 734's exceptional team!",
+                name: "Michael Asante",
+                text: "We held our company retreat here and it was flawless. The conference facilities are top-notch, and the catering was exceptional. Our team loved the evening entertainment at the bar!",
                 image: "/poolview2.jpg",
                 rating: 5,
-                location: "Kumasi, Ghana"
+                location: "Corporate Executive, Accra"
               },
               {
-                name: "Linda Osei",
-                text: "Amazing food, friendly staff, and a beautiful pool. The luxury amenities exceeded all expectations!",
+                name: "Emma Thompson",
+                text: "What a gem! The restaurant serves incredible local and international cuisine. The gym is well-equipped and the spa treatments were divine. Will definitely return on my next visit to Ghana!",
                 image: "/view.jpg",
                 rating: 5,
-                location: "Takoradi, Ghana"
+                location: "Travel Blogger, UK"
               },
             ].map((testimonial, idx) => (
               <div key={idx} className="group animate-fade-in-up" style={{animationDelay: `${idx * 0.2}s`}}>
@@ -586,6 +586,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

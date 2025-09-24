@@ -15,6 +15,7 @@ import { useCustomAlert } from '@/components/ui/CustomAlert'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { format } from 'date-fns'
+import { calculateNights, formatNights, validateBookingDates } from '@/lib/dateUtils'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -400,8 +401,6 @@ export default function BookingPage() {
                                 mode="single"
                                 selected={field.value}
                                 onSelect={field.onChange}
-                                disabled={(date) => date < new Date()}
-                                initialFocus
                                 className="rounded-3xl"
                               />
                             </PopoverContent>
@@ -438,9 +437,13 @@ export default function BookingPage() {
                                 onSelect={field.onChange}
                                 disabled={(date) => {
                                   const checkIn = form.getValues("checkIn")
-                                  return date < new Date() || (checkIn && date <= checkIn)
+                                  if (!checkIn) return false
+                                  // Must be at least 1 day after check-in
+                                  const checkInDate = new Date(checkIn)
+                                  const nextDay = new Date(checkInDate)
+                                  nextDay.setDate(checkInDate.getDate() + 1)
+                                  return date < nextDay
                                 }}
-                                initialFocus
                                 className="rounded-3xl"
                               />
                             </PopoverContent>

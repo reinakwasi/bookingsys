@@ -75,14 +75,14 @@ export default function TicketsPage() {
 
   const handlePurchaseClick = (ticket: any) => {
     setLoadingTicketId(ticket.id);
-    // Small delay to show loading state
+    // Reduced delay for faster experience
     setTimeout(() => {
       setSelectedTicket(ticket);
       setQuantity(1);
       setCustomerForm({ name: '', email: '', phone: '' });
       setIsPurchaseDialogOpen(true);
       setLoadingTicketId(null);
-    }, 500);
+    }, 200);
   };
 
   const handlePurchase = async () => {

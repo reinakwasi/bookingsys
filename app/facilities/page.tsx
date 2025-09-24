@@ -88,12 +88,12 @@ const facilities = [
   {
     id: 8,
     name: "Cold Room",
-    description: "Temperature-controlled storage facility maintaining optimal conditions for food preservation and beverage storage.",
+    description: "Professional walk-in refrigeration facility for our restaurant and catering operations, ensuring fresh ingredients and optimal food safety standards for our culinary excellence.",
     icon: Snowflake,
     images: [
-      { src: "/three.jpg", alt: "Cold Storage Area" },
-      { src: "/four.jpg", alt: "Temperature Control System" },
-      { src: "/view.jpg", alt: "Storage Facility" },
+      { src: "/three.jpg", alt: "Walk-in Cold Room" },
+      { src: "/four.jpg", alt: "Professional Food Storage" },
+      { src: "/view.jpg", alt: "Temperature-Controlled Environment" },
     ],
   },
 ]

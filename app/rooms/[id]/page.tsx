@@ -320,10 +320,7 @@ export default function RoomPage() {
                       selected={checkIn} 
                       onSelect={setCheckIn} 
                       mode="single" 
-                      required 
-                      initialFocus 
                       className="w-full rounded-3xl"
-                      disabled={(date) => date < new Date()}
                     />
                   </div>
                 </div>
@@ -334,12 +331,14 @@ export default function RoomPage() {
                       selected={checkOut} 
                       onSelect={setCheckOut} 
                       mode="single" 
-                      required 
-                      initialFocus 
                       className="w-full rounded-3xl"
                       disabled={(date) => {
-                        const today = new Date()
-                        return date < today || (checkIn ? date <= checkIn : false)
+                        // Must be at least 1 day after check-in
+                        if (!checkIn) return false
+                        const checkInDate = new Date(checkIn)
+                        const nextDay = new Date(checkInDate)
+                        nextDay.setDate(checkInDate.getDate() + 1)
+                        return date < nextDay
                       }}
                     />
                   </div>

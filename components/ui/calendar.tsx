@@ -2,54 +2,121 @@
 
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import { DayPicker } from "react-day-picker"
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, isToday, addMonths, subMonths, isBefore, startOfDay, differenceInDays } from "date-fns"
 
-import { cn } from "@/lib/utils"
+interface CalendarProps {
+  selected?: Date
+  onSelect?: (date: Date) => void
+  disabled?: (date: Date) => boolean
+  className?: string
+  mode?: "single"
+  minDate?: Date
+  maxDate?: Date
+}
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>
-
-function Calendar({
-  className,
-  classNames,
-  showOutsideDays = true,
-  ...props
-}: CalendarProps) {
+function Calendar({ selected, onSelect, disabled, className, mode = "single", minDate, maxDate }: CalendarProps) {
+  const [currentMonth, setCurrentMonth] = React.useState(new Date())
+  
+  const monthStart = startOfMonth(currentMonth)
+  const monthEnd = endOfMonth(currentMonth)
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd })
+  
+  // Get the first day of the week for the month (0 = Sunday)
+  const startDay = getDay(monthStart)
+  
+  // Create empty cells for days before the month starts
+  const emptyCells = Array.from({ length: startDay }, (_, i) => (
+    <div key={`empty-${i}`} className="calendar-cell"></div>
+  ))
+  
+  const handlePrevMonth = () => {
+    setCurrentMonth(prev => subMonths(prev, 1))
+  }
+  
+  const handleNextMonth = () => {
+    setCurrentMonth(prev => addMonths(prev, 1))
+  }
+  
+  const handleDayClick = (day: Date) => {
+    // Check if date is disabled by custom disabled function
+    if (disabled && disabled(day)) return
+    
+    // Check if date is before minDate (today by default)
+    const today = startOfDay(new Date())
+    const dayToCheck = startOfDay(day)
+    
+    if (minDate && isBefore(dayToCheck, startOfDay(minDate))) return
+    if (!minDate && isBefore(dayToCheck, today)) return
+    
+    // Check if date is after maxDate
+    if (maxDate && isBefore(startOfDay(maxDate), dayToCheck)) return
+    
+    if (onSelect) onSelect(day)
+  }
+  
+  const isDateDisabled = (day: Date) => {
+    // Custom disabled function takes priority
+    if (disabled && disabled(day)) return true
+    
+    // Check against minDate (today by default)
+    const today = startOfDay(new Date())
+    const dayToCheck = startOfDay(day)
+    
+    if (minDate && isBefore(dayToCheck, startOfDay(minDate))) return true
+    if (!minDate && isBefore(dayToCheck, today)) return true
+    
+    // Check against maxDate
+    if (maxDate && isBefore(startOfDay(maxDate), dayToCheck)) return true
+    
+    return false
+  }
+  
   return (
-    <div className="p-4">
-      <DayPicker
-        showOutsideDays={showOutsideDays}
-        className={cn("w-full max-w-md mx-auto", className)}
-        classNames={{
-          months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
-          month: "space-y-4 w-full",
-          caption: "flex justify-center pt-1 relative items-center mb-4",
-          caption_label: "text-lg font-semibold text-gray-900",
-          nav: "space-x-1 flex items-center",
-          nav_button: "h-8 w-8 bg-white hover:bg-gray-50 border border-gray-200 rounded-md p-0 transition-colors",
-          nav_button_previous: "absolute left-1",
-          nav_button_next: "absolute right-1",
-          table: "w-full border-collapse mt-4",
-          head_row: "grid grid-cols-7 mb-2",
-          head_cell: "text-gray-500 font-medium text-sm text-center py-2",
-          row: "grid grid-cols-7 w-full",
-          cell: "text-center p-0.5 relative",
-          day: "h-9 w-9 mx-auto p-0 font-normal text-sm rounded-md hover:bg-gray-100 focus:bg-gray-100 focus:outline-none transition-colors cursor-pointer flex items-center justify-center",
-          day_selected: "bg-blue-600 text-white hover:bg-blue-700 focus:bg-blue-700",
-          day_today: "bg-blue-100 text-blue-900 font-semibold",
-          day_outside: "text-gray-400 opacity-50",
-          day_disabled: "text-gray-300 opacity-50 cursor-not-allowed hover:bg-transparent",
-          day_hidden: "invisible",
-          ...classNames,
-        }}
-        components={{
-          IconLeft: () => <ChevronLeft className="h-4 w-4 text-gray-600" />,
-          IconRight: () => <ChevronRight className="h-4 w-4 text-gray-600" />,
-        } as any}
-        {...props}
-      />
+    <div className={`calendar-container ${className || ''}`}>
+      {/* Header */}
+      <div className="calendar-header">
+        <button onClick={handlePrevMonth} className="calendar-nav-button">
+          <ChevronLeft className="h-4 w-4" />
+        </button>
+        <h2 className="calendar-title">
+          {format(currentMonth, 'MMMM yyyy')}
+        </h2>
+        <button onClick={handleNextMonth} className="calendar-nav-button">
+          <ChevronRight className="h-4 w-4" />
+        </button>
+      </div>
+      
+      {/* Day headers */}
+      <div className="calendar-weekdays">
+        {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map(day => (
+          <div key={day} className="calendar-weekday">{day}</div>
+        ))}
+      </div>
+      
+      {/* Calendar grid */}
+      <div className="calendar-grid">
+        {emptyCells}
+        {days.map(day => {
+          const isDisabled = isDateDisabled(day)
+          const isSelected = selected && isSameDay(day, selected)
+          const isTodayDate = isToday(day)
+          
+          return (
+            <button
+              key={day.toISOString()}
+              onClick={() => handleDayClick(day)}
+              disabled={isDisabled}
+              className={`calendar-day ${isSelected ? 'selected' : ''} ${isTodayDate ? 'today' : ''} ${isDisabled ? 'disabled' : ''}`}
+            >
+              {format(day, 'd')}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
+
 Calendar.displayName = "Calendar"
 
 export { Calendar }

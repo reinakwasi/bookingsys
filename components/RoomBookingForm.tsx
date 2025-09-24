@@ -1,12 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { DatePicker } from '@/components/ui/DatePicker'
 import { toast } from 'sonner'
 import { bookingsAPI } from '@/lib/api'
 import { useCustomAlert } from '@/components/ui/CustomAlert'
@@ -50,6 +51,7 @@ export default function RoomBookingForm({
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
     watch,
   } = useForm<BookingFormData>({
@@ -253,13 +255,20 @@ export default function RoomBookingForm({
                   <CalendarIcon className="h-4 w-4 text-[#C49B66]" />
                   Check-in Date
                 </Label>
-                <Input
-                  id="checkIn"
-                  type="date"
-                  min={new Date().toISOString().split('T')[0]}
-                  {...register('checkIn')}
-                  disabled={isLoading}
-                  className="h-12 rounded-2xl border-2 border-slate-200 focus:border-[#C49B66] focus:ring-[#C49B66]/20 transition-all duration-300 px-4 group-hover:border-[#C49B66]/50"
+                <Controller
+                  name="checkIn"
+                  control={control}
+                  render={({ field }) => (
+                    <DatePicker
+                      id="checkIn"
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select check-in date"
+                      disabled={isLoading}
+                      minDate={new Date().toISOString().split('T')[0]}
+                      className="group-hover:border-[#C49B66]/50"
+                    />
+                  )}
                 />
                 {errors.checkIn && (
                   <p className="text-sm text-red-500">{errors.checkIn.message}</p>
@@ -271,13 +280,20 @@ export default function RoomBookingForm({
                   <CalendarIcon className="h-4 w-4 text-[#C49B66]" />
                   Check-out Date
                 </Label>
-                <Input
-                  id="checkOut"
-                  type="date"
-                  min={checkIn || new Date().toISOString().split('T')[0]}
-                  {...register('checkOut')}
-                  disabled={isLoading}
-                  className="h-12 rounded-2xl border-2 border-slate-200 focus:border-[#C49B66] focus:ring-[#C49B66]/20 transition-all duration-300 px-4 group-hover:border-[#C49B66]/50"
+                <Controller
+                  name="checkOut"
+                  control={control}
+                  render={({ field }) => (
+                    <DatePicker
+                      id="checkOut"
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Select check-out date"
+                      disabled={isLoading}
+                      minDate={checkIn || new Date().toISOString().split('T')[0]}
+                      className="group-hover:border-[#C49B66]/50"
+                    />
+                  )}
                 />
                 {errors.checkOut && (
                   <p className="text-sm text-red-500">{errors.checkOut.message}</p>
