@@ -30,6 +30,8 @@ const formSchema = z.object({
 
 export default function ContactPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,41 +44,65 @@ export default function ContactPage() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true)
+    setError(null)
+    
     try {
+      console.log('📧 Submitting contact form:', values)
       const { messagesAPI } = await import("@/lib/messagesAPI");
-      await messagesAPI.create(values);
+      const result = await messagesAPI.create(values);
+      console.log('✅ Message sent successfully:', result)
       setIsSubmitted(true);
-    } catch (err) {
-      alert("Failed to send message. Please try again.");
+      form.reset();
+    } catch (err: any) {
+      console.error('❌ Contact form error:', err)
+      setError(err.message || "Failed to send message. Please try again.");
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-amber-50 via-white to-yellow-50 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-amber-200/30 to-yellow-200/30 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-yellow-200/20 to-amber-200/20 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-amber-200/20 to-orange-200/20 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
-      </div>
-      
-      <section className="w-full py-24 md:py-32 lg:py-40 relative z-10">
-        <div className="container px-4 md:px-6">
-          {/* Header Section */}
-          <div className="text-center mb-16 animate-fade-in-up">
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full glass-morphism text-amber-600 mb-8 animate-glow">
-              <Mail className="h-5 w-5 animate-pulse" />
-              <span className="font-medium">Get In Touch</span>
-              <Phone className="h-5 w-5 animate-pulse" />
-            </div>
-            <h1 className="text-5xl md:text-6xl font-display font-bold mb-8 bg-gradient-to-r from-amber-600 via-yellow-600 to-orange-600 bg-clip-text text-transparent">
-              Contact Hotel 734
-            </h1>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-              Ready to create unforgettable memories? Our dedicated team is here to assist you with bookings, 
-              event planning, and any questions you may have.
-            </p>
+      {/* Hero Section with Background Image */}
+      <section className="relative h-[70vh] min-h-[500px] flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="/cont.jpg" 
+            alt="Hotel 734 Contact" 
+            className="w-full h-full object-cover"
+          />
+          {/* Overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/50"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"></div>
+        </div>
+        
+        {/* Hero Content */}
+        <div className="relative z-10 text-center px-4 md:px-6 max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white mb-8 animate-fade-in-up">
+            <Mail className="h-5 w-5 animate-pulse" />
+            <span className="font-medium">Get In Touch</span>
+            <Phone className="h-5 w-5 animate-pulse" />
           </div>
+          
+          
+          {/* Scroll Down Indicator */}
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
+              <div className="w-1 h-3 bg-white/70 rounded-full mt-2 animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Floating Background Elements */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-amber-200/20 to-yellow-200/20 rounded-full blur-3xl animate-float"></div>
+        <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-yellow-200/10 to-amber-200/10 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
+      </section>
+      
+      {/* Main Content Section */}
+      <section className="w-full py-24 md:py-32 relative z-10 bg-gradient-to-br from-amber-50 via-white to-yellow-50">
+        <div className="container px-4 md:px-6">
           <div className="grid gap-12 lg:grid-cols-3 lg:gap-16">
             {/* Contact Info Card */}
             <div className="col-span-1 animate-fade-in-up" style={{animationDelay: '0.1s'}}>
@@ -165,33 +191,85 @@ export default function ContactPage() {
                   <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="name">Name</Label>
-                          <Input id="name" placeholder="Enter your name" {...form.register("name")} />
-                          <FormMessage />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email</Label>
-                          <Input id="email" type="email" placeholder="Enter your email" {...form.register("email")} />
-                          <FormMessage />
-                        </div>
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Enter your name" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Email</FormLabel>
+                              <FormControl>
+                                <Input type="email" placeholder="Enter your email" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="subject">Subject</Label>
-                        <Input id="subject" placeholder="Enter subject" {...form.register("subject")} />
-                        <FormMessage />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="message">Message</Label>
-                        <Textarea id="message" placeholder="Enter your message" {...form.register("message")} />
-                        <FormMessage />
-                      </div>
+                      <FormField
+                        control={form.control}
+                        name="subject"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Subject</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Enter subject" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="message"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Message</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="Enter your message" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      {error && (
+                        <Alert className="border-red-200 bg-red-50">
+                          <AlertTitle className="text-red-800">Error</AlertTitle>
+                          <AlertDescription className="text-red-700">
+                            {error}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                      
                       <Button 
                         type="submit" 
-                        className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-amber-500/25"
+                        disabled={isSubmitting}
+                        className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-bold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-amber-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                       >
-                        <Mail className="mr-2 h-5 w-5" />
-                        Send Message
+                        {isSubmitting ? (
+                          <>
+                            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                            Sending...
+                          </>
+                        ) : (
+                          <>
+                            <Mail className="mr-2 h-5 w-5" />
+                            Send Message
+                          </>
+                        )}
                       </Button>
                     </form>
                   </Form>
