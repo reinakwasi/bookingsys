@@ -28,44 +28,86 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if user is already logged in with session validation
-    console.log('useAuth: Checking stored user...');
-    const storedUser = localStorage.getItem('adminUser');
-    const sessionTimestamp = localStorage.getItem('adminSessionTimestamp');
-    const SESSION_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+    console.log('🔥 useAuth: STARTING authentication check...');
     
-    console.log('useAuth: Stored user:', storedUser);
-    console.log('useAuth: Session timestamp:', sessionTimestamp);
+    // Check if there's an active session from recent login
+    const sessionTime = sessionStorage.getItem('adminLoginTime');
+    const currentTime = Date.now();
     
-    if (storedUser && sessionTimestamp) {
-      const sessionAge = Date.now() - parseInt(sessionTimestamp);
-      console.log('useAuth: Session age (hours):', sessionAge / (1000 * 60 * 60));
+    if (sessionTime) {
+      const timeDiff = currentTime - parseInt(sessionTime);
+      const twoHours = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
       
-      if (sessionAge < SESSION_TIMEOUT) {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          console.log('useAuth: Valid session, parsed user:', parsedUser);
-          setUser(parsedUser);
-          setIsAuthenticated(true);
-          console.log('useAuth: Set authenticated to true');
-        } catch (error) {
-          console.error('Error parsing stored user:', error);
-          localStorage.removeItem('adminUser');
-          localStorage.removeItem('adminSessionTimestamp');
+      if (timeDiff < twoHours) {
+        console.log('🔍 Found recent session, checking if still valid...');
+        
+        // Try to restore user data from sessionStorage
+        const userData = sessionStorage.getItem('adminUser');
+        if (userData) {
+          try {
+            const user = JSON.parse(userData);
+            console.log('🔄 Restoring authenticated user from session:', user.username);
+            setUser(user);
+            setIsAuthenticated(true);
+            setLoading(false);
+            return;
+          } catch (error) {
+            console.error('⚠️ Failed to parse user data from session:', error);
+          }
         }
+        
+        console.log('⚠️ Session time found but no user data - treating as expired');
+        setLoading(false);
+        return;
       } else {
-        console.log('useAuth: Session expired, clearing storage');
-        localStorage.removeItem('adminUser');
-        localStorage.removeItem('adminSessionTimestamp');
+        console.log('⏰ Session expired (>2 hours), clearing...');
       }
-    } else {
-      console.log('useAuth: No valid session found');
     }
+    
+    // Only clear sessions if no valid session exists
+    console.log('🧹 No valid session found - clearing all sessions');
+    localStorage.removeItem('adminUser');
+    localStorage.removeItem('adminSessionTimestamp');
+    sessionStorage.clear();
+    
+    // Set to not authenticated
+    setUser(null);
+    setIsAuthenticated(false);
     setLoading(false);
-    console.log('useAuth: Loading set to false');
+    
+    console.log('✅ Auth check COMPLETE - no valid session');
   }, []);
+  
+  // Auto-logout timer for 2-hour timeout while admin is active
+  useEffect(() => {
+    let autoLogoutTimer: NodeJS.Timeout;
+    
+    if (isAuthenticated && user) {
+      console.log('⏰ Starting 2-hour auto-logout timer for:', user.username);
+      
+      // Set 2-hour auto-logout timer
+      autoLogoutTimer = setTimeout(() => {
+        console.log('🚨 AUTO-LOGOUT: 2 hours expired - logging out admin');
+        logout();
+        window.location.href = '/admin/login';
+      }, 2 * 60 * 60 * 1000); // 2 hours
+    }
+    
+    return () => {
+      if (autoLogoutTimer) {
+        console.log('🔄 Clearing auto-logout timer');
+        clearTimeout(autoLogoutTimer);
+      }
+    };
+  }, [isAuthenticated, user]);
 
   const login = async (username: string, password: string) => {
+    // Prevent multiple simultaneous login attempts
+    if (loading) {
+      console.log('useAuth: Login already in progress, ignoring duplicate request');
+      return;
+    }
+    
     setLoading(true);
     try {
       console.log('useAuth: Starting login process for:', username);
@@ -88,11 +130,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
         
         console.log('useAuth: Setting authenticated user:', authUser);
+        
+        // Set authentication state immediately for faster UI response
         setUser(authUser);
         setIsAuthenticated(true);
-        localStorage.setItem('adminUser', JSON.stringify(authUser));
-        localStorage.setItem('adminSessionTimestamp', Date.now().toString());
-        console.log('useAuth: Login successful, user stored');
+        
+        // Store session data for current session only (not localStorage)
+        try {
+          sessionStorage.setItem('adminLoginTime', Date.now().toString());
+          sessionStorage.setItem('adminUser', JSON.stringify(authUser));
+          console.log('✅ Login successful - session active with user data stored');
+        } catch (storageError) {
+          console.warn('useAuth: Failed to store session data:', storageError);
+        }
       } else {
         throw new Error('No user data received from login');
       }
@@ -113,10 +163,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    console.log('📝 useAuth: Logging out admin user');
     setUser(null);
     setIsAuthenticated(false);
-    localStorage.removeItem('adminUser');
-    localStorage.removeItem('adminSessionTimestamp');
+    
+    // Clear all storage (localStorage and sessionStorage)
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    console.log('✅ Logout complete - all sessions cleared');
   };
 
   return (

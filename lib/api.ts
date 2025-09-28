@@ -177,28 +177,31 @@ export const bookingsAPI = {
 
   async getAll() {
     try {
-      console.log('🔍 Fetching all bookings from database...');
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('*')
-        .neq('status', 'cancelled')
-        .order('created_at', { ascending: false });
+      console.log('🔍 Fetching all bookings via API...');
       
-      if (error) {
-        console.error('❌ Get all bookings error:', error);
-        console.error('❌ Error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
+      const response = await fetch('/api/bookings', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ Get bookings API error:', errorData);
         return [];
       }
+
+      const data = await response.json();
       
-      console.log('✅ Successfully fetched bookings:', data?.length || 0, 'records');
-      return data || [];
-    } catch (catchError) {
-      console.error('❌ Unexpected error in getAll():', catchError);
+      // Filter out cancelled bookings on the client side
+      const activeBookings = data.filter((booking: any) => booking.status !== 'cancelled');
+      
+      console.log('✅ Successfully fetched bookings:', activeBookings.length, 'active records');
+      return activeBookings;
+      
+    } catch (error: any) {
+      console.error('❌ Unexpected error in getAll():', error);
       return [];
     }
   },
@@ -210,34 +213,31 @@ export const bookingsAPI = {
   },
 
   async updateStatus(id: string, status: string) {
-    console.log(`🔄 Updating booking ${id} status to: ${status}`);
-    
-    // For now, use direct update with service role permissions
-    // This bypasses RLS for admin operations
-    const { data, error } = await supabase
-      .from('bookings')
-      .update({ 
-        status: status as 'pending' | 'confirmed' | 'cancelled' | 'checked-in' | 'completed',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('❌ Status update error:', error);
-      console.error('❌ Error details:', JSON.stringify(error, null, 2));
+    try {
+      console.log(`🔄 Updating booking ${id} status to: ${status}`);
       
-      // Provide more helpful error message
-      if (error.code === 'PGRST301' || !error.message) {
-        throw new Error('Permission denied: Unable to update booking status. Please ensure you have admin privileges.');
+      const response = await fetch(`/api/bookings/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('❌ Update status API error:', errorData);
+        throw new Error(errorData.error || 'Failed to update booking status');
       }
-      
-      throw new Error(`Failed to update booking status: ${error.message || 'Unknown error'}`);
-    }
 
-    console.log('✅ Booking status updated successfully:', data);
-    return data;
+      const result = await response.json();
+      console.log('✅ Update status API success:', result);
+      return result.data;
+      
+    } catch (error: any) {
+      console.error('❌ Update status error:', error);
+      throw new Error(`Failed to update booking status: ${error.message}`);
+    }
   },
 
   async cancel(id: string) {
@@ -258,27 +258,35 @@ export const bookingsAPI = {
       throw new Error(`Failed to update booking status: ${error.message}`);
     }
 
-    console.log('✅ Booking status updated successfully:', data);
+    console.log(' Booking status updated successfully:', data);
     return data;
   },
 
   async delete(id: string) {
-    console.log('Admin soft delete called for ID:', id);
-    const { data, error } = await supabase
-      .from('bookings')
-      .update({
-        status: 'cancelled',
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', id)
-      .select()
-      .single();
+    try {
+      console.log(' Deleting booking via API:', id);
+      
+      const response = await fetch(`/api/bookings/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
 
-    if (error) {
-      console.error('❌ Delete error:', error);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error(' Delete API error:', errorData);
+        throw new Error(errorData.error || 'Failed to delete booking');
+      }
+
+      const result = await response.json();
+      console.log(' Delete API success:', result);
+      return result.data;
+      
+    } catch (error: any) {
+      console.error(' Delete error:', error);
       throw new Error(`Failed to delete booking: ${error.message}`);
     }
-    return data;
   },
 
   async getDeleted() {

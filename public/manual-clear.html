@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manual Session Clear - Hotel 734</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f2f5; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        button { background: #FFD700; color: #1a233b; border: none; padding: 15px 30px; border-radius: 5px; font-weight: bold; cursor: pointer; margin: 10px; }
+        button:hover { background: #e6c200; }
+        .log { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Hotel 734 - Manual Session Cleaner</h1>
+        <p>Use this page to manually clear all admin sessions and debug authentication issues.</p>
+        
+        <button onclick="clearAllSessions()">🗑️ Clear All Sessions</button>
+        <button onclick="showCurrentSessions()">👁️ Show Current Sessions</button>
+        <button onclick="goToLogin()">🔐 Go to Login</button>
+        <button onclick="goToAdmin()">⚡ Go to Admin</button>
+        
+        <div id="log" class="log">Ready to clear sessions...</div>
+    </div>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.textContent += `[${timestamp}] ${message}\n`;
+            console.log(message);
+        }
+
+        function clearAllSessions() {
+            log('🔥 Starting session clear...');
+            
+            // Clear localStorage
+            const localKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && (key.includes('admin') || key.includes('auth') || key.includes('session'))) {
+                    localKeys.push(key);
+                }
+            }
+            
+            localKeys.forEach(key => {
+                log(`🗑️ Removing localStorage: ${key}`);
+                localStorage.removeItem(key);
+            });
+            
+            // Clear sessionStorage
+            const sessionKeys = [];
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key && (key.includes('admin') || key.includes('auth') || key.includes('session'))) {
+                    sessionKeys.push(key);
+                }
+            }
+            
+            sessionKeys.forEach(key => {
+                log(`🗑️ Removing sessionStorage: ${key}`);
+                sessionStorage.removeItem(key);
+            });
+            
+            log('✅ All sessions cleared!');
+        }
+
+        function showCurrentSessions() {
+            log('📊 Current localStorage items:');
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                const value = localStorage.getItem(key);
+                log(`  ${key}: ${value ? value.substring(0, 100) + '...' : 'null'}`);
+            }
+            
+            log('📊 Current sessionStorage items:');
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                const value = sessionStorage.getItem(key);
+                log(`  ${key}: ${value ? value.substring(0, 100) + '...' : 'null'}`);
+            }
+        }
+
+        function goToLogin() {
+            log('🚀 Redirecting to login...');
+            window.location.href = '/admin/login';
+        }
+
+        function goToAdmin() {
+            log('🚀 Redirecting to admin...');
+            window.location.href = '/admin';
+        }
+
+        // Show current sessions on load
+        showCurrentSessions();
+    </script>
+</body>
+</html>

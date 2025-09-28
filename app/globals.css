@@ -1,13 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Load fonts after base styles to prevent FOUC */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   font-optical-sizing: auto;
   scroll-behavior: smooth;
+  /* Prevent layout shift during font loading */
+  font-display: swap;
 }
 
 /* Performance optimizations */

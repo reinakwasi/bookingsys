@@ -23,7 +23,7 @@ const TOTAL_ROOMS = {
 };
 
 export default function AdminDashboard() {
-  const { isAuthenticated, user, loading } = useAuth();
+  const { isAuthenticated, user, loading, logout } = useAuth();
   const router = useRouter();
   const [activeMenu, setActiveMenu] = useState("dashboard");
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -82,11 +82,27 @@ export default function AdminDashboard() {
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   useEffect(() => {
-    console.log('Auth check - isAuthenticated:', isAuthenticated);
-    if (!isAuthenticated) {
-      router.push("/admin/login");
+    console.log('📊 Admin page render - isAuthenticated:', isAuthenticated, 'loading:', loading, 'user:', user ? user.username : 'NULL');
+    
+    // Show loading state while authentication is being checked
+    if (loading) {
+      console.log('⏳ Still loading auth state...');
+      return;
     }
-  }, [isAuthenticated, router]);
+    
+    // Only redirect if we're definitely not authenticated and not loading
+    if (!loading && !isAuthenticated && !user) {
+      console.log('🚨 NOT AUTHENTICATED - redirecting to login');
+      router.push('/admin/login');
+      return;
+    }
+    
+    // If authenticated, load admin data
+    if (isAuthenticated && user) {
+      console.log('✅ Authenticated as:', user.username, '- loading admin data');
+      // Load admin data here if needed
+    }
+  }, [isAuthenticated, loading, router, user]);
 
   useEffect(() => {
     if (activeMenu === 'events') {
@@ -660,17 +676,46 @@ export default function AdminDashboard() {
     }
   };
 
-  console.log('Admin page render - isAuthenticated:', isAuthenticated, 'loading:', loading);
+  console.log('📊 Admin page render - isAuthenticated:', isAuthenticated, 'loading:', loading, 'user:', user ? 'EXISTS' : 'NULL');
   
+  // Show loading while checking authentication
   if (loading) {
-    console.log('Still loading auth state...');
-    return <div>Loading...</div>;
+    console.log('⏳ Still loading auth state...');
+    return (
+      <div className="min-h-screen bg-[#f0f2f5] flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFD700] mb-4"></div>
+          <p className="text-[#1a233b] font-medium">Checking Authentication...</p>
+        </div>
+      </div>
+    );
   }
   
-  if (!isAuthenticated) {
-    console.log('Not authenticated, redirecting to login...');
-    router.push('/admin/login');
-    return <div>Redirecting to login...</div>;
+  // Show loading screen while authentication is being checked
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f0f2f5] flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FFD700] mb-4"></div>
+          <p className="text-[#1a233b] font-medium">Loading Admin Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Only redirect if loading is complete AND not authenticated
+  if (!loading && !isAuthenticated) {
+    console.log('🚨 Not authenticated after loading complete - redirecting');
+    if (typeof window !== 'undefined') {
+      window.location.href = '/admin/login';
+    }
+    return (
+      <div className="min-h-screen bg-[#f0f2f5] flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
+          <p className="text-[#1a233b] font-medium">Redirecting to login...</p>
+        </div>
+      </div>
+    );
   }
 
   console.log('Rendering admin dashboard - activeMenu:', activeMenu);
@@ -725,7 +770,11 @@ export default function AdminDashboard() {
           <SidebarItem label="Messages" active={activeMenu === "messages"} onClick={() => { setActiveMenu("messages"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           <SidebarItem label="Trash" active={activeMenu === "trash"} onClick={() => { setActiveMenu("trash"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           <SidebarItem label="Security" active={activeMenu === "security"} onClick={() => { setActiveMenu("security"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
-              <SidebarItem label="Logout" active={false} onClick={() => window.location.reload()} />
+              <SidebarItem label="Logout" active={false} onClick={async () => {
+                console.log('Admin logout clicked');
+                await logout();
+                router.push('/admin/login');
+              }} />
             </nav>
           </div>
         </aside>

@@ -5,6 +5,29 @@ export async function POST(request: NextRequest) {
   try {
     const { username, password } = await request.json()
     
+    // Validate input
+    if (!username || !password) {
+      console.log('❌ Missing username or password')
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Username and password are required.' 
+        },
+        { status: 400 }
+      )
+    }
+    
+    if (username.trim().length < 2 || password.trim().length < 6) {
+      console.log('❌ Invalid username or password format')
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Invalid username or password format.' 
+        },
+        { status: 400 }
+      )
+    }
+    
     console.log('🔐 Admin login attempt for username:', username)
     console.log('🔗 Supabase URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'NOT SET')
     console.log('🔑 Supabase Key:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'SET' : 'NOT SET')
@@ -40,13 +63,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Try to call the admin login function
+    // Try to call the admin login function with timeout
     console.log('🔍 Calling verify_admin_login RPC...')
-    const { data, error } = await supabase.rpc('verify_admin_login', {
+    
+    // Add timeout to prevent hanging requests
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timeout')), 10000) // 10 second timeout
+    );
+    
+    const rpcPromise = supabase.rpc('verify_admin_login', {
       p_username: username,
       p_password: password
-    })
-
+    });
+    
+    const { data, error } = await Promise.race([rpcPromise, timeoutPromise]) as any;
     console.log('📊 RPC Response:', { data, error })
 
     if (error) {

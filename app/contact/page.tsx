@@ -82,9 +82,17 @@ export default function ContactPage() {
         <div className="relative z-10 text-center px-4 md:px-6 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white mb-8 animate-fade-in-up">
             <Mail className="h-5 w-5 animate-pulse" />
-            <span className="font-medium">Get In Touch</span>
+            <span className="font-medium text-lg">Get In Touch</span>
             <Phone className="h-5 w-5 animate-pulse" />
           </div>
+          
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 animate-fade-in-up" style={{animationDelay: '0.2s'}}>
+            Contact <span className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-400 bg-clip-text text-transparent">Hotel 734</span>
+          </h1>
+          
+          <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+            We're here to make your stay unforgettable. Reach out to us anytime.
+          </p>
           
           
           {/* Scroll Down Indicator */}

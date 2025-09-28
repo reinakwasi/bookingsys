@@ -1,30 +1,52 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { clearAllAdminSessions } from '@/lib/sessionCleaner';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    // If already authenticated, redirect to admin
+    if (isAuthenticated) {
+      console.log('Already authenticated, redirecting to admin dashboard');
+      router.push('/admin');
+    }
+  }, [isAuthenticated, router]);
+
+  const handleClearSessions = () => {
+    console.log('Clearing all admin sessions manually');
+    clearAllAdminSessions();
+    toast.success('All sessions cleared. Please login again.');
+    setUsername('');
+    setPassword('');
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    console.log(' Login attempt for:', username);
+    console.log('🔐 Login attempt for:', username);
     try {
       await login(username, password);
-      console.log(' Login successful, redirecting...');
+      console.log('✅ Login successful, setting up session...');
       toast.success('Login successful!');
-      router.push('/admin');
+      
+      // Small delay to ensure authentication state is properly set
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      console.log('🚀 Redirecting to admin dashboard...');
+      router.push('/admin'); // Use router.push for proper React navigation
     } catch (error) {
-      console.error(' Login failed:', error);
+      console.error('❌ Login failed:', error);
       const errorMessage = error instanceof Error ? error.message : 'Invalid credentials';
       toast.error(errorMessage);
     } finally {
@@ -70,6 +92,17 @@ export default function AdminLogin() {
             {loading ? 'Signing in...' : 'Login'}
           </Button>
         </form>
+        
+        <div className="mt-4 text-center">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleClearSessions}
+            className="text-sm text-gray-600 hover:text-gray-800 border-gray-300"
+          >
+            Clear All Sessions
+          </Button>
+        </div>
       </div>
     </div>
   );
