@@ -37,9 +37,18 @@ export async function POST(request: NextRequest) {
     const ticketData = await request.json();
     console.log('🎫 Creating new ticket:', ticketData);
 
+    // Ensure available_quantity is set to total_quantity for new tickets
+    const ticketWithAvailability = {
+      ...ticketData,
+      available_quantity: ticketData.total_quantity,
+      status: 'active'
+    };
+
+    console.log('🎫 Ticket data with availability:', ticketWithAvailability);
+
     const { data, error } = await supabase
       .from('tickets')
-      .insert([ticketData])
+      .insert([ticketWithAvailability])
       .select()
       .single();
 

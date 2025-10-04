@@ -557,10 +557,13 @@ export const ticketsAPI = {
     try {
       console.log('🎫 Fetching all tickets via API...');
       
-      const response = await fetch('/api/tickets', {
+      const response = await fetch(`/api/tickets?_t=${Date.now()}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
       });
 

@@ -33,6 +33,18 @@ export default function AdminDashboard() {
   const [bookings, setBookings] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
   const [ticketPurchases, setTicketPurchases] = useState<any[]>([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(false);
+  const [isNewBookingDialogOpen, setIsNewBookingDialogOpen] = useState(false);
+  const [isCreatingBooking, setIsCreatingBooking] = useState(false);
+  const [bookingForm, setBookingForm] = useState({
+    guestName: '',
+    email: '',
+    phone: '',
+    roomType: '',
+    checkIn: '',
+    checkOut: '',
+    specialRequests: ''
+  });
   const [stats, setStats] = useState({
     totalBookings: 0,
     totalRevenue: 0,
@@ -128,13 +140,19 @@ export default function AdminDashboard() {
   };
 
   const loadTickets = async () => {
+    setIsLoadingTickets(true);
     try {
-      const ticketsData = await ticketsAPI.getAll();
-      const purchasesData = await ticketPurchasesAPI.getAll();
+      const [ticketsData, purchasesData] = await Promise.all([
+        ticketsAPI.getAll(),
+        ticketPurchasesAPI.getAll()
+      ]);
       setTickets(ticketsData);
       setTicketPurchases(purchasesData);
     } catch (error) {
       toast.error('Failed to load tickets');
+      console.error('Error loading tickets:', error);
+    } finally {
+      setIsLoadingTickets(false);
     }
   };
 
@@ -167,20 +185,69 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleMarkAsUnread = async (id: string) => {
-    const msgType = selectedMessage?.type || 'review';
-    await messagesAPI.markAsUnread(id, msgType);
-    loadMessages();
-    if (selectedMessage && selectedMessage.id === id) {
-      setSelectedMessage({ ...selectedMessage, is_read: false });
-    }
-  };
 
   const handleDeleteMessage = async (id: string) => {
     await messagesAPI.delete(id);
     setSelectedMessage(null);
     loadMessages();
     toast.success('Message deleted');
+  };
+
+  const handleCreateBooking = async () => {
+    if (!bookingForm.guestName || !bookingForm.roomType || !bookingForm.checkIn || !bookingForm.checkOut || !bookingForm.phone) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setIsCreatingBooking(true);
+    try {
+      // Calculate room price based on room type
+      const roomPrices = {
+        'royal_suite': 500,
+        'superior_room': 300,
+        'classic_room': 200
+      };
+      
+      const checkInDate = new Date(bookingForm.checkIn);
+      const checkOutDate = new Date(bookingForm.checkOut);
+      const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24));
+      const totalAmount = roomPrices[bookingForm.roomType as keyof typeof roomPrices] * nights;
+
+      // Use the same API call structure as the user form
+      const bookingData = {
+        guest_name: bookingForm.guestName,
+        email: bookingForm.email || '',
+        phone: bookingForm.phone,
+        start_date: bookingForm.checkIn,
+        end_date: bookingForm.checkOut,
+        booking_type: 'room',
+        item_id: bookingForm.roomType,
+        total_price: totalAmount,
+        special_requests: bookingForm.specialRequests || '',
+      };
+
+      await bookingsAPI.create(bookingData);
+      
+      // Reset form
+      setBookingForm({
+        guestName: '',
+        email: '',
+        phone: '',
+        roomType: '',
+        checkIn: '',
+        checkOut: '',
+        specialRequests: ''
+      });
+      
+      setIsNewBookingDialogOpen(false);
+      loadDashboardData(); // Refresh dashboard data
+      toast.success('Booking created successfully!');
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      toast.error('Failed to create booking: ' + (error as Error).message);
+    } finally {
+      setIsCreatingBooking(false);
+    }
   };
 
   const handleReplyMessage = () => {
@@ -561,28 +628,16 @@ export default function AdminDashboard() {
   };
 
   const handleValidateTicket = async (inputValue?: string) => {
-    console.log('=== handleValidateTicket CALLED ===');
-    console.log('inputValue:', inputValue);
-    console.log('ticketNumber:', ticketNumber);
-    console.log('qrCode:', qrCode);
-    
     const valueToValidate = inputValue || ticketNumber || qrCode || '';
-    console.log('valueToValidate:', valueToValidate);
     
     if (!valueToValidate || typeof valueToValidate !== 'string' || !valueToValidate.trim()) {
-      console.log('ERROR: No valid ticket number provided');
       toast.error('Please enter a ticket number or scan QR code');
       return;
     }
 
-    console.log('=== FRONTEND VALIDATION START ===');
-    console.log('Validating ticket:', valueToValidate);
-    console.log('User:', user);
-    console.log('Setting isValidating to true');
     setIsValidating(true);
     
     try {
-      console.log('Making API request to /api/tickets/validate');
       const response = await fetch('/api/tickets/validate', {
         method: 'POST',
         headers: {
@@ -592,40 +647,25 @@ export default function AdminDashboard() {
           qr_code: valueToValidate,
           admin_user: user?.username || 'Admin'
         }),
-      })
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
+      });
       
-      if (!response.ok) {
-        console.log('Response not OK, status:', response.status);
-      }
-      
-      const result = await response.json()
-      console.log('Validation result:', result);
-      
-      setValidationResult(result)
+      const result = await response.json();
+      setValidationResult(result);
       
       if (result.success) {
-        toast.success('Ticket validated successfully!')
+        toast.success('Ticket validated successfully!');
       } else {
         const errorMessage = result.message || result.error || 'Ticket validation failed';
-        console.log('Validation failed:', errorMessage);
-        if (result.debug) {
-          console.log('Debug info:', result.debug);
-        }
-        toast.error(errorMessage)
+        toast.error(errorMessage);
       }
     } catch (error) {
-      console.error('Validation error:', error)
-      toast.error('Failed to validate ticket - Network error')
+      toast.error('Failed to validate ticket - Network error');
       setValidationResult({
         success: false,
         message: 'Network error occurred'
-      })
+      });
     } finally {
-      setIsValidating(false)
-      console.log('=== FRONTEND VALIDATION END ===');
+      setIsValidating(false);
     }
   }
 
@@ -777,7 +817,13 @@ export default function AdminDashboard() {
               <h1 className="font-serif text-2xl sm:text-3xl text-[#1a233b]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
                 Dashboard Overview
               </h1>
-              <button className="w-full sm:w-auto bg-[#FFD700] hover:bg-[#e6c200] text-[#1a233b] font-bold px-4 sm:px-6 py-2 rounded-md shadow transition-all text-sm sm:text-base">+ New Booking</button>
+              <Button 
+                onClick={() => setIsNewBookingDialogOpen(true)}
+                className="w-full sm:w-auto bg-[#FFD700] hover:bg-[#e6c200] text-[#1a233b] font-bold px-4 sm:px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Booking
+              </Button>
             </div>
           )}
           {/* Dashboard Content */}
@@ -918,11 +964,82 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <h2 className="font-bold text-2xl text-[#1a233b]">Room Management</h2>
             
+            {/* Room Types Overview */}
+            {!activeSubMenu && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Object.entries(TOTAL_ROOMS).map(([roomType, totalCount]) => {
+                  const roomBookings = getRoomBookings(roomType);
+                  const occupiedCount = roomBookings.length;
+                  const availableCount = totalCount - occupiedCount;
+                  const roomName = roomType === 'royal_suite' ? 'Royal Suite' : 
+                                 roomType === 'superior_room' ? 'Superior Room' : 'Classic Room';
+                  
+                  return (
+                    <div key={roomType} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer"
+                         onClick={() => setActiveSubMenu(roomType)}>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-bold text-[#1a233b]">{roomName}</h3>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-[#FFD700]">{availableCount}</div>
+                          <div className="text-sm text-gray-500">Available</div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="text-center p-3 bg-green-50 rounded-lg">
+                          <div className="text-lg font-semibold text-green-700">{totalCount}</div>
+                          <div className="text-xs text-green-600">Total Rooms</div>
+                        </div>
+                        <div className="text-center p-3 bg-red-50 rounded-lg">
+                          <div className="text-lg font-semibold text-red-700">{occupiedCount}</div>
+                          <div className="text-xs text-red-600">Occupied</div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-sm text-gray-600 mb-3">
+                        <strong>Current Bookings:</strong> {roomBookings.length > 0 ? roomBookings.length : 'None'}
+                      </div>
+                      
+                      {roomBookings.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-xs text-gray-500 font-medium">Recent Bookings:</div>
+                          {roomBookings.slice(0, 2).map((booking) => (
+                            <div key={booking.id} className="text-xs bg-gray-50 p-2 rounded">
+                              <div className="font-medium">{booking.guest_name || booking.guestName}</div>
+                              <div className="text-gray-500">
+                                {new Date(booking.start_date || booking.startDate).toLocaleDateString()} - 
+                                {new Date(booking.end_date || booking.endDate).toLocaleDateString()}
+                              </div>
+                            </div>
+                          ))}
+                          {roomBookings.length > 2 && (
+                            <div className="text-xs text-gray-400">+{roomBookings.length - 2} more bookings</div>
+                          )}
+                        </div>
+                      )}
+                      
+                      <button className="w-full mt-4 bg-[#FFD700] hover:bg-[#FFC700] text-[#1a233b] font-semibold py-2 px-4 rounded-lg transition-colors text-sm">
+                        View All Bookings
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            
             {activeSubMenu && (
               <div className="bg-white rounded-xl shadow p-6">
-                <h3 className="text-xl font-bold text-[#1a233b] mb-4">
-                  {activeSubMenu === 'royal_suite' ? 'Royal Suite' : activeSubMenu === 'superior_room' ? 'Superior Room' : 'Classic Room'} Bookings
-                </h3>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-bold text-[#1a233b]">
+                    {activeSubMenu === 'royal_suite' ? 'Royal Suite' : activeSubMenu === 'superior_room' ? 'Superior Room' : 'Classic Room'} Bookings
+                  </h3>
+                  <button 
+                    onClick={() => setActiveSubMenu('')}
+                    className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+                  >
+                    ← Back to Rooms
+                  </button>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full text-sm">
                     <thead>
@@ -1009,12 +1126,98 @@ export default function AdminDashboard() {
         )}
 
 
+        {/* Event Management */}
+        {activeMenu === 'events' && (
+          <div className="space-y-6">
+            <h2 className="font-bold text-2xl text-[#1a233b]">Event Management</h2>
+            
+            {/* Event Types Overview */}
+            {!activeSubMenu && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {['conference', 'compound'].map((eventType) => {
+                  const eventBookings = getEventBookings(eventType);
+                  const eventName = eventType.charAt(0).toUpperCase() + eventType.slice(1);
+                  const upcomingEvents = eventBookings.filter(booking => {
+                    const eventDate = new Date(booking.start_date || booking.startDate);
+                    return eventDate >= new Date();
+                  });
+                  const pastEvents = eventBookings.length - upcomingEvents.length;
+                  
+                  return (
+                    <div key={eventType} className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer"
+                         onClick={() => setActiveSubMenu(eventType)}>
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-bold text-[#1a233b]">{eventName} Events</h3>
+                        <div className="text-right">
+                          <div className="text-2xl font-bold text-[#FFD700]">{upcomingEvents.length}</div>
+                          <div className="text-sm text-gray-500">Upcoming</div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="text-center p-3 bg-blue-50 rounded-lg">
+                          <div className="text-lg font-semibold text-blue-700">{eventBookings.length}</div>
+                          <div className="text-xs text-blue-600">Total Bookings</div>
+                        </div>
+                        <div className="text-center p-3 bg-gray-50 rounded-lg">
+                          <div className="text-lg font-semibold text-gray-700">{pastEvents}</div>
+                          <div className="text-xs text-gray-600">Past Events</div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-sm text-gray-600 mb-3">
+                        <strong>Active Bookings:</strong> {eventBookings.length > 0 ? eventBookings.length : 'None'}
+                      </div>
+                      
+                      {upcomingEvents.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="text-xs text-gray-500 font-medium">Upcoming Events:</div>
+                          {upcomingEvents.slice(0, 2).map((booking) => (
+                            <div key={booking.id} className="text-xs bg-gray-50 p-2 rounded">
+                              <div className="font-medium">{booking.guest_name || booking.guestName}</div>
+                              <div className="text-gray-500">
+                                {new Date(booking.start_date || booking.startDate).toLocaleDateString()} - 
+                                {booking.guests_count || booking.numberOfGuests} guests
+                              </div>
+                            </div>
+                          ))}
+                          {upcomingEvents.length > 2 && (
+                            <div className="text-xs text-gray-400">+{upcomingEvents.length - 2} more upcoming</div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {upcomingEvents.length === 0 && eventBookings.length > 0 && (
+                        <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                          No upcoming events. {pastEvents} past events completed.
+                        </div>
+                      )}
+                      
+                      <button className="w-full mt-4 bg-[#FFD700] hover:bg-[#FFC700] text-[#1a233b] font-semibold py-2 px-4 rounded-lg transition-colors text-sm">
+                        View All Bookings
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Event Bookings (Conference/Compound) */}
         {activeMenu === 'events' && activeSubMenu && (
           <div className="space-y-6">
-            <h2 className="font-bold text-2xl text-[#1a233b]">
-              {activeSubMenu.charAt(0).toUpperCase() + activeSubMenu.slice(1)} Event Bookings
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold text-2xl text-[#1a233b]">
+                {activeSubMenu.charAt(0).toUpperCase() + activeSubMenu.slice(1)} Event Bookings
+              </h2>
+              <button 
+                onClick={() => setActiveSubMenu('')}
+                className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg transition-colors text-sm font-medium"
+              >
+                ← Back to Events
+              </button>
+            </div>
             
             <div className="bg-white rounded-xl shadow p-6">
               <div className="overflow-x-auto">
@@ -1090,8 +1293,12 @@ export default function AdminDashboard() {
         {/* Tickets Management */}
         {activeMenu === 'tickets' && (
           <div className="space-y-6">
-            <div className="flex justify-between items-center">
-              <h2 className="font-bold text-2xl text-[#1a233b]">Tickets Management</h2>
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h2 className="font-bold text-2xl text-[#1a233b]">Tickets Management</h2>
+                <p className="text-gray-600 mt-1">Create and manage event tickets for your hotel</p>
+              </div>
               <Button
                 onClick={() => {
                   setIsEditingTicket(false);
@@ -1113,127 +1320,256 @@ export default function AdminDashboard() {
                   setImagePreview('');
                   setIsTicketDialogOpen(true);
                 }}
-                className="bg-[#FFD700] hover:bg-[#e6c200] text-[#1a233b] font-bold"
+                className="bg-[#FFD700] hover:bg-[#e6c200] text-[#1a233b] font-bold shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create Ticket
+                Create New Ticket
               </Button>
             </div>
 
+            {/* Stats Cards */}
+            {!isLoadingTickets && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-4 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-blue-100 text-sm">Total Tickets</p>
+                      <p className="text-2xl font-bold">{tickets.length}</p>
+                    </div>
+                    <Ticket className="h-8 w-8 text-blue-200" />
+                  </div>
+                </div>
+                <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-4 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-green-100 text-sm">Active Tickets</p>
+                      <p className="text-2xl font-bold">{tickets.filter(t => t.status === 'active').length}</p>
+                    </div>
+                    <CheckCircle className="h-8 w-8 text-green-200" />
+                  </div>
+                </div>
+                <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-4 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-purple-100 text-sm">Total Sales</p>
+                      <p className="text-2xl font-bold">{ticketPurchases.length}</p>
+                    </div>
+                    <Users className="h-8 w-8 text-purple-200" />
+                  </div>
+                </div>
+                <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-xl p-4 text-white">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-yellow-100 text-sm">Revenue</p>
+                      <p className="text-2xl font-bold">
+                        GHC {ticketPurchases.reduce((sum, p) => sum + (parseFloat(p.total_amount) || 0), 0).toFixed(2)}
+                      </p>
+                    </div>
+                    <DollarSign className="h-8 w-8 text-yellow-200" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Tickets Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tickets.map((ticket) => (
-                <div key={ticket.id} className="bg-white rounded-xl shadow-lg overflow-hidden">
-                  {ticket.image_url && (
-                    <div className="h-48 bg-gray-200">
-                      <img
-                        src={ticket.image_url}
-                        alt={ticket.title}
-                        className="w-full h-full object-cover"
-                      />
+            {isLoadingTickets ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="bg-white rounded-xl shadow-lg overflow-hidden animate-pulse">
+                    <div className="h-48 bg-gray-200"></div>
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                        <div className="h-5 bg-gray-200 rounded w-16"></div>
+                      </div>
+                      <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3 mb-3"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/3"></div>
+                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                      </div>
+                      <div className="flex gap-2 mt-4">
+                        <div className="h-8 bg-gray-200 rounded flex-1"></div>
+                        <div className="h-8 bg-gray-200 rounded w-10"></div>
+                      </div>
                     </div>
-                  )}
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-xl font-bold text-[#1a233b]">{ticket.title}</h3>
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                        ticket.status === 'active' 
-                          ? 'bg-green-100 text-green-700' 
-                          : 'bg-gray-100 text-gray-700'
-                      }`}>
-                        {ticket.status}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">{ticket.description}</p>
-                    <div className="space-y-2 text-sm text-gray-700">
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 mr-2" />
-                        {new Date(ticket.event_date).toLocaleDateString()} at {ticket.event_time}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {tickets.map((ticket) => (
+                  <div key={ticket.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                    {ticket.image_url ? (
+                      <div className="h-48 bg-gray-200 overflow-hidden">
+                        <img
+                          src={ticket.image_url}
+                          alt={ticket.title}
+                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                        />
                       </div>
-                      <div className="flex items-center">
-                        <DollarSign className="h-4 w-4 mr-2" />
-                        GHC {ticket.price}
+                    ) : (
+                      <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                        <Ticket className="h-16 w-16 text-gray-400" />
                       </div>
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 mr-2" />
-                        {ticket.available_quantity || ticket.total_quantity} / {ticket.total_quantity} available
+                    )}
+                    <div className="p-6">
+                      <div className="flex justify-between items-start mb-3">
+                        <h3 className="text-xl font-bold text-[#1a233b] line-clamp-1">{ticket.title}</h3>
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          ticket.status === 'active' 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-gray-100 text-gray-700'
+                        }`}>
+                          {ticket.status}
+                        </span>
                       </div>
-                      {ticket.venue && (
-                        <div className="flex items-center">
-                          <span className="h-4 w-4 mr-2">📍</span>
-                          {ticket.venue}
+                      <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">{ticket.description}</p>
+                      
+                      <div className="space-y-3 text-sm">
+                        <div className="flex items-center text-gray-700">
+                          <Calendar className="h-4 w-4 mr-3 text-blue-500" />
+                          <span className="font-medium">
+                            {new Date(ticket.event_date).toLocaleDateString()} at {ticket.event_time}
+                          </span>
                         </div>
-                      )}
+                        <div className="flex items-center text-gray-700">
+                          <DollarSign className="h-4 w-4 mr-3 text-green-500" />
+                          <span className="font-bold text-green-600">GHC {ticket.price}</span>
+                        </div>
+                        <div className="flex items-center text-gray-700">
+                          <Users className="h-4 w-4 mr-3 text-purple-500" />
+                          <span>
+                            <span className="font-medium">{ticket.available_quantity || ticket.total_quantity}</span>
+                            <span className="text-gray-500"> / {ticket.total_quantity} available</span>
+                          </span>
+                        </div>
+                        {ticket.venue && (
+                          <div className="flex items-center text-gray-700">
+                            <span className="mr-3 text-red-500">📍</span>
+                            <span className="truncate">{ticket.venue}</span>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex gap-2 mt-6">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEditTicket(ticket)}
+                          className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDeleteTicketClick(ticket)}
+                          className="border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2 mt-4">
+                  </div>
+                ))}
+                
+                {!isLoadingTickets && tickets.length === 0 && (
+                  <div className="col-span-full">
+                    <div className="text-center py-16 bg-white rounded-xl shadow-lg">
+                      <div className="mb-6">
+                        <Ticket className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold text-gray-700 mb-2">No Tickets Created Yet</h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                          Create your first event ticket to start selling experiences to your hotel guests.
+                        </p>
+                      </div>
                       <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEditTicket(ticket)}
-                        className="flex-1"
+                        onClick={() => {
+                          setIsEditingTicket(false);
+                          setCurrentTicket(null);
+                          setTicketForm({
+                            title: '',
+                            description: '',
+                            activity_type: '',
+                            event_date: '',
+                            event_time: '',
+                            price: '',
+                            total_quantity: '',
+                            image_url: '',
+                            venue: '',
+                            duration_hours: '',
+                            status: 'active'
+                          });
+                          setImageFile(null);
+                          setImagePreview('');
+                          setIsTicketDialogOpen(true);
+                        }}
+                        className="bg-[#FFD700] hover:bg-[#e6c200] text-[#1a233b] font-bold"
                       >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleDeleteTicketClick(ticket)}
-                        className="bg-red-500 text-white hover:bg-red-600"
-                      >
-                        <Trash2 className="h-4 w-4" />
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Your First Ticket
                       </Button>
                     </div>
                   </div>
-                </div>
-              ))}
-              {tickets.length === 0 && (
-                <div className="col-span-full text-center py-12">
-                  <div className="text-gray-400 text-lg mb-2">No tickets created yet</div>
-                  <p className="text-gray-500">Create your first ticket to get started</p>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
-            {/* Ticket Purchases Summary */}
-            {ticketPurchases.length > 0 && (
-              <div className="bg-white rounded-xl shadow p-6">
-                <h3 className="text-xl font-bold text-[#1a233b] mb-4">Recent Ticket Purchases</h3>
+            {/* Recent Purchases */}
+            {!isLoadingTickets && ticketPurchases.length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg border">
+                <div className="px-6 py-4 border-b bg-gradient-to-r from-gray-50 to-gray-100">
+                  <h3 className="text-xl font-bold text-[#1a233b]">Recent Ticket Purchases</h3>
+                  <p className="text-gray-600 text-sm mt-1">Latest customer ticket purchases</p>
+                </div>
                 <div className="overflow-x-auto">
-                  <table className="min-w-full text-sm">
-                    <thead>
-                      <tr className="bg-gray-100">
-                        <th className="py-2 px-3 text-left">Purchase ID</th>
-                        <th className="py-2 px-3 text-left">Ticket</th>
-                        <th className="py-2 px-3 text-left">Customer</th>
-                        <th className="py-2 px-3 text-left">Quantity</th>
-                        <th className="py-2 px-3 text-left">Total</th>
-                        <th className="py-2 px-3 text-left">Status</th>
-                        <th className="py-2 px-3 text-left">Date</th>
+                  <table className="min-w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purchase ID</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticket</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                       </tr>
                     </thead>
-                    <tbody>
+                    <tbody className="bg-white divide-y divide-gray-200">
                       {ticketPurchases.slice(0, 10).map((purchase) => {
                         const ticket = tickets.find(t => t.id === purchase.ticket_id);
                         return (
-                          <tr key={purchase.id} className="border-b last:border-0">
-                            <td className="py-2 px-3">#{purchase.id.slice(0, 8)}</td>
-                            <td className="py-2 px-3">{ticket?.title || 'Unknown'}</td>
-                            <td className="py-2 px-3">{purchase.customer_name}</td>
-                            <td className="py-2 px-3">{purchase.quantity}</td>
-                            <td className="py-2 px-3">GHC {purchase.total_amount}</td>
-                            <td className="py-2 px-3">
-                              <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                          <tr key={purchase.id} className="hover:bg-gray-50">
+                            <td className="py-4 px-4 text-sm font-medium text-gray-900">
+                              #{purchase.id.slice(0, 8)}
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-700">
+                              {ticket?.title || 'Unknown Ticket'}
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-700">
+                              {purchase.customer_name}
+                            </td>
+                            <td className="py-4 px-4 text-sm text-gray-700">
+                              {purchase.quantity}
+                            </td>
+                            <td className="py-4 px-4 text-sm font-medium text-green-600">
+                              GHC {purchase.total_amount}
+                            </td>
+                            <td className="py-4 px-4 text-sm">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
                                 purchase.payment_status === 'completed'
-                                  ? 'bg-green-100 text-green-700'
+                                  ? 'bg-green-100 text-green-800'
                                   : purchase.payment_status === 'pending'
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : 'bg-red-100 text-red-700'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-red-100 text-red-800'
                               }`}>
                                 {purchase.payment_status}
                               </span>
                             </td>
-                            <td className="py-2 px-3">
+                            <td className="py-4 px-4 text-sm text-gray-500">
                               {new Date(purchase.purchase_date).toLocaleDateString()}
                             </td>
                           </tr>
@@ -1380,95 +1716,194 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Messages Inbox */}
+        {/* Messages Management */}
         {activeMenu === 'messages' && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Message List */}
-            <div className="col-span-1 bg-white rounded-xl shadow p-0 overflow-hidden border">
-              <div className="bg-[#FFD700] px-4 py-3 font-bold text-[#1a233b] border-b">Inbox</div>
-              <ul className="divide-y divide-gray-200 max-h-[70vh] overflow-y-auto">
-                {messages.length === 0 && (
-                  <li className="p-6 text-center text-gray-400">No messages</li>
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="font-bold text-2xl text-[#1a233b]">Messages & Reviews</h2>
+              <div className="flex items-center gap-3">
+                {unreadMessages > 0 && (
+                  <div className="bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                    {unreadMessages} unread
+                  </div>
                 )}
-                {messages.map(msg => (
-                  <li key={msg.id || msg.uuid || msg.message_id} className={`p-4 cursor-pointer transition bg-white hover:bg-[#FFFBEA] ${!msg.is_read ? 'font-semibold bg-[#FFFBEA]' : ''} ${selectedMessage && (selectedMessage.id === msg.id || selectedMessage.uuid === msg.uuid || selectedMessage.message_id === msg.message_id) ? 'ring-2 ring-[#FFD700]' : ''}`}
-                    onClick={() => setSelectedMessage(msg)}>
-                    <div className="flex justify-between items-center">
-                      <span>{msg.name}{msg.email && <span className="ml-2 text-xs text-gray-500">({msg.email})</span>}</span>
-                      <div className="flex items-center gap-2">
-                        {msg.type === 'review' && msg.rating && (
-                          <span className="inline-flex items-center bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs">
-                            ⭐ {msg.rating}/5
-                          </span>
-                        )}
-                        {msg.replied_at && <span className="inline-block bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">Replied</span>}
-                        {!msg.is_read && <span className="inline-block bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs">Unread</span>}
-                      </div>
-                    </div>
-                    <div className="truncate text-gray-700 mt-1">
-                      {msg.type === 'review' ? (
-                        <span className="flex items-center gap-2">
-                          <span className="text-blue-600 font-medium">Review:</span>
-                          <span>{msg.booking_id ? `Booking #${msg.booking_id}` : msg.title}</span>
-                        </span>
-                      ) : (
-                        msg.subject || msg.title || <span className="italic text-gray-400">No subject</span>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-400 mt-1">{new Date(msg.created_at).toLocaleString()}</div>
-                  </li>
-                ))}
-              </ul>
+                <div className="text-sm text-gray-500">
+                  Total: {messages.length} messages
+                </div>
+              </div>
             </div>
-            {/* Message Detail */}
-            <div className="col-span-2 bg-white rounded-xl shadow p-8 min-h-[40vh] flex flex-col">
-              {!selectedMessage ? (
-                <div className="text-gray-400 text-center my-auto">Select a message to read</div>
-              ) : (
-                <>
-                  <div className="flex justify-between items-center mb-4">
-                    <div>
-                      <div className="text-lg font-bold text-[#1a233b]">
-                        {selectedMessage.type === 'review' ? (
-                          <div className="flex items-center gap-3">
-                            <span>Customer Review</span>
-                            <div className="flex items-center gap-1">
-                              {[1, 2, 3, 4, 5].map((star) => (
-                                <span key={star} className={`text-lg ${star <= selectedMessage.rating ? 'text-yellow-400' : 'text-gray-300'}`}>⭐</span>
-                              ))}
-                              <span className="ml-1 text-sm text-gray-600">({selectedMessage.rating}/5)</span>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              {/* Message List */}
+              <div className="lg:col-span-1 bg-white rounded-xl shadow-lg border overflow-hidden">
+                <div className="bg-gradient-to-r from-[#FFD700] to-[#FFC700] px-6 py-4">
+                  <h3 className="font-bold text-[#1a233b] text-lg">Inbox</h3>
+                </div>
+                <div className="max-h-[600px] overflow-y-auto">
+                  {messages.length === 0 ? (
+                    <div className="p-8 text-center">
+                      <div className="text-gray-400 text-lg mb-2">📭</div>
+                      <p className="text-gray-500">No messages yet</p>
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-gray-100">
+                      {messages.map(msg => (
+                        <div 
+                          key={msg.id || msg.uuid || msg.message_id} 
+                          className={`p-4 cursor-pointer transition-all duration-200 hover:bg-gray-50 ${
+                            !msg.is_read ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                          } ${
+                            selectedMessage && (selectedMessage.id === msg.id || selectedMessage.uuid === msg.uuid || selectedMessage.message_id === msg.message_id) 
+                              ? 'bg-[#FFFBEA] border-l-4 border-[#FFD700]' : ''
+                          }`}
+                          onClick={() => {
+                            setSelectedMessage(msg);
+                            // Auto-mark as read when message is opened
+                            if (!msg.is_read) {
+                              handleMarkAsRead(msg.id || msg.uuid || msg.message_id);
+                            }
+                          }}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="font-medium text-gray-900 truncate flex-1">
+                              {msg.name}
+                            </div>
+                            <div className="flex flex-col items-end gap-1 ml-2">
+                              {msg.type === 'review' && msg.rating && (
+                                <div className="bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full text-xs font-medium">
+                                  ⭐ {msg.rating}
+                                </div>
+                              )}
+                              {msg.replied_at && (
+                                <div className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs">
+                                  ✓ Replied
+                                </div>
+                              )}
+                              {!msg.is_read && (
+                                <div className="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-xs font-medium">
+                                  New
+                                </div>
+                              )}
                             </div>
                           </div>
-                        ) : (
-                          selectedMessage.subject || selectedMessage.title || <span className="italic text-gray-400">No subject</span>
-                        )}
-                      </div>
-                      <div className="text-sm text-gray-500">From: {selectedMessage.name}{selectedMessage.email && ` <${selectedMessage.email}>`}</div>
-                      {selectedMessage.booking_id && (
-                        <div className="text-sm text-blue-600 font-medium">Booking: #{selectedMessage.booking_id} ({selectedMessage.booking_type} - {selectedMessage.item_name})</div>
-                      )}
-                      <div className="text-xs text-gray-400">{new Date(selectedMessage.created_at).toLocaleString()}</div>
-                    </div>
-                    <div className="flex gap-2">
-                      {selectedMessage.email && (
-                        <Button size="sm" variant="outline" onClick={handleReplyMessage} className="bg-blue-100 text-blue-700 hover:bg-blue-200">Reply</Button>
-                      )}
-                      {!selectedMessage.is_read ? (
-                        <Button size="sm" variant="outline" onClick={() => handleMarkAsRead(selectedMessage.id)} className="bg-green-100 text-green-700 hover:bg-green-200">Mark as Read</Button>
-                      ) : (
-                        <Button size="sm" variant="outline" onClick={() => handleMarkAsUnread(selectedMessage.id)} className="bg-yellow-100 text-yellow-700 hover:bg-yellow-200">Mark as Unread</Button>
-                      )}
-                      <Button size="sm" variant="outline" onClick={() => handleDeleteMessage(selectedMessage.id)} className="bg-red-100 text-red-700 hover:bg-red-200">Delete</Button>
-                    </div>
-                  </div>
-                  <div className="whitespace-pre-wrap text-gray-800 text-base border-t pt-4">{selectedMessage.message}</div>
-                  {selectedMessage.replied_at && (
-                    <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                      <div className="text-sm text-green-700 font-medium">✓ Replied on {new Date(selectedMessage.replied_at).toLocaleString()}</div>
+                          
+                          <div className="text-sm text-gray-600 truncate mb-1">
+                            {msg.type === 'review' ? (
+                              <span className="text-blue-600 font-medium">
+                                Review: {msg.booking_id ? `Booking #${msg.booking_id}` : msg.title}
+                              </span>
+                            ) : (
+                              msg.subject || msg.title || 'No subject'
+                            )}
+                          </div>
+                          
+                          <div className="text-xs text-gray-400">
+                            {new Date(msg.created_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   )}
-                </>
-              )}
+                </div>
+              </div>
+
+              {/* Message Detail */}
+              <div className="lg:col-span-3 bg-white rounded-xl shadow-lg border">
+                {!selectedMessage ? (
+                  <div className="flex flex-col items-center justify-center h-96 text-gray-400">
+                    <div className="text-6xl mb-4">💬</div>
+                    <h3 className="text-lg font-medium text-gray-600 mb-2">Select a message</h3>
+                    <p className="text-sm">Choose a message from the inbox to view details</p>
+                  </div>
+                ) : (
+                  <div className="p-6">
+                    {/* Message Header */}
+                    <div className="border-b pb-4 mb-6">
+                      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            {selectedMessage.type === 'review' ? (
+                              <>
+                                <h2 className="text-xl font-bold text-[#1a233b]">Customer Review</h2>
+                                <div className="flex items-center gap-1">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <span key={star} className={`text-lg ${star <= selectedMessage.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                                      ⭐
+                                    </span>
+                                  ))}
+                                  <span className="ml-1 text-sm text-gray-600 font-medium">
+                                    ({selectedMessage.rating}/5)
+                                  </span>
+                                </div>
+                              </>
+                            ) : (
+                              <h2 className="text-xl font-bold text-[#1a233b]">
+                                {selectedMessage.subject || selectedMessage.title || 'Message'}
+                              </h2>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-1 text-sm">
+                            <div className="text-gray-700">
+                              <span className="font-medium">From:</span> {selectedMessage.name}
+                              {selectedMessage.email && (
+                                <span className="text-gray-500 ml-1">({selectedMessage.email})</span>
+                              )}
+                            </div>
+                            {selectedMessage.booking_id && (
+                              <div className="text-blue-600 font-medium">
+                                Booking: #{selectedMessage.booking_id} ({selectedMessage.booking_type} - {selectedMessage.item_name})
+                              </div>
+                            )}
+                            <div className="text-gray-500">
+                              {new Date(selectedMessage.created_at).toLocaleString()}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-2">
+                          {selectedMessage.email && (
+                            <Button 
+                              size="sm" 
+                              onClick={handleReplyMessage}
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                              Reply
+                            </Button>
+                          )}
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleDeleteMessage(selectedMessage.id)}
+                            className="border-red-200 text-red-700 hover:bg-red-50"
+                          >
+                            Delete
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Message Content */}
+                    <div className="prose max-w-none">
+                      <div className="bg-gray-50 rounded-lg p-4 whitespace-pre-wrap text-gray-800 leading-relaxed">
+                        {selectedMessage.message}
+                      </div>
+                    </div>
+
+                    {/* Reply Status */}
+                    {selectedMessage.replied_at && (
+                      <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <div className="flex items-center gap-2 text-green-700">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <span className="font-medium">
+                            Replied on {new Date(selectedMessage.replied_at).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -1601,12 +2036,7 @@ export default function AdminDashboard() {
                         className="flex-1 border-emerald-200 focus:border-emerald-500 focus:ring-emerald-500 text-sm sm:text-base"
                       />
                       <Button 
-                        onClick={(e) => {
-                          e.preventDefault();
-                          console.log('BUTTON CLICKED - qrCode:', qrCode);
-                          console.log('BUTTON CLICKED - isValidating:', isValidating);
-                          handleValidateTicket();
-                        }}
+                        onClick={() => handleValidateTicket()}
                         disabled={isValidating || !qrCode.trim()}
                         className="bg-emerald-600 hover:bg-emerald-700 px-4 sm:px-6 w-full sm:w-auto"
                         type="button"
@@ -1624,149 +2054,6 @@ export default function AdminDashboard() {
                     <p className="text-xs text-emerald-700 mt-1">
                       Enter the ticket number shown on the customer's ticket
                     </p>
-                    
-                    {/* Test Button for the ticket from the image */}
-                    <div className="mt-3 pt-3 border-t border-emerald-100 space-y-2">
-                      <p className="text-xs text-emerald-600 font-medium mb-2">Quick Test Validation:</p>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <Button 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            console.log('📝 TEST: Validating TKT-1757889231-001');
-                            setQrCode('TKT-1757889231-001');
-                            handleValidateTicket('TKT-1757889231-001');
-                          }}
-                          variant="outline"
-                          size="sm"
-                          className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full font-medium"
-                          type="button"
-                        >
-                          🎫 Test Ticket #001
-                        </Button>
-                        <Button 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            console.log('📝 TEST: Validating TKT-1757889232-002');
-                            setQrCode('TKT-1757889232-002');
-                            handleValidateTicket('TKT-1757889232-002');
-                          }}
-                          variant="outline"
-                          size="sm"
-                          className="text-xs border-emerald-200 text-emerald-700 hover:bg-emerald-50 w-full font-medium"
-                          type="button"
-                        >
-                          🎫 Test Ticket #002
-                        </Button>
-                      </div>
-                      <div className="mt-2 p-2 bg-emerald-50 rounded text-xs text-emerald-700">
-                        💡 <strong>Tip:</strong> Use these buttons to test validation, or scan any QR code with the camera above.
-                      </div>
-                      
-                      {/* Manual QR Test Input */}
-                      <div className="mt-3 pt-3 border-t border-emerald-100">
-                        <Label className="text-xs text-emerald-600 font-medium">Manual QR Test:</Label>
-                        <div className="mt-1 flex gap-2">
-                          <Input
-                            placeholder="Paste QR code content here"
-                            className="text-xs flex-1"
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                const value = (e.target as HTMLInputElement).value.trim()
-                                if (value) {
-                                  console.log('📝 MANUAL TEST: Validating', value)
-                                  setQrCode(value)
-                                  handleValidateTicket(value)
-                                }
-                              }
-                            }}
-                          />
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-xs px-2"
-                            onClick={(e) => {
-                              const input = e.currentTarget.parentElement?.querySelector('input') as HTMLInputElement
-                              const value = input?.value.trim()
-                              if (value) {
-                                console.log('📝 MANUAL TEST: Validating', value)
-                                setQrCode(value)
-                                handleValidateTicket(value)
-                              }
-                            }}
-                          >
-                            Test
-                          </Button>
-                        </div>
-                        <p className="text-xs text-emerald-600 mt-1">Enter any QR code content and press Enter or click Test</p>
-                      </div>
-                      
-                      {/* QR Code Generator for Testing */}
-                      <div className="mt-3 pt-3 border-t border-emerald-100">
-                        <Label className="text-xs text-emerald-600 font-medium mb-2 block">Test QR Code Generator:</Label>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
-                            onClick={() => {
-                              const canvas = document.createElement('canvas')
-                              const ctx = canvas.getContext('2d')
-                              if (ctx) {
-                                canvas.width = 200
-                                canvas.height = 200
-                                
-                                // Create a simple QR-like pattern for TKT-1757889231-001
-                                ctx.fillStyle = '#000'
-                                ctx.fillRect(0, 0, 200, 200)
-                                ctx.fillStyle = '#fff'
-                                
-                                // Create pattern
-                                for(let i = 0; i < 20; i++) {
-                                  for(let j = 0; j < 20; j++) {
-                                    if((i + j) % 3 === 0) {
-                                      ctx.fillRect(i * 10, j * 10, 8, 8)
-                                    }
-                                  }
-                                }
-                                
-                                // Open in new window
-                                const newWindow = window.open('', '_blank', 'width=300,height=350')
-                                if (newWindow) {
-                                  newWindow.document.write(`
-                                    <html>
-                                      <head><title>Test QR Code - TKT-1757889231-001</title></head>
-                                      <body style="text-align:center; padding:20px; font-family:Arial;">
-                                        <h3>Test QR Code</h3>
-                                        <p><strong>TKT-1757889231-001</strong></p>
-                                        <div style="font-size:200px; line-height:1;">⬛</div>
-                                        <p style="font-size:12px; color:#666;">Point your camera at this window to test QR scanning</p>
-                                        <p style="font-size:10px; margin-top:20px;">This is a visual placeholder. Use a real QR generator for actual QR codes.</p>
-                                      </body>
-                                    </html>
-                                  `)
-                                }
-                              }
-                            }}
-                          >
-                            📱 Generate QR #001
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-xs border-blue-200 text-blue-700 hover:bg-blue-50"
-                            onClick={() => {
-                              // Open QR generator website
-                              window.open('https://qr-code-generator.com/', '_blank')
-                            }}
-                          >
-                            🌐 Online QR Generator
-                          </Button>
-                        </div>
-                        <p className="text-xs text-blue-600 mt-1">
-                          Generate QR codes containing "TKT-1757889231-001" or "TKT-1757889232-002" to test scanning
-                        </p>
-                      </div>
-                    </div>
                   </div>
 
                   {/* QR Scanner */}
@@ -1795,7 +2082,6 @@ export default function AdminDashboard() {
                         <QRScanner 
                           onScan={handleQRScan}
                           onError={(error) => {
-                            console.error('QR Scanner error:', error);
                             toast.error('Camera access failed');
                             setIsScanning(false);
                           }}
@@ -1926,30 +2212,6 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Debug Section */}
-            <div className="bg-white rounded-xl shadow p-6">
-              <h3 className="font-semibold text-lg mb-4">Debug Information</h3>
-              <Button 
-                onClick={async () => {
-                  try {
-                    const response = await fetch('/api/debug/tickets')
-                    const data = await response.json()
-                    console.log('Debug data:', data)
-                    toast.success('Debug data logged to console')
-                  } catch (error) {
-                    toast.error('Debug failed')
-                  }
-                }}
-                variant="outline"
-                className="mb-4"
-              >
-                Check Database Tables
-              </Button>
-              <div className="text-sm text-gray-600">
-                <p>Click the button above to check if tickets and individual_tickets are being created properly.</p>
-                <p>Check the browser console for detailed information.</p>
-              </div>
-            </div>
           </div>
         )}
 
@@ -2035,167 +2297,293 @@ export default function AdminDashboard() {
           </DialogContent>
         </Dialog>
 
-        {/* Ticket Create/Edit Dialog */}
+        {/* Enhanced Ticket Create/Edit Dialog */}
         <Dialog open={isTicketDialogOpen} onOpenChange={setIsTicketDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>{isEditingTicket ? 'Edit Ticket' : 'Create New Ticket'}</DialogTitle>
+          <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
+            <DialogHeader className="pb-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#FFD700] rounded-lg">
+                  <Ticket className="h-6 w-6 text-[#1a233b]" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-bold text-[#1a233b]">
+                    {isEditingTicket ? 'Edit Ticket' : 'Create New Ticket'}
+                  </DialogTitle>
+                  <p className="text-gray-600 mt-1">
+                    {isEditingTicket ? 'Update ticket information and settings' : 'Create an exciting experience ticket for your hotel guests'}
+                  </p>
+                </div>
+              </div>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="title">Title *</Label>
-                  <Input
-                    id="title"
-                    value={ticketForm.title}
-                    onChange={(e) => setTicketForm(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Spa Day Experience"
-                  />
+            
+            <div className="py-6 space-y-8">
+              {/* Basic Information Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-6 bg-[#FFD700] rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-[#1a233b]">Basic Information</h3>
                 </div>
-                <div>
-                  <Label htmlFor="activity_type">Activity Type *</Label>
-                  <Input
-                    id="activity_type"
-                    value={ticketForm.activity_type}
-                    onChange={(e) => setTicketForm(prev => ({ ...prev, activity_type: e.target.value }))}
-                    placeholder="e.g., Wellness, Adventure, Cultural"
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="title" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <span>Ticket Title</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="title"
+                      value={ticketForm.title}
+                      onChange={(e) => setTicketForm(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="e.g., Luxury Spa Day Experience"
+                      className="h-12 border-gray-300 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="activity_type" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <span>Activity Category</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <select
+                      id="activity_type"
+                      value={ticketForm.activity_type}
+                      onChange={(e) => setTicketForm(prev => ({ ...prev, activity_type: e.target.value }))}
+                      className="h-12 w-full px-4 border border-gray-300 rounded-md focus:border-[#FFD700] focus:ring-2 focus:ring-[#FFD700] focus:ring-opacity-20"
+                    >
+                      <option value="">Select a category</option>
+                      <option value="Wellness">🧘 Wellness & Spa</option>
+                      <option value="Adventure">🏔️ Adventure & Sports</option>
+                      <option value="Cultural">🎭 Cultural Experience</option>
+                      <option value="Dining">🍽️ Fine Dining</option>
+                      <option value="Entertainment">🎵 Entertainment</option>
+                      <option value="Business">💼 Business & Events</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <span>Description</span>
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Textarea
+                    id="description"
+                    value={ticketForm.description}
+                    onChange={(e) => setTicketForm(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe the amazing experience your guests will enjoy..."
+                    rows={4}
+                    className="border-gray-300 focus:border-[#FFD700] focus:ring-[#FFD700] resize-none"
                   />
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="description">Description *</Label>
-                <Textarea
-                  id="description"
-                  value={ticketForm.description}
-                  onChange={(e) => setTicketForm(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Describe the activity or experience..."
-                  rows={3}
-                />
+              {/* Event Details Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-[#1a233b]">Event Details</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="event_date" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-blue-500" />
+                      <span>Event Date</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="event_date"
+                      type="date"
+                      value={ticketForm.event_date}
+                      onChange={(e) => setTicketForm(prev => ({ ...prev, event_date: e.target.value }))}
+                      className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="event_time" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-500" />
+                      <span>Start Time</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="event_time"
+                      type="time"
+                      value={ticketForm.event_time}
+                      onChange={(e) => setTicketForm(prev => ({ ...prev, event_time: e.target.value }))}
+                      className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="duration_hours" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-blue-500" />
+                      <span>Duration (hours)</span>
+                    </Label>
+                    <Input
+                      id="duration_hours"
+                      type="number"
+                      step="0.5"
+                      min="0.5"
+                      max="24"
+                      value={ticketForm.duration_hours}
+                      onChange={(e) => setTicketForm(prev => ({ ...prev, duration_hours: e.target.value }))}
+                      placeholder="2.5"
+                      className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="venue" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <span className="text-red-500">📍</span>
+                      <span>Venue</span>
+                    </Label>
+                    <Input
+                      id="venue"
+                      value={ticketForm.venue}
+                      onChange={(e) => setTicketForm(prev => ({ ...prev, venue: e.target.value }))}
+                      placeholder="e.g., Hotel Spa, Pool Area"
+                      className="h-12 border-gray-300 focus:border-red-500 focus:ring-red-500"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="event_date">Event Date *</Label>
-                  <Input
-                    id="event_date"
-                    type="date"
-                    value={ticketForm.event_date}
-                    onChange={(e) => setTicketForm(prev => ({ ...prev, event_date: e.target.value }))}
-                  />
+              {/* Pricing & Availability Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-[#1a233b]">Pricing & Availability</h3>
                 </div>
-                <div>
-                  <Label htmlFor="event_time">Event Time *</Label>
-                  <Input
-                    id="event_time"
-                    type="time"
-                    value={ticketForm.event_time}
-                    onChange={(e) => setTicketForm(prev => ({ ...prev, event_time: e.target.value }))}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="duration_hours">Duration (hours)</Label>
-                  <Input
-                    id="duration_hours"
-                    type="number"
-                    step="0.5"
-                    value={ticketForm.duration_hours}
-                    onChange={(e) => setTicketForm(prev => ({ ...prev, duration_hours: e.target.value }))}
-                    placeholder="2.5"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="price">Price (GHC) *</Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    step="0.01"
-                    value={ticketForm.price}
-                    onChange={(e) => setTicketForm(prev => ({ ...prev, price: e.target.value }))}
-                    placeholder="150.00"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="total_quantity">Total Quantity *</Label>
-                  <Input
-                    id="total_quantity"
-                    type="number"
-                    value={ticketForm.total_quantity}
-                    onChange={(e) => setTicketForm(prev => ({ ...prev, total_quantity: e.target.value }))}
-                    placeholder="50"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="venue">Venue</Label>
-                <Input
-                  id="venue"
-                  value={ticketForm.venue}
-                  onChange={(e) => setTicketForm(prev => ({ ...prev, venue: e.target.value }))}
-                  placeholder="e.g., Hotel Spa, Conference Room A"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="image_upload">Upload Image</Label>
-                <div className="space-y-3">
-                  <Input
-                    id="image_upload"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setImageFile(file);
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                          setImagePreview(reader.result as string);
-                        };
-                        reader.readAsDataURL(file);
-                      }
-                    }}
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
-                  />
-                  {imagePreview && (
-                    <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-gray-200">
-                      <img
-                        src={imagePreview}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="price" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-green-500" />
+                      <span>Price (GHC)</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={ticketForm.price}
+                        onChange={(e) => setTicketForm(prev => ({ ...prev, price: e.target.value }))}
+                        placeholder="150.00"
+                        className="h-12 pl-8 border-gray-300 focus:border-green-500 focus:ring-green-500"
                       />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setImageFile(null);
-                          setImagePreview('');
-                        }}
-                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                      >
-                        ×
-                      </button>
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500 font-medium">₵</span>
                     </div>
-                  )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="total_quantity" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <Users className="h-4 w-4 text-green-500" />
+                      <span>Total Spots</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="total_quantity"
+                      type="number"
+                      min="1"
+                      value={ticketForm.total_quantity}
+                      onChange={(e) => setTicketForm(prev => ({ ...prev, total_quantity: e.target.value }))}
+                      placeholder="50"
+                      className="h-12 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="status" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span>Status</span>
+                    </Label>
+                    <select
+                      id="status"
+                      value={ticketForm.status}
+                      onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value }))}
+                      className="h-12 w-full px-4 border border-gray-300 rounded-md focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:ring-opacity-20"
+                    >
+                      <option value="active">✅ Active (Available for booking)</option>
+                      <option value="inactive">⏸️ Inactive (Hidden from customers)</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
-              <div>
-                <Label htmlFor="status">Status</Label>
-                <select
-                  id="status"
-                  value={ticketForm.status}
-                  onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+              {/* Image Upload Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-[#1a233b]">Ticket Image</h3>
+                </div>
+                
+                <div className="space-y-4">
+                  <Label htmlFor="image_upload" className="text-sm font-medium text-gray-700">
+                    Upload an attractive image for your ticket
+                  </Label>
+                  
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-purple-400 transition-colors">
+                    <Input
+                      id="image_upload"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setImageFile(file);
+                          const reader = new FileReader();
+                          reader.onload = () => {
+                            setImagePreview(reader.result as string);
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    
+                    {!imagePreview ? (
+                      <label htmlFor="image_upload" className="cursor-pointer flex flex-col items-center justify-center py-8">
+                        <div className="p-3 bg-purple-100 rounded-full mb-4">
+                          <Camera className="h-8 w-8 text-purple-500" />
+                        </div>
+                        <p className="text-lg font-medium text-gray-700 mb-2">Click to upload image</p>
+                        <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB</p>
+                      </label>
+                    ) : (
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-full h-64 object-cover rounded-lg"
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                          <div className="flex gap-2">
+                            <label htmlFor="image_upload" className="bg-white text-gray-700 px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
+                              Change Image
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setImageFile(null);
+                                setImagePreview('');
+                              }}
+                              className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-4">
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -2205,14 +2593,15 @@ export default function AdminDashboard() {
                     setImageFile(null);
                     setImagePreview('');
                   }}
+                  className="px-6 py-3 border-gray-300 text-gray-700 hover:bg-gray-50"
                 >
                   Cancel
                 </Button>
                 <Button
                   onClick={isEditingTicket ? handleUpdateTicket : handleCreateTicket}
                   disabled={isCreatingTicket || isUpdatingTicket}
-                  className={`bg-[#FFD700] hover:bg-[#e6c200] text-[#1a233b] font-bold transition-all duration-300 transform hover:scale-105 shadow-lg ${
-                    (isCreatingTicket || isUpdatingTicket) ? 'opacity-80 cursor-not-allowed' : ''
+                  className={`px-8 py-3 bg-gradient-to-r from-[#FFD700] to-[#FFC700] hover:from-[#e6c200] hover:to-[#e6b800] text-[#1a233b] font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                    (isCreatingTicket || isUpdatingTicket) ? 'opacity-80 cursor-not-allowed transform-none' : ''
                   }`}
                 >
                   {isCreatingTicket ? (
@@ -2274,6 +2663,230 @@ export default function AdminDashboard() {
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Ticket
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* New Booking Dialog */}
+        <Dialog open={isNewBookingDialogOpen} onOpenChange={setIsNewBookingDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
+            <DialogHeader className="pb-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#FFD700] rounded-lg">
+                  <Calendar className="h-6 w-6 text-[#1a233b]" />
+                </div>
+                <div>
+                  <DialogTitle className="text-2xl font-bold text-[#1a233b]">
+                    Create New Booking
+                  </DialogTitle>
+                  <p className="text-gray-600 mt-1">
+                    Book a room for a walk-in customer or phone booking
+                  </p>
+                </div>
+              </div>
+            </DialogHeader>
+            
+            <div className="py-6 space-y-8">
+              {/* Guest Information Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-6 bg-[#FFD700] rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-[#1a233b]">Guest Information</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="guestName" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <Users className="h-4 w-4 text-blue-500" />
+                      <span>Guest Name</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="guestName"
+                      value={bookingForm.guestName}
+                      onChange={(e) => setBookingForm(prev => ({ ...prev, guestName: e.target.value }))}
+                      placeholder="Enter guest's full name"
+                      className="h-12 border-gray-300 focus:border-[#FFD700] focus:ring-[#FFD700]"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <span>📞</span>
+                      <span>Phone Number</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="phone"
+                      value={bookingForm.phone}
+                      onChange={(e) => setBookingForm(prev => ({ ...prev, phone: e.target.value }))}
+                      placeholder="Guest's phone number"
+                      className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                    <span>📧</span>
+                    <span>Email Address</span>
+                    <span className="text-gray-400 text-xs">(Optional)</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={bookingForm.email}
+                    onChange={(e) => setBookingForm(prev => ({ ...prev, email: e.target.value }))}
+                    placeholder="guest@example.com"
+                    className="h-12 border-gray-300 focus:border-purple-500 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+
+              {/* Booking Details Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-[#1a233b]">Booking Details</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="roomType" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <span>🏨</span>
+                      <span>Room Type</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <select
+                      id="roomType"
+                      value={bookingForm.roomType}
+                      onChange={(e) => setBookingForm(prev => ({ ...prev, roomType: e.target.value }))}
+                      className="h-12 w-full px-4 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20"
+                    >
+                      <option value="">Select room type</option>
+                      <option value="royal_suite">👑 Royal Suite - GHC 500/night</option>
+                      <option value="superior_room">🏨 Superior Room - GHC 300/night</option>
+                      <option value="classic_room">🛏️ Classic Room - GHC 200/night</option>
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="checkIn" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-green-500" />
+                      <span>Check-in Date</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="checkIn"
+                      type="date"
+                      value={bookingForm.checkIn}
+                      onChange={(e) => setBookingForm(prev => ({ ...prev, checkIn: e.target.value }))}
+                      className="h-12 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="checkOut" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-red-500" />
+                      <span>Check-out Date</span>
+                      <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="checkOut"
+                      type="date"
+                      value={bookingForm.checkOut}
+                      onChange={(e) => setBookingForm(prev => ({ ...prev, checkOut: e.target.value }))}
+                      className="h-12 border-gray-300 focus:border-red-500 focus:ring-red-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Booking Summary Section */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                  <h3 className="text-lg font-semibold text-[#1a233b]">Booking Summary</h3>
+                </div>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <span>💰</span>
+                      <span>Total Price</span>
+                    </Label>
+                    <div className="h-12 px-4 border border-gray-300 rounded-md bg-gray-50 flex items-center">
+                      <span className="text-lg font-bold text-green-600">
+                        {bookingForm.roomType && bookingForm.checkIn && bookingForm.checkOut ? (() => {
+                          const roomPrices = { 'royal_suite': 500, 'superior_room': 300, 'classic_room': 200 };
+                          const checkInDate = new Date(bookingForm.checkIn);
+                          const checkOutDate = new Date(bookingForm.checkOut);
+                          const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24));
+                          const total = roomPrices[bookingForm.roomType as keyof typeof roomPrices] * Math.max(1, nights);
+                          return `GHC ${total.toFixed(2)} (${Math.max(1, nights)} night${nights !== 1 ? 's' : ''})`;
+                        })() : 'Select room and dates'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="specialRequests" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                      <span>📝</span>
+                      <span>Special Requests</span>
+                      <span className="text-gray-400 text-xs">(Optional)</span>
+                    </Label>
+                    <Textarea
+                      id="specialRequests"
+                      value={bookingForm.specialRequests}
+                      onChange={(e) => setBookingForm(prev => ({ ...prev, specialRequests: e.target.value }))}
+                      placeholder="Any special requests or preferences..."
+                      rows={3}
+                      className="border-gray-300 focus:border-yellow-500 focus:ring-yellow-500 resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-4 pt-6 border-t border-gray-200">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsNewBookingDialogOpen(false);
+                    setBookingForm({
+                      guestName: '',
+                      email: '',
+                      phone: '',
+                      roomType: '',
+                      checkIn: '',
+                      checkOut: '',
+                      specialRequests: ''
+                    });
+                  }}
+                  className="px-6 py-3 border-gray-300 text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateBooking}
+                  disabled={isCreatingBooking}
+                  className={`px-8 py-3 bg-gradient-to-r from-[#FFD700] to-[#FFC700] hover:from-[#e6c200] hover:to-[#e6b800] text-[#1a233b] font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
+                    isCreatingBooking ? 'opacity-80 cursor-not-allowed transform-none' : ''
+                  }`}
+                >
+                  {isCreatingBooking ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-[#1a233b] mr-3"></div>
+                      <span>Processing Booking...</span>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <Calendar className="mr-2 h-5 w-5" />
+                      <span>Complete Booking</span>
+                    </div>
+                  )}
                 </Button>
               </div>
             </div>

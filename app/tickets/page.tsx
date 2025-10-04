@@ -341,7 +341,7 @@ export default function TicketsPage() {
 
             <div className="grid grid-responsive-3 gap-6 sm:gap-8">
               {tickets.map((ticket) => {
-                const isOutOfStock = ticket.available_quantity <= 0;
+                const isOutOfStock = ticket.available_quantity <= 0 || ticket.status === 'sold_out';
                 return (
                   <div
                     key={ticket.id}
@@ -417,7 +417,7 @@ export default function TicketsPage() {
                           <div className={`flex items-center ${isOutOfStock ? 'text-gray-500' : 'text-amber-200'}`}>
                             <Users className={`h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 ${isOutOfStock ? 'text-gray-500' : 'text-amber-400'}`} />
                             <span className="text-sm sm:text-base">
-                              {ticket.available_quantity || ticket.total_quantity} spots available
+                              {isOutOfStock ? 'Sold Out' : `${ticket.available_quantity} spots available`}
                             </span>
                           </div>
                         </div>
