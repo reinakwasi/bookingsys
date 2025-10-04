@@ -40,8 +40,8 @@ export default function AdminLogin() {
       console.log('✅ Login successful, setting up session...');
       toast.success('Login successful!');
       
-      // Small delay to ensure authentication state is properly set
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Longer delay to ensure authentication state is properly set and propagated
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       console.log('🚀 Redirecting to admin dashboard...');
       router.push('/admin'); // Use router.push for proper React navigation

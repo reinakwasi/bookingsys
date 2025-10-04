@@ -5,13 +5,28 @@ export async function GET(request: NextRequest) {
   try {
     console.log('📋 Fetching all bookings');
 
+    // First, let's try a simple query without joins
     const { data, error } = await supabase
       .from('bookings')
       .select('*')
+      .neq('status', 'deleted')
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error('❌ Bookings fetch error:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      
+      // If the bookings table doesn't exist, return empty array
+      if (error.code === 'PGRST116' || error.message?.includes('relation "bookings" does not exist')) {
+        console.log('⚠️ Bookings table does not exist, returning empty array');
+        return NextResponse.json([]);
+      }
+      
       return NextResponse.json({
         error: 'Failed to fetch bookings',
         details: error.message
@@ -19,8 +34,12 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(`✅ Fetched ${data?.length || 0} bookings`);
+    
+    // Filter out deleted bookings on the server side
+    const activeBookings = data?.filter(booking => booking.status !== 'deleted') || [];
+    console.log(`✅ Returning ${activeBookings.length} active bookings`);
 
-    return NextResponse.json(data || []);
+    return NextResponse.json(activeBookings);
 
   } catch (error: any) {
     console.error('❌ Bookings API error:', error);

@@ -80,29 +80,27 @@ export default function AdminDashboard() {
   const [ticketToDelete, setTicketToDelete] = useState<any>(null);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [authCheckComplete, setAuthCheckComplete] = useState(false);
 
   useEffect(() => {
-    console.log('📊 Admin page render - isAuthenticated:', isAuthenticated, 'loading:', loading, 'user:', user ? user.username : 'NULL');
+    console.log('📊 Admin page useEffect - isAuthenticated:', isAuthenticated, 'loading:', loading, 'user:', user ? user.username : 'NULL');
     
-    // Show loading state while authentication is being checked
+    // If still loading, don't do anything
     if (loading) {
       console.log('⏳ Still loading auth state...');
       return;
     }
     
-    // Only redirect if we're definitely not authenticated and not loading
-    if (!loading && !isAuthenticated && !user) {
-      console.log('🚨 NOT AUTHENTICATED - redirecting to login');
-      router.push('/admin/login');
-      return;
-    }
+    // Set auth check as complete immediately when loading is done
+    setAuthCheckComplete(true);
     
-    // If authenticated, load admin data
+    // If authenticated, we're good
     if (isAuthenticated && user) {
-      console.log('✅ Authenticated as:', user.username, '- loading admin data');
-      // Load admin data here if needed
+      console.log('✅ Authenticated as:', user.username, '- admin page ready');
+    } else {
+      console.log('⚠️ Not authenticated - showing login form');
     }
-  }, [isAuthenticated, loading, router, user]);
+  }, [isAuthenticated, loading, user]);
 
   useEffect(() => {
     if (activeMenu === 'events') {
@@ -676,43 +674,35 @@ export default function AdminDashboard() {
     }
   };
 
-  console.log('📊 Admin page render - isAuthenticated:', isAuthenticated, 'loading:', loading, 'user:', user ? 'EXISTS' : 'NULL');
+  console.log('📊 Admin page render - isAuthenticated:', isAuthenticated, 'loading:', loading, 'user:', user ? user.username : 'NULL');
   
-  // Show loading while checking authentication
+  // Show loading while authentication is being checked
   if (loading) {
-    console.log('⏳ Still loading auth state...');
+    console.log('⏳ Showing loading screen - auth still loading');
     return (
       <div className="min-h-screen bg-[#f0f2f5] flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFD700] mb-4"></div>
-          <p className="text-[#1a233b] font-medium">Checking Authentication...</p>
-        </div>
-      </div>
-    );
-  }
-  
-  // Show loading screen while authentication is being checked
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#f0f2f5] flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#FFD700] mb-4"></div>
           <p className="text-[#1a233b] font-medium">Loading Admin Dashboard...</p>
         </div>
       </div>
     );
   }
   
-  // Only redirect if loading is complete AND not authenticated
-  if (!loading && !isAuthenticated) {
-    console.log('🚨 Not authenticated after loading complete - redirecting');
-    if (typeof window !== 'undefined') {
-      window.location.href = '/admin/login';
-    }
+  // If not authenticated, show login button
+  if (!isAuthenticated || !user) {
+    console.log('⏳ Not authenticated - showing login button');
     return (
       <div className="min-h-screen bg-[#f0f2f5] flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center">
-          <p className="text-[#1a233b] font-medium">Redirecting to login...</p>
+        <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center max-w-md w-full mx-4">
+          <h2 className="text-2xl font-bold text-[#1a233b] mb-6">Admin Access Required</h2>
+          <p className="text-gray-600 mb-6 text-center">You need to login to access the admin dashboard.</p>
+          <button
+            onClick={() => router.push('/admin/login')}
+            className="bg-[#FFD700] hover:bg-[#FFC700] text-[#1a233b] font-semibold py-3 px-6 rounded-lg transition-colors duration-200 w-full"
+          >
+            Go to Login
+          </button>
         </div>
       </div>
     );

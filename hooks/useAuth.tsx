@@ -30,52 +30,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     console.log('🔥 useAuth: STARTING authentication check...');
     
-    // Check if there's an active session from recent login
-    const sessionTime = sessionStorage.getItem('adminLoginTime');
-    const currentTime = Date.now();
-    
-    if (sessionTime) {
-      const timeDiff = currentTime - parseInt(sessionTime);
-      const twoHours = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
+    try {
+      // Check if there's an active session from recent login
+      const sessionTime = sessionStorage.getItem('adminLoginTime');
+      const currentTime = Date.now();
       
-      if (timeDiff < twoHours) {
-        console.log('🔍 Found recent session, checking if still valid...');
+      if (sessionTime) {
+        const timeDiff = currentTime - parseInt(sessionTime);
+        const twoHours = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
         
-        // Try to restore user data from sessionStorage
-        const userData = sessionStorage.getItem('adminUser');
-        if (userData) {
-          try {
-            const user = JSON.parse(userData);
-            console.log('🔄 Restoring authenticated user from session:', user.username);
-            setUser(user);
-            setIsAuthenticated(true);
-            setLoading(false);
-            return;
-          } catch (error) {
-            console.error('⚠️ Failed to parse user data from session:', error);
+        if (timeDiff < twoHours) {
+          console.log('🔍 Found recent session, checking if still valid...');
+          
+          // Try to restore user data from sessionStorage
+          const userData = sessionStorage.getItem('adminUser');
+          if (userData) {
+            try {
+              const user = JSON.parse(userData);
+              if (user && user.username && user.id) {
+                console.log('🔄 Restoring authenticated user from session:', user.username);
+                
+                // Set state immediately - no setTimeout needed
+                setUser(user);
+                setIsAuthenticated(true);
+                setLoading(false);
+                console.log('✅ Auth state restored IMMEDIATELY - user:', user.username, 'authenticated:', true);
+                return;
+              } else {
+                console.log('⚠️ Invalid user data structure in session');
+              }
+            } catch (error) {
+              console.error('⚠️ Failed to parse user data from session:', error);
+            }
           }
+          
+          console.log('⚠️ Session time found but no valid user data - treating as expired');
+        } else {
+          console.log('⏰ Session expired (>2 hours), clearing...');
         }
-        
-        console.log('⚠️ Session time found but no user data - treating as expired');
-        setLoading(false);
-        return;
       } else {
-        console.log('⏰ Session expired (>2 hours), clearing...');
+        console.log('🔍 No session time found');
       }
+      
+      // Only clear sessions if no valid session exists
+      console.log('🧹 No valid session found - clearing all sessions');
+      localStorage.removeItem('adminUser');
+      localStorage.removeItem('adminSessionTimestamp');
+      sessionStorage.removeItem('adminLoginTime');
+      sessionStorage.removeItem('adminUser');
+      
+      // Set to not authenticated
+      setUser(null);
+      setIsAuthenticated(false);
+      
+    } catch (error) {
+      console.error('💥 Error during auth check:', error);
+      // Fallback: clear everything and set not authenticated
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+      console.log('✅ Auth check COMPLETE');
     }
-    
-    // Only clear sessions if no valid session exists
-    console.log('🧹 No valid session found - clearing all sessions');
-    localStorage.removeItem('adminUser');
-    localStorage.removeItem('adminSessionTimestamp');
-    sessionStorage.clear();
-    
-    // Set to not authenticated
-    setUser(null);
-    setIsAuthenticated(false);
-    setLoading(false);
-    
-    console.log('✅ Auth check COMPLETE - no valid session');
   }, []);
   
   // Auto-logout timer for 2-hour timeout while admin is active
@@ -131,18 +147,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         console.log('useAuth: Setting authenticated user:', authUser);
         
+        // Store session data first
+        try {
+          sessionStorage.setItem('adminLoginTime', Date.now().toString());
+          sessionStorage.setItem('adminUser', JSON.stringify(authUser));
+          console.log('✅ Session data stored successfully');
+        } catch (storageError) {
+          console.warn('useAuth: Failed to store session data:', storageError);
+        }
+        
         // Set authentication state immediately for faster UI response
         setUser(authUser);
         setIsAuthenticated(true);
         
-        // Store session data for current session only (not localStorage)
-        try {
-          sessionStorage.setItem('adminLoginTime', Date.now().toString());
-          sessionStorage.setItem('adminUser', JSON.stringify(authUser));
-          console.log('✅ Login successful - session active with user data stored');
-        } catch (storageError) {
-          console.warn('useAuth: Failed to store session data:', storageError);
-        }
+        console.log('✅ Login successful - session active with user data stored');
       } else {
         throw new Error('No user data received from login');
       }
