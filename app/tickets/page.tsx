@@ -52,15 +52,30 @@ export default function TicketsPage() {
       
       const allTickets = await ticketsAPI.getAll();
       console.log('🎫 Fetched tickets:', allTickets?.length || 0);
+      console.log('🎫 All tickets data:', allTickets);
       
-      // Filter for active tickets with future dates
+      // Filter for active tickets with future dates (hide only expired tickets from users)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
       const activeTickets = allTickets.filter((ticket: any) => {
         const eventDate = new Date(ticket.event_date);
         eventDate.setHours(0, 0, 0, 0);
-        return eventDate >= today && ticket.status === 'active';
+        const isExpired = eventDate < today;
+        const isSoldOut = ticket.available_quantity <= 0;
+        
+        console.log(`🎫 Ticket "${ticket.title}":`, {
+          eventDate: eventDate.toDateString(),
+          isExpired,
+          isSoldOut,
+          available_quantity: ticket.available_quantity,
+          status: ticket.status,
+          willShow: !isExpired && (ticket.status === 'active' || ticket.status === 'sold_out')
+        });
+        
+        // Show tickets that are active OR sold_out AND have future dates
+        // Sold out tickets should still be visible with SOLD OUT tag
+        return eventDate >= today && (ticket.status === 'active' || ticket.status === 'sold_out');
       });
       
       console.log('🎫 Active tickets:', activeTickets?.length || 0);
@@ -341,7 +356,7 @@ export default function TicketsPage() {
 
             <div className="grid grid-responsive-3 gap-6 sm:gap-8">
               {tickets.map((ticket) => {
-                const isOutOfStock = ticket.available_quantity <= 0 || ticket.status === 'sold_out';
+                const isOutOfStock = ticket.available_quantity <= 0;
                 return (
                   <div
                     key={ticket.id}
@@ -373,11 +388,11 @@ export default function TicketsPage() {
                             )}
                           </div>
                           
-                          {/* Available quantity indicator */}
-                          {!isOutOfStock && ticket.available_quantity <= 10 && (
+                          {/* Low stock indicator (without showing exact numbers) */}
+                          {!isOutOfStock && ticket.available_quantity <= 5 && (
                             <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4">
                               <span className="bg-orange-500/90 backdrop-blur-sm text-white px-2 py-1 sm:px-3 rounded-full text-xs sm:text-sm font-semibold animate-pulse">
-                                Only {ticket.available_quantity} left!
+                                Limited spots left!
                               </span>
                             </div>
                           )}
@@ -417,7 +432,7 @@ export default function TicketsPage() {
                           <div className={`flex items-center ${isOutOfStock ? 'text-gray-500' : 'text-amber-200'}`}>
                             <Users className={`h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 ${isOutOfStock ? 'text-gray-500' : 'text-amber-400'}`} />
                             <span className="text-sm sm:text-base">
-                              {isOutOfStock ? 'Sold Out' : `${ticket.available_quantity} spots available`}
+                              {isOutOfStock ? 'Sold Out' : 'Available for booking'}
                             </span>
                           </div>
                         </div>

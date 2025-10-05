@@ -70,9 +70,7 @@ export default function AdminDashboard() {
     price: '',
     total_quantity: '',
     image_url: '',
-    venue: '',
-    duration_hours: '',
-    status: 'active'
+    venue: ''
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -537,7 +535,7 @@ export default function AdminDashboard() {
         image_url: imageUrl,
         price: parseFloat(ticketForm.price),
         total_quantity: parseInt(ticketForm.total_quantity),
-        duration_hours: parseFloat(ticketForm.duration_hours)
+        status: 'active' // Always create as active
       });
       
       setIsTicketDialogOpen(false);
@@ -550,9 +548,7 @@ export default function AdminDashboard() {
         price: '',
         total_quantity: '',
         image_url: '',
-        venue: '',
-        duration_hours: '',
-        status: 'active'
+        venue: ''
       });
       setImageFile(null);
       setImagePreview('');
@@ -576,9 +572,7 @@ export default function AdminDashboard() {
       price: ticket.price.toString(),
       total_quantity: ticket.total_quantity.toString(),
       image_url: ticket.image_url || '',
-      venue: ticket.venue || '',
-      duration_hours: ticket.duration_hours?.toString() || '',
-      status: ticket.status
+      venue: ticket.venue || ''
     });
     setImagePreview(ticket.image_url || '');
     setImageFile(null);
@@ -602,8 +596,7 @@ export default function AdminDashboard() {
         ...ticketForm,
         image_url: imageUrl,
         price: parseFloat(ticketForm.price),
-        total_quantity: parseInt(ticketForm.total_quantity),
-        duration_hours: parseFloat(ticketForm.duration_hours)
+        total_quantity: parseInt(ticketForm.total_quantity)
       });
       
       setIsTicketDialogOpen(false);
@@ -618,9 +611,7 @@ export default function AdminDashboard() {
         price: '',
         total_quantity: '',
         image_url: '',
-        venue: '',
-        duration_hours: '',
-        status: 'active'
+        venue: ''
       });
       setImageFile(null);
       setImagePreview('');
@@ -1340,9 +1331,7 @@ export default function AdminDashboard() {
                     price: '',
                     total_quantity: '',
                     image_url: '',
-                    venue: '',
-                    duration_hours: '',
-                    status: 'active'
+                    venue: ''
                   });
                   setImageFile(null);
                   setImagePreview('');
@@ -1427,32 +1416,81 @@ export default function AdminDashboard() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {tickets.map((ticket) => (
-                  <div key={ticket.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-                    {ticket.image_url ? (
-                      <div className="h-48 bg-gray-200 overflow-hidden">
-                        <img
-                          src={ticket.image_url}
-                          alt={ticket.title}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    ) : (
-                      <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                        <Ticket className="h-16 w-16 text-gray-400" />
-                      </div>
-                    )}
-                    <div className="p-6">
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-xl font-bold text-[#1a233b] line-clamp-1">{ticket.title}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          ticket.status === 'active' 
-                            ? 'bg-green-100 text-green-700' 
-                            : 'bg-gray-100 text-gray-700'
-                        }`}>
-                          {ticket.status}
-                        </span>
-                      </div>
+                {tickets.map((ticket) => {
+                  // Check if ticket is expired
+                  const today = new Date();
+                  today.setHours(0, 0, 0, 0);
+                  const eventDate = new Date(ticket.event_date);
+                  eventDate.setHours(0, 0, 0, 0);
+                  const isExpired = eventDate < today;
+                  
+                  // Check if ticket is sold out
+                  const isSoldOut = ticket.available_quantity <= 0;
+                  
+                  return (
+                    <div key={ticket.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
+                      {ticket.image_url ? (
+                        <div className="h-48 bg-gray-200 overflow-hidden relative">
+                          <img
+                            src={ticket.image_url}
+                            alt={ticket.title}
+                            className={`w-full h-full object-cover hover:scale-105 transition-transform duration-300 ${isExpired ? 'grayscale opacity-60' : ''}`}
+                          />
+                          {/* Status overlays */}
+                          <div className="absolute top-3 right-3 flex flex-col gap-2">
+                            {isExpired && (
+                              <span className="bg-red-500/90 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                INACTIVE
+                              </span>
+                            )}
+                            {!isExpired && isSoldOut && (
+                              <span className="bg-orange-500/90 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                SOLD OUT
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="h-48 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative">
+                          <Ticket className={`h-16 w-16 ${isExpired ? 'text-gray-300' : 'text-gray-400'}`} />
+                          {/* Status overlays */}
+                          <div className="absolute top-3 right-3 flex flex-col gap-2">
+                            {isExpired && (
+                              <span className="bg-red-500/90 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                INACTIVE
+                              </span>
+                            )}
+                            {!isExpired && isSoldOut && (
+                              <span className="bg-orange-500/90 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-semibold">
+                                SOLD OUT
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      <div className="p-6">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className={`text-xl font-bold line-clamp-1 ${isExpired ? 'text-gray-500' : 'text-[#1a233b]'}`}>{ticket.title}</h3>
+                          <div className="flex flex-col gap-1">
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              ticket.status === 'active' 
+                                ? 'bg-green-100 text-green-700' 
+                                : 'bg-gray-100 text-gray-700'
+                            }`}>
+                              {ticket.status}
+                            </span>
+                            {isExpired && (
+                              <span className="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700 text-center">
+                                Expired
+                              </span>
+                            )}
+                            {!isExpired && isSoldOut && (
+                              <span className="px-2 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700 text-center">
+                                Sold Out
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       <p className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">{ticket.description}</p>
                       
                       <div className="space-y-3 text-sm">
@@ -1502,7 +1540,8 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   </div>
-                ))}
+                );
+              })}
                 
                 {!isLoadingTickets && tickets.length === 0 && (
                   <div className="col-span-full">
@@ -1527,9 +1566,7 @@ export default function AdminDashboard() {
                             price: '',
                             total_quantity: '',
                             image_url: '',
-                            venue: '',
-                            duration_hours: '',
-                            status: 'active'
+                            venue: ''
                           });
                           setImageFile(null);
                           setImagePreview('');
@@ -2327,17 +2364,17 @@ export default function AdminDashboard() {
 
         {/* Enhanced Ticket Create/Edit Dialog */}
         <Dialog open={isTicketDialogOpen} onOpenChange={setIsTicketDialogOpen}>
-          <DialogContent className="max-w-4xl max-h-[95vh] overflow-y-auto">
-            <DialogHeader className="pb-6 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#FFD700] rounded-lg">
-                  <Ticket className="h-6 w-6 text-[#1a233b]" />
+          <DialogContent className="w-[95vw] max-w-4xl max-h-[95vh] overflow-y-auto">
+            <DialogHeader className="pb-4 sm:pb-6 border-b border-gray-200">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="p-1.5 sm:p-2 bg-[#FFD700] rounded-lg">
+                  <Ticket className="h-5 w-5 sm:h-6 sm:w-6 text-[#1a233b]" />
                 </div>
                 <div>
-                  <DialogTitle className="text-2xl font-bold text-[#1a233b]">
+                  <DialogTitle className="text-lg sm:text-2xl font-bold text-[#1a233b]">
                     {isEditingTicket ? 'Edit Ticket' : 'Create New Ticket'}
                   </DialogTitle>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-sm sm:text-base text-gray-600 mt-1">
                     {isEditingTicket ? 'Update ticket information and settings' : 'Create an exciting experience ticket for your hotel guests'}
                   </p>
                 </div>
@@ -2412,7 +2449,7 @@ export default function AdminDashboard() {
                   <h3 className="text-lg font-semibold text-[#1a233b]">Event Details</h3>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="event_date" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-blue-500" />
@@ -2424,7 +2461,7 @@ export default function AdminDashboard() {
                       type="date"
                       value={ticketForm.event_date}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, event_date: e.target.value }))}
-                      className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="h-11 sm:h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
                   
@@ -2439,25 +2476,7 @@ export default function AdminDashboard() {
                       type="time"
                       value={ticketForm.event_time}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, event_time: e.target.value }))}
-                      className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="duration_hours" className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <Clock className="h-4 w-4 text-blue-500" />
-                      <span>Duration (hours)</span>
-                    </Label>
-                    <Input
-                      id="duration_hours"
-                      type="number"
-                      step="0.5"
-                      min="0.5"
-                      max="24"
-                      value={ticketForm.duration_hours}
-                      onChange={(e) => setTicketForm(prev => ({ ...prev, duration_hours: e.target.value }))}
-                      placeholder="2.5"
-                      className="h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      className="h-11 sm:h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                     />
                   </div>
                   
@@ -2471,7 +2490,7 @@ export default function AdminDashboard() {
                       value={ticketForm.venue}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, venue: e.target.value }))}
                       placeholder="e.g., Hotel Spa, Pool Area"
-                      className="h-12 border-gray-300 focus:border-red-500 focus:ring-red-500"
+                      className="h-11 sm:h-12 border-gray-300 focus:border-red-500 focus:ring-red-500"
                     />
                   </div>
                 </div>
@@ -2484,7 +2503,7 @@ export default function AdminDashboard() {
                   <h3 className="text-lg font-semibold text-[#1a233b]">Pricing & Availability</h3>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="price" className="text-sm font-medium text-gray-700 flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-green-500" />
@@ -2500,7 +2519,7 @@ export default function AdminDashboard() {
                         value={ticketForm.price}
                         onChange={(e) => setTicketForm(prev => ({ ...prev, price: e.target.value }))}
                         placeholder="150.00"
-                        className="h-12 pl-8 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                        className="h-11 sm:h-12 pl-8 border-gray-300 focus:border-green-500 focus:ring-green-500"
                       />
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500 font-medium">₵</span>
                     </div>
@@ -2519,24 +2538,8 @@ export default function AdminDashboard() {
                       value={ticketForm.total_quantity}
                       onChange={(e) => setTicketForm(prev => ({ ...prev, total_quantity: e.target.value }))}
                       placeholder="50"
-                      className="h-12 border-gray-300 focus:border-green-500 focus:ring-green-500"
+                      className="h-11 sm:h-12 border-gray-300 focus:border-green-500 focus:ring-green-500"
                     />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="status" className="text-sm font-medium text-gray-700 flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
-                      <span>Status</span>
-                    </Label>
-                    <select
-                      id="status"
-                      value={ticketForm.status}
-                      onChange={(e) => setTicketForm(prev => ({ ...prev, status: e.target.value }))}
-                      className="h-12 w-full px-4 border border-gray-300 rounded-md focus:border-green-500 focus:ring-2 focus:ring-green-500 focus:ring-opacity-20"
-                    >
-                      <option value="active">✅ Active (Available for booking)</option>
-                      <option value="inactive">⏸️ Inactive (Hidden from customers)</option>
-                    </select>
                   </div>
                 </div>
               </div>
