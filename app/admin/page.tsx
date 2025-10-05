@@ -47,6 +47,7 @@ export default function AdminDashboard() {
   });
   const [stats, setStats] = useState({
     totalBookings: 0,
+    activeBookings: 0,
     totalRevenue: 0,
     pendingBookings: 0,
   });
@@ -108,9 +109,11 @@ export default function AdminDashboard() {
     if (isAuthenticated && user) {
       console.log('✅ Authenticated as:', user.username, '- admin page ready');
     } else {
-      console.log('⚠️ Not authenticated - showing login form');
+      console.log('⚠️ Not authenticated - redirecting to login');
+      router.push('/admin/login');
+      return;
     }
-  }, [isAuthenticated, loading, user]);
+  }, [isAuthenticated, loading, user, router]);
 
   useEffect(() => {
     if (activeMenu === 'events') {
@@ -296,11 +299,15 @@ export default function AdminDashboard() {
       
       // Calculate stats using bookings data
       const totalBookings = bookingsData.length;
+      const activeBookings = bookingsData.filter((booking: any) => 
+        booking.status === 'confirmed' || booking.status === 'checked-in' || booking.status === 'pending'
+      ).length;
       const totalRevenue = bookingsData.reduce((sum: number, booking: any) => sum + (booking.total_price || booking.totalPrice || 0), 0);
       const pendingBookings = bookingsData.filter((booking: any) => booking.status === 'pending').length;
       
       setStats({
         totalBookings,
+        activeBookings,
         totalRevenue,
         pendingBookings
       });
@@ -312,6 +319,7 @@ export default function AdminDashboard() {
       setBookings([]);
       setStats({
         totalBookings: 0,
+        activeBookings: 0,
         totalRevenue: 0,
         pendingBookings: 0
       });
@@ -745,20 +753,14 @@ export default function AdminDashboard() {
     );
   }
   
-  // If not authenticated, show login button
+  // If not authenticated, show loading while redirecting
   if (!isAuthenticated || !user) {
-    console.log('⏳ Not authenticated - showing login button');
+    console.log('⏳ Not authenticated - redirecting to login...');
     return (
       <div className="min-h-screen bg-[#f0f2f5] flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 flex flex-col items-center max-w-md w-full mx-4">
-          <h2 className="text-2xl font-bold text-[#1a233b] mb-6">Admin Access Required</h2>
-          <p className="text-gray-600 mb-6 text-center">You need to login to access the admin dashboard.</p>
-          <button
-            onClick={() => router.push('/admin/login')}
-            className="bg-[#FFD700] hover:bg-[#FFC700] text-[#1a233b] font-semibold py-3 px-6 rounded-lg transition-colors duration-200 w-full"
-          >
-            Go to Login
-          </button>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#FFD700] mb-4"></div>
+          <p className="text-gray-600 text-center">Redirecting to login...</p>
         </div>
       </div>
     );
@@ -850,7 +852,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <div className="bg-white rounded-xl shadow p-4 sm:p-6 flex flex-col items-center">
                 <h3 className="text-sm sm:text-base text-gray-500 mb-2">Available Rooms</h3>
-                <h2 className="text-xl sm:text-2xl font-bold text-[#1a233b] mb-1">{15 - stats.totalBookings}</h2>
+                <h2 className="text-xl sm:text-2xl font-bold text-[#1a233b] mb-1">{15 - stats.activeBookings}</h2>
                 <p className="text-xs text-gray-400">Ready for guests</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4 sm:p-6 flex flex-col items-center">
