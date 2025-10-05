@@ -346,6 +346,30 @@ export default function AdminDashboard() {
   const confirmStatusUpdate = async () => {
     if (!bookingToUpdate || !newStatus) return;
     
+    // Date validation for status updates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const checkInDate = new Date(bookingToUpdate.start_date || bookingToUpdate.checkIn);
+    checkInDate.setHours(0, 0, 0, 0);
+    
+    const checkOutDate = new Date(bookingToUpdate.end_date || bookingToUpdate.checkOut);
+    checkOutDate.setHours(0, 0, 0, 0);
+    
+    // Validate check-in status
+    if (newStatus === 'checked-in' && today < checkInDate) {
+      toast.error(`Cannot check in before check-in date (${checkInDate.toLocaleDateString()})`);
+      setIsUpdatingStatus(false);
+      return;
+    }
+    
+    // Validate completed status
+    if (newStatus === 'completed' && today < checkOutDate) {
+      toast.error(`Cannot mark as completed before check-out date (${checkOutDate.toLocaleDateString()})`);
+      setIsUpdatingStatus(false);
+      return;
+    }
+    
     setIsUpdatingStatus(true);
     try {
       // Update status first
@@ -2315,37 +2339,62 @@ export default function AdminDashboard() {
             <DialogHeader>
               <DialogTitle>Update Booking Status</DialogTitle>
             </DialogHeader>
-            {bookingToUpdate && (
-              <div className="space-y-4">
-                <div>
-                  <p className="text-sm text-gray-600">Booking ID: #{bookingToUpdate.id.slice(0, 8)}</p>
-                  <p className="text-sm text-gray-600">Guest: {bookingToUpdate.guest_name || bookingToUpdate.guestName}</p>
-                  <p className="text-sm text-gray-600">Current Status: <span className="font-semibold">{bookingToUpdate.status}</span></p>
-                </div>
-                <div>
-                  <Label htmlFor="status">New Status</Label>
-                  <select
-                    id="status"
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value)}
-                    className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#C49B66] focus:border-[#C49B66]"
-                  >
-                    <option value="">Select new status...</option>
-                    {bookingToUpdate?.status === 'confirmed' && (
-                      <>
-                        <option value="checked-in">Checked In</option>
-                        <option value="cancelled">Cancelled</option>
-                      </>
+            {bookingToUpdate && (() => {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              
+              const checkInDate = new Date(bookingToUpdate.start_date || bookingToUpdate.checkIn);
+              checkInDate.setHours(0, 0, 0, 0);
+              
+              const checkOutDate = new Date(bookingToUpdate.end_date || bookingToUpdate.checkOut);
+              checkOutDate.setHours(0, 0, 0, 0);
+              
+              const canCheckIn = today >= checkInDate;
+              const canComplete = today >= checkOutDate;
+              
+              return (
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-sm text-gray-600">Booking ID: #{bookingToUpdate.id.slice(0, 8)}</p>
+                    <p className="text-sm text-gray-600">Guest: {bookingToUpdate.guest_name || bookingToUpdate.guestName}</p>
+                    <p className="text-sm text-gray-600">Current Status: <span className="font-semibold">{bookingToUpdate.status}</span></p>
+                    <p className="text-sm text-gray-600">Check-in: {checkInDate.toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-600">Check-out: {checkOutDate.toLocaleDateString()}</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="status">New Status</Label>
+                    <select
+                      id="status"
+                      value={newStatus}
+                      onChange={(e) => setNewStatus(e.target.value)}
+                      className="w-full mt-1 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#C49B66] focus:border-[#C49B66]"
+                    >
+                      <option value="">Select new status...</option>
+                      {bookingToUpdate?.status === 'confirmed' && (
+                        <>
+                          <option value="checked-in" disabled={!canCheckIn}>
+                            {canCheckIn ? 'Checked In' : `Checked In (Available ${checkInDate.toLocaleDateString()})`}
+                          </option>
+                          <option value="cancelled">Cancelled</option>
+                        </>
+                      )}
+                      {bookingToUpdate?.status === 'checked-in' && (
+                        <>
+                          <option value="completed" disabled={!canComplete}>
+                            {canComplete ? 'Completed' : `Completed (Available ${checkOutDate.toLocaleDateString()})`}
+                          </option>
+                        </>
+                      )}
+                    </select>
+                    {!canCheckIn && bookingToUpdate?.status === 'confirmed' && (
+                      <p className="text-sm text-amber-600 mt-1">⚠️ Check-in available from {checkInDate.toLocaleDateString()}</p>
                     )}
-                    {bookingToUpdate?.status === 'checked-in' && (
-                      <>
-                        <option value="completed">Completed</option>
-                      </>
+                    {!canComplete && bookingToUpdate?.status === 'checked-in' && (
+                      <p className="text-sm text-amber-600 mt-1">⚠️ Completion available from {checkOutDate.toLocaleDateString()}</p>
                     )}
-                  </select>
-                </div>
-                <div className="flex justify-end gap-2 mt-4">
-                  <Button variant="outline" onClick={() => setShowStatusDialog(false)}>
+                  </div>
+                  <div className="flex justify-end gap-2 mt-4">
+                    <Button variant="outline" onClick={() => setShowStatusDialog(false)}>
                     Cancel
                   </Button>
                   <Button 
@@ -2367,9 +2416,10 @@ export default function AdminDashboard() {
                       </div>
                     )}
                   </Button>
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
           </DialogContent>
         </Dialog>
 
