@@ -441,6 +441,31 @@ export default function AdminDashboard() {
     );
   };
 
+  const getCurrentlyOccupiedRooms = (roomType: string) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    return bookings.filter(booking => {
+      if ((booking.booking_type !== 'room' && booking.bookingType !== 'room') || 
+          (booking.item_id !== roomType && booking.itemId !== roomType)) {
+        return false;
+      }
+      
+      // Skip cancelled or deleted bookings
+      if (booking.status === 'cancelled' || booking.status === 'deleted') {
+        return false;
+      }
+      
+      const checkIn = new Date(booking.start_date || booking.checkIn);
+      const checkOut = new Date(booking.end_date || booking.checkOut);
+      checkIn.setHours(0, 0, 0, 0);
+      checkOut.setHours(0, 0, 0, 0);
+      
+      // Room is currently occupied if today is between check-in and check-out (inclusive of check-in, exclusive of check-out)
+      return checkIn <= today && today < checkOut;
+    });
+  };
+
   const getEventBookings = (eventType: string) => {
     return bookings.filter(booking => {
       const isEventBooking = booking.booking_type === 'event' || booking.bookingType === 'event';
@@ -969,7 +994,8 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Object.entries(TOTAL_ROOMS).map(([roomType, totalCount]) => {
                   const roomBookings = getRoomBookings(roomType);
-                  const occupiedCount = roomBookings.length;
+                  const currentlyOccupied = getCurrentlyOccupiedRooms(roomType);
+                  const occupiedCount = currentlyOccupied.length;
                   const availableCount = totalCount - occupiedCount;
                   const roomName = roomType === 'royal_suite' ? 'Royal Suite' : 
                                  roomType === 'superior_room' ? 'Superior Room' : 'Classic Room';
@@ -992,12 +1018,14 @@ export default function AdminDashboard() {
                         </div>
                         <div className="text-center p-3 bg-red-50 rounded-lg">
                           <div className="text-lg font-semibold text-red-700">{occupiedCount}</div>
-                          <div className="text-xs text-red-600">Occupied</div>
+                          <div className="text-xs text-red-600">Currently Occupied</div>
                         </div>
                       </div>
                       
                       <div className="text-sm text-gray-600 mb-3">
-                        <strong>Current Bookings:</strong> {roomBookings.length > 0 ? roomBookings.length : 'None'}
+                        <strong>Total Bookings:</strong> {roomBookings.length > 0 ? roomBookings.length : 'None'}
+                        <br />
+                        <strong>Currently Occupied:</strong> {occupiedCount > 0 ? occupiedCount : 'None'}
                       </div>
                       
                       {roomBookings.length > 0 && (
