@@ -48,6 +48,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalBookings: 0,
     activeBookings: 0,
+    currentGuests: 0,
     totalRevenue: 0,
     pendingBookings: 0,
   });
@@ -302,12 +303,14 @@ export default function AdminDashboard() {
       const activeBookings = bookingsData.filter((booking: any) => 
         booking.status === 'confirmed' || booking.status === 'checked-in' || booking.status === 'pending'
       ).length;
+      const currentGuests = bookingsData.filter((booking: any) => booking.status === 'checked-in').length;
       const totalRevenue = bookingsData.reduce((sum: number, booking: any) => sum + (booking.total_price || booking.totalPrice || 0), 0);
       const pendingBookings = bookingsData.filter((booking: any) => booking.status === 'pending').length;
       
       setStats({
         totalBookings,
         activeBookings,
+        currentGuests,
         totalRevenue,
         pendingBookings
       });
@@ -320,6 +323,7 @@ export default function AdminDashboard() {
       setStats({
         totalBookings: 0,
         activeBookings: 0,
+        currentGuests: 0,
         totalRevenue: 0,
         pendingBookings: 0
       });
@@ -851,9 +855,9 @@ export default function AdminDashboard() {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
               <div className="bg-white rounded-xl shadow p-4 sm:p-6 flex flex-col items-center">
-                <h3 className="text-sm sm:text-base text-gray-500 mb-2">Available Rooms</h3>
-                <h2 className="text-xl sm:text-2xl font-bold text-[#1a233b] mb-1">{15 - stats.activeBookings}</h2>
-                <p className="text-xs text-gray-400">Ready for guests</p>
+                <h3 className="text-sm sm:text-base text-gray-500 mb-2">Current Guests</h3>
+                <h2 className="text-xl sm:text-2xl font-bold text-[#1a233b] mb-1">{stats.currentGuests}</h2>
+                <p className="text-xs text-gray-400">Checked-in now</p>
               </div>
               <div className="bg-white rounded-xl shadow p-4 sm:p-6 flex flex-col items-center">
                 <h3 className="text-sm sm:text-base text-gray-500 mb-2">Total Revenue</h3>
@@ -864,6 +868,11 @@ export default function AdminDashboard() {
                 <h3 className="text-sm sm:text-base text-gray-500 mb-2">Pending Bookings</h3>
                 <h2 className="text-xl sm:text-2xl font-bold text-[#1a233b] mb-1">{stats.pendingBookings}</h2>
                 <p className="text-xs text-gray-400">Need attention</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4 sm:p-6 flex flex-col items-center">
+                <h3 className="text-sm sm:text-base text-gray-500 mb-2">Active Bookings</h3>
+                <h2 className="text-xl sm:text-2xl font-bold text-[#1a233b] mb-1">{stats.activeBookings}</h2>
+                <p className="text-xs text-gray-400">Total active</p>
               </div>
             </div>
             {/* Room Availability */}
