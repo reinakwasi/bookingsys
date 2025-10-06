@@ -106,6 +106,189 @@ export default function Home() {
       
       <DynamicHeader />
 
+      {/* Dynamic Ticket Advertisement Banner */}
+      {featuredTickets.length > 0 && (
+        <section className="relative overflow-hidden bg-gradient-to-r from-[#1a233b] via-[#2a3441] to-[#1a233b] py-6 sm:py-8 border-y-4 border-[#FFD700] shadow-2xl">
+          {/* Animated Background Elements */}
+          <div className="absolute inset-0 overflow-hidden">
+            <div className="absolute -top-10 -left-10 w-40 h-40 bg-gradient-to-r from-[#FFD700]/30 to-[#C49B66]/30 rounded-full blur-3xl animate-float-slow"></div>
+            <div className="absolute -top-5 right-20 w-32 h-32 bg-gradient-to-r from-[#C49B66]/25 to-[#FFD700]/25 rounded-full blur-2xl animate-float-slow" style={{animationDelay: '1s'}}></div>
+            <div className="absolute bottom-0 left-1/3 w-36 h-36 bg-gradient-to-r from-[#FFD700]/20 to-[#F4E4BC]/20 rounded-full blur-3xl animate-float-slow" style={{animationDelay: '2s'}}></div>
+            
+            {/* Sparkle Effects */}
+            <div className="absolute top-4 left-1/4 w-3 h-3 bg-[#FFD700] rounded-full animate-ping shadow-lg"></div>
+            <div className="absolute top-8 right-1/3 w-2 h-2 bg-[#C49B66] rounded-full animate-ping shadow-lg" style={{animationDelay: '0.5s'}}></div>
+            <div className="absolute bottom-6 left-1/2 w-3 h-3 bg-[#FFD700] rounded-full animate-ping shadow-lg" style={{animationDelay: '1.5s'}}></div>
+            <div className="absolute top-1/2 left-1/5 w-2 h-2 bg-white rounded-full animate-ping shadow-lg" style={{animationDelay: '2s'}}></div>
+            <div className="absolute bottom-4 right-1/4 w-2.5 h-2.5 bg-[#C49B66] rounded-full animate-ping shadow-lg" style={{animationDelay: '2.5s'}}></div>
+          </div>
+
+          {/* Luxury Pattern Overlay */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#FFD700]/20 to-transparent animate-pulse"></div>
+          </div>
+
+          <div className="container-responsive relative z-10">
+            <div className="flex flex-col lg:flex-row items-center justify-between gap-4 sm:gap-6">
+              {/* Left Content */}
+              <div className="flex-1 text-center lg:text-left">
+                <div className="flex items-center justify-center lg:justify-start gap-2 mb-2 sm:mb-3">
+                  <div className="flex items-center gap-1">
+                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-[#FFD700] animate-spin-slow" />
+                    <Ticket className="h-5 w-5 sm:h-6 sm:w-6 text-[#FFD700] animate-bounce" />
+                    <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-[#C49B66] animate-spin-slow" />
+                  </div>
+                  <span className="text-[#FFD700] font-bold text-xs sm:text-sm uppercase tracking-wider animate-pulse shadow-lg">
+                    ✨ EXCLUSIVE EVENTS AVAILABLE ✨
+                  </span>
+                </div>
+                
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-white mb-2 sm:mb-3 animate-fade-in-up drop-shadow-lg">
+                  <span className="bg-gradient-to-r from-[#FFD700] via-white to-[#C49B66] bg-clip-text text-transparent animate-glow">
+                    Luxury Experiences Await You!
+                  </span>
+                </h3>
+                
+                <p className="text-[#F4E4BC] text-sm sm:text-base lg:text-lg animate-fade-in-up font-medium drop-shadow-md" style={{animationDelay: '0.2s'}}>
+                  🎫 {featuredTickets.length} premium event{featuredTickets.length > 1 ? 's' : ''} • Starting from <span className="text-[#FFD700] font-bold">GH₵{Math.min(...featuredTickets.map(t => t.price))}</span>
+                </p>
+              </div>
+
+              {/* Right Action */}
+              <div className="flex-shrink-0 animate-fade-in-up" style={{animationDelay: '0.4s'}}>
+                <Link href="/tickets">
+                  <Button 
+                    size="lg" 
+                    className="group relative overflow-hidden bg-gradient-to-r from-[#FFD700] via-[#C49B66] to-[#FFD700] hover:from-[#FFF700] hover:via-[#D4A574] hover:to-[#FFF700] text-[#1a233b] font-bold px-8 sm:px-12 py-4 sm:py-5 rounded-2xl shadow-2xl hover:shadow-[#FFD700]/50 transition-all duration-500 transform hover:scale-110 hover:-translate-y-2 border-2 border-white/20"
+                  >
+                    {/* Animated Background Shine */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                    
+                    {/* Button Content */}
+                    <div className="relative flex items-center gap-3">
+                      <Ticket className="h-6 w-6 sm:h-7 sm:w-7 animate-ticket-bounce group-hover:animate-spin transition-transform text-[#1a233b]" />
+                      <span className="text-base sm:text-lg font-bold font-display">
+                        EXPLORE EVENTS
+                      </span>
+                      <div className="flex items-center">
+                        <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6 group-hover:translate-x-1 transition-transform text-[#1a233b]" />
+                        <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 ml-1 animate-sparkle-dance group-hover:animate-spin transition-transform text-[#1a233b]" />
+                      </div>
+                    </div>
+                    
+                    {/* Glowing Border Effect */}
+                    <div className="absolute inset-0 rounded-2xl border-2 border-[#FFD700] animate-pulse shadow-lg"></div>
+                    
+                    {/* Inner Glow */}
+                    <div className="absolute inset-1 rounded-xl bg-gradient-to-r from-white/10 to-transparent opacity-50"></div>
+                  </Button>
+                </Link>
+              </div>
+            </div>
+
+            {/* Ticket Preview Cards (Mobile Carousel) */}
+            <div className="mt-4 sm:mt-6 lg:hidden">
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {featuredTickets.slice(0, 3).map((ticket, idx) => (
+                  <div 
+                    key={ticket.id} 
+                    className="flex-shrink-0 w-72 bg-gradient-to-br from-[#FFD700]/20 to-[#C49B66]/20 backdrop-blur-sm rounded-2xl p-5 border-2 border-[#FFD700]/30 animate-fade-in-up shadow-xl hover:shadow-[#FFD700]/20 transition-all duration-300 hover:scale-105"
+                    style={{animationDelay: `${0.6 + idx * 0.1}s`}}
+                  >
+                    <div className="flex items-center gap-4">
+                      {ticket.image_url && (
+                        <div className="relative w-14 h-14 rounded-xl overflow-hidden border-2 border-[#FFD700]/50">
+                          <Image 
+                            src={ticket.image_url} 
+                            alt={ticket.title}
+                            fill
+                            className="object-cover"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#1a233b]/60 to-transparent"></div>
+                          <div className="absolute bottom-1 right-1">
+                            <Ticket className="h-3 w-3 text-[#FFD700]" />
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-white font-bold text-sm truncate mb-1 drop-shadow-md">{ticket.title}</h4>
+                        <div className="flex items-center gap-2 text-xs text-[#F4E4BC] mb-1">
+                          <Calendar className="h-3 w-3 text-[#FFD700]" />
+                          <span>{new Date(ticket.event_date).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs">
+                          <DollarSign className="h-3 w-3 text-[#FFD700]" />
+                          <span className="text-[#FFD700] font-bold">GH₵{ticket.price}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Desktop Ticket Preview */}
+            <div className="hidden lg:block mt-8">
+              <div className="grid grid-cols-3 gap-6">
+                {featuredTickets.slice(0, 3).map((ticket, idx) => (
+                  <div 
+                    key={ticket.id}
+                    className="group bg-gradient-to-br from-[#FFD700]/15 to-[#C49B66]/15 backdrop-blur-sm rounded-2xl p-6 border-2 border-[#FFD700]/30 hover:border-[#FFD700]/60 transition-all duration-300 hover:scale-105 animate-fade-in-up shadow-xl hover:shadow-[#FFD700]/20"
+                    style={{animationDelay: `${0.6 + idx * 0.1}s`}}
+                  >
+                    <div className="flex items-start gap-5">
+                      {ticket.image_url && (
+                        <div className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border-2 border-[#FFD700]/50">
+                          <Image 
+                            src={ticket.image_url} 
+                            alt={ticket.title}
+                            fill
+                            className="object-cover group-hover:scale-110 transition-transform duration-300"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-[#1a233b]/60 to-transparent"></div>
+                          <div className="absolute bottom-1 right-1">
+                            <Ticket className="h-4 w-4 text-[#FFD700] drop-shadow-lg" />
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-white font-display font-bold text-lg mb-3 line-clamp-1 group-hover:text-[#FFD700] transition-colors drop-shadow-md">
+                          {ticket.title}
+                        </h4>
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm text-[#F4E4BC]">
+                            <Calendar className="h-4 w-4 text-[#FFD700]" />
+                            <span className="font-medium">{new Date(ticket.event_date).toLocaleDateString()}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <DollarSign className="h-4 w-4 text-[#FFD700]" />
+                            <span className="font-bold text-[#FFD700] text-base">GH₵{ticket.price}</span>
+                          </div>
+                          {ticket.venue && (
+                            <div className="flex items-center gap-2 text-xs text-[#C49B66]">
+                              <MapPin className="h-3 w-3 text-[#FFD700]" />
+                              <span className="truncate font-medium">{ticket.venue}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Luxury Accent */}
+          <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-[#FFD700] via-[#C49B66] to-[#FFD700] animate-pulse shadow-lg"></div>
+          
+          {/* Corner Decorative Elements */}
+          <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-[#FFD700]/50 rounded-tl-lg"></div>
+          <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-[#FFD700]/50 rounded-tr-lg"></div>
+          <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-[#FFD700]/50 rounded-bl-lg"></div>
+          <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-[#FFD700]/50 rounded-br-lg"></div>
+        </section>
+      )}
 
       {/* Welcome Hero Section (Ultra Modern) */}
       <section className="relative section-responsive overflow-hidden">
