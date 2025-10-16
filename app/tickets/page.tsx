@@ -367,11 +367,11 @@ export default function TicketsPage() {
                     
                     <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl overflow-hidden border border-amber-400/20 hover-transition hover:scale-[1.02]">
                       {ticket.image_url && (
-                        <div className="h-48 sm:h-56 lg:h-64 bg-gradient-to-br from-amber-400/20 to-yellow-500/20 relative overflow-hidden">
+                        <div className="w-full bg-gradient-to-br from-amber-400/20 to-yellow-500/20 relative overflow-hidden">
                           <img
                             src={ticket.image_url}
                             alt={ticket.title}
-                            className={`w-full h-full object-cover hover-transition ${isOutOfStock ? 'grayscale opacity-50' : 'group-hover:scale-105'}`}
+                            className={`w-full h-auto object-cover hover-transition ${isOutOfStock ? 'grayscale opacity-50' : 'group-hover:scale-105'}`}
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                           
@@ -418,7 +418,6 @@ export default function TicketsPage() {
                             <Clock className={`h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 ${isOutOfStock ? 'text-gray-500' : 'text-amber-400'}`} />
                             <span className="text-sm sm:text-base">
                               {formatTime(ticket.event_time)}
-                              {ticket.duration_hours && ` (${ticket.duration_hours}h)`}
                             </span>
                           </div>
 

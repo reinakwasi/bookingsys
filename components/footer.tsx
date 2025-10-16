@@ -24,7 +24,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-[#A3A3A3] text-sm leading-relaxed">
-              Experience unparalleled luxury in the heart of New Edubiase.
+              Experience exceptional hospitality in the heart of New Edubiase.
             </p>
             <div className="flex gap-3">
               <a

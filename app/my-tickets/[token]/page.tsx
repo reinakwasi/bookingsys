@@ -415,11 +415,13 @@ export default function MyTicketsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <div>
                 {purchase.ticket.image_url && (
-                  <img 
-                    src={purchase.ticket.image_url} 
-                    alt={purchase.ticket.name}
-                    className="w-full h-40 sm:h-48 object-cover rounded-xl mb-4 shadow-lg"
-                  />
+                  <div className="w-full bg-gray-100 rounded-xl mb-4 shadow-lg overflow-hidden">
+                    <img 
+                      src={purchase.ticket.image_url} 
+                      alt={purchase.ticket.name}
+                      className="w-full h-auto object-cover rounded-xl"
+                    />
+                  </div>
                 )}
                 <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{purchase.ticket.description}</p>
               </div>

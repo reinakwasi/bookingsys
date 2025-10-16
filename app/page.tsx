@@ -39,17 +39,15 @@ const featuredRooms = [
 const featuredEvents = [
   {
     id: 1,
-    name: "Compound Events",
-    description: "Perfect for large gatherings and celebrations",
-    price: 1000,
+    name: "Outdoor Event Space",
+    description: "Perfect for large gatherings and celebrations with comprehensive setup",
     image: "/cont.jpg",
     link: "/events"
   },
   {
     id: 2,
-    name: "Conference Events",
-    description: "Professional settings for business meetings and conferences",
-    price: 800,
+    name: "Conference Event Space",
+    description: "Professional settings for business meetings and corporate gatherings",
     image: "/backimg2.jpg",
     link: "/events"
   }
@@ -318,7 +316,7 @@ export default function Home() {
               <div className="glass-morphism rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-luxury">
                 <h2 className="text-responsive-2xl font-display font-bold mb-4 sm:mb-6 text-slate-800">Excellence Pays It All</h2>
                 <p className="text-responsive-base text-slate-600 leading-relaxed mb-4 sm:mb-6">
-                  Hotel 734 sets the standard for lavish accommodations, exquisite dining, and world-class events. Experience unparalleled elegance and exceptional service in our renowned establishment.
+                  Hotel 734 is a premier hospitality destination nestled in the serene town of New Edubiase, Adansi South District. Located in the heart of Ghana's Ashanti Region, we offer a perfect blend of modern luxury and authentic Ghanaian hospitality, providing our guests with an unforgettable experience in a tranquil setting.
                 </p>
                 <div className="flex items-center gap-4 text-slate-600 mb-6">
                   <MapPin className="h-5 w-5 text-[#C49B66]" />
@@ -344,7 +342,7 @@ export default function Home() {
             <div className="animate-slide-up-delay-2">
               <div className="glass-morphism rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-luxury">
                 <p className="text-responsive-base text-slate-600 leading-relaxed mb-6 sm:mb-8">
-                  Indulge in our signature dining experiences, from the renowned Hotel 734 Salad to our exquisite Veal Oscar. Enjoy romantic evenings in our sophisticated lounge while live music creates the perfect ambiance.
+                  Discover our exceptional accommodations featuring elegantly appointed rooms and suites, each designed with comfort and style in mind. Our hotel serves as the perfect gateway to explore the rich cultural heritage of the Ashanti Region while enjoying world-class amenities, personalized service, and authentic Ghanaian cuisine that celebrates local flavors and traditions.
                 </p>
                 <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                   <div className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center group hover:scale-105 transition-transform">
@@ -385,7 +383,7 @@ export default function Home() {
             </div>
             <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Experience Unparalleled Comfort</h2>
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
-              Discover our carefully curated selection of rooms and suites, each designed to provide the perfect blend of luxury and comfort.
+              Discover our carefully curated selection of rooms and suites, each designed to provide the perfect blend of comfort and quality.
             </p>
           </div>
 
@@ -470,25 +468,25 @@ export default function Home() {
           <div className="grid grid-responsive-3 gap-6 sm:gap-8">
             {[
               {
-                name: "Sarah Johnson",
-                text: "Hotel 734 exceeded my expectations! The staff was incredibly attentive, and the room was immaculate. The pool area is absolutely gorgeous - perfect for relaxation after a long day of meetings.",
-                image: "/room3.jpg",
-                rating: 5,
-                location: "Business Traveler, USA"
+                name: "Kwame Osei",
+                text: "Me and my wife came here for our 10th anniversary last month. Honestly, the place is nice ooo. The staff treated us well and the banku with tilapia was fresh. My wife said the room was clean and she liked how quiet it was. We will come back again.",
+                image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face",
+                rating: 4,
+                location: "Teacher, Kumasi"
               },
               {
-                name: "Michael Asante",
-                text: "We held our company retreat here and it was flawless. The conference facilities are top-notch, and the catering was exceptional. Our team loved the evening entertainment at the bar!",
-                image: "/poolview2.jpg",
-                rating: 5,
-                location: "Corporate Executive, Accra"
+                name: "Akosua Mensah",
+                text: "I brought my 3 children here during Christmas holidays. The kids loved the swimming pool and the rooms were okay. Not too expensive and the location is good if you want to visit family around New Edubiase. The jollof rice was tasty too.",
+                image: "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face",
+                rating: 4,
+                location: "Nurse, Accra"
               },
               {
-                name: "Emma Thompson",
-                text: "What a gem! The restaurant serves incredible local and international cuisine. The gym is well-equipped and the spa treatments were divine. Will definitely return on my next visit to Ghana!",
-                image: "/view.jpg",
-                rating: 5,
-                location: "Travel Blogger, UK"
+                name: "James Appiah",
+                text: "We used their conference hall for our company workshop. The room was fine and they helped us set up the projector. The lunch they served was good - rice and chicken with some vegetables. Fair price for what we got. I can recommend it.",
+                image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+                rating: 4,
+                location: "Business Owner, Obuasi"
               },
             ].map((testimonial, idx) => (
               <div key={idx} className="group animate-fade-in-up" style={{animationDelay: `${idx * 0.2}s`}}>
@@ -516,9 +514,9 @@ export default function Home() {
                       </div>
                     </div>
                   </div>
-                  <blockquote className="text-slate-600 leading-relaxed italic text-lg group-hover:text-slate-700 transition-colors">
-                    "{testimonial.text}"
-                  </blockquote>
+                  <div className="text-slate-600 leading-relaxed text-base group-hover:text-slate-700 transition-colors">
+                    {testimonial.text}
+                  </div>
                 </div>
               </div>
             ))}
@@ -538,7 +536,7 @@ export default function Home() {
             </div>
             <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Gallery Preview</h2>
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
-              Explore our stunning spaces and luxurious amenities through our curated gallery.
+              Explore our stunning spaces and premium amenities through our curated gallery.
             </p>
           </div>
           
@@ -610,12 +608,7 @@ export default function Home() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                     <div className="absolute inset-0 bg-gradient-to-br from-[#C49B66]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 hover-transition" />
                     
-                    {/* Floating price badge */}
-                    <div className="absolute top-6 right-6 z-10">
-                      <div className="gradient-price-tag text-white font-bold text-xl px-6 py-3 rounded-2xl shadow-luxury animate-float border border-white/20">
-                        GH₵{event.price}/event
-                      </div>
-                    </div>
+
                     
                     {/* Event type badge */}
                     <div className="absolute bottom-6 left-6 flex items-center gap-3">
@@ -659,14 +652,14 @@ export default function Home() {
             </div>
             <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Why Choose Hotel 734?</h2>
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
-              Experience the perfect blend of luxury, comfort, and exceptional service that sets us apart.
+              Experience the perfect blend of comfort, quality, and exceptional service that sets us apart.
             </p>
           </div>
           <div className="grid grid-responsive-3 gap-6 sm:gap-8">
             {[
               {
                 icon: Star,
-                title: "Luxury Experience",
+                title: "Premium Experience",
                 description: "Indulge in premium amenities and world-class service that exceeds expectations.",
                 features: [
                   "Premium bedding and linens",
@@ -686,7 +679,6 @@ export default function Home() {
                 features: [
                   "Infinity swimming pool",
                   "Modern fitness center",
-                  "Luxury spa and wellness",
                   "Fine dining restaurant",
                   "Rooftop bar and lounge",
                   "Business center",
@@ -703,7 +695,6 @@ export default function Home() {
                   "Professional security personnel",
                   "Secure underground parking",
                   "In-room safe deposit",
-                  "Electronic key card access",
                   "Fire safety systems",
                   "Emergency response team",
                   "Secure luggage storage"
@@ -747,9 +738,9 @@ export default function Home() {
               <span className="text-sm sm:text-base font-medium">Book Now</span>
               <Clock className="h-4 w-4 sm:h-5 sm:w-5 animate-spin-slow" />
             </div>
-            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Ready for Your Luxury Experience?</h2>
+            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Ready for Your Perfect Stay?</h2>
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed mb-8 sm:mb-12">
-              Don't wait to experience the pinnacle of luxury and comfort. Book your stay at Hotel 734 today and create memories that will last a lifetime.
+              Don't wait to experience exceptional comfort and quality service. Book your stay at Hotel 734 today and create memories that will last a lifetime.
             </p>
             <div className="flex flex-row gap-4 sm:gap-6 justify-center max-w-md mx-auto sm:max-w-none">
               <Link href="/booking" className="flex-1 sm:w-auto">

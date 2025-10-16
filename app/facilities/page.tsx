@@ -11,7 +11,7 @@ const facilities = [
   {
     id: 1,
     name: "Club House",
-    description: "Exclusive club house featuring luxury amenities, social spaces, and premium entertainment facilities for our distinguished guests.",
+    description: "Exclusive club house featuring quality amenities, social spaces, and entertainment facilities for our distinguished guests.",
     icon: Home,
     images: [
       { src: "/backimg2.jpg", alt: "Club House Main Lounge" },
@@ -22,7 +22,7 @@ const facilities = [
   {
     id: 2,
     name: "Swimming Pool",
-    description: "Stunning infinity pool with breathtaking views, poolside service, and luxurious deck areas for ultimate relaxation.",
+    description: "Stunning infinity pool with breathtaking views, poolside service, and comfortable deck areas for ultimate relaxation.",
     icon: Waves,
     images: [
       { src: "/pool.jpg", alt: "Main Pool Area" },
@@ -88,7 +88,7 @@ const facilities = [
   {
     id: 8,
     name: "Cold Room",
-    description: "Professional walk-in refrigeration facility for our restaurant and catering operations, ensuring fresh ingredients and optimal food safety standards for our culinary excellence.",
+    description: "Chilled relaxation space with comfortable seating, ambient lighting, music, and refreshments where guests can unwind and socialize in a cool, comfortable environment.",
     icon: Snowflake,
     images: [
       { src: "/three.jpg", alt: "Walk-in Cold Room" },
@@ -155,10 +155,10 @@ export default function FacilitiesPage() {
         <div className="text-center mb-12 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/60 backdrop-blur-sm border border-white/20 rounded-full text-xs sm:text-sm text-amber-700 mb-4 sm:mb-6 animate-slide-up">
             <Star className="w-3 w-3 sm:w-4 sm:h-4" />
-            <span className="font-medium">Premium Amenities</span>
+            <span className="font-medium">Quality Amenities</span>
           </div>
           <h1 className="text-responsive-4xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-amber-900 bg-clip-text text-transparent mb-4 sm:mb-6 animate-slide-up font-serif">
-            Luxury Facilities
+            Hotel Facilities
           </h1>
           <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed animate-fade-in">
             Indulge in world-class amenities and services designed to elevate your experience at Hotel 734
@@ -168,11 +168,7 @@ export default function FacilitiesPage() {
               <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
               <span className="text-xs sm:text-sm font-medium">On-Site Access</span>
             </div>
-            <div className="hidden sm:block w-px h-4 bg-slate-300"></div>
-            <div className="flex items-center gap-2 text-slate-600">
-              <Clock className="w-4 h-4 sm:w-5 sm:h-5" />
-              <span className="text-xs sm:text-sm font-medium">24/7 Available</span>
-            </div>
+
           </div>
         </div>
 
@@ -256,9 +252,11 @@ export default function FacilitiesPage() {
                                 <span className="px-2 sm:px-4 lg:px-5 py-1 sm:py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs sm:text-sm font-semibold rounded-full shadow-xl">
                                   Premium Experience
                                 </span>
-                                <span className="px-2 sm:px-4 py-1 sm:py-2 bg-white/20 backdrop-blur-sm text-white text-xs sm:text-sm font-medium rounded-full border border-white/30">
-                                  24/7 Access
-                                </span>
+                                {facility.name === "Parking" && (
+                                  <span className="px-2 sm:px-4 py-1 sm:py-2 bg-white/20 backdrop-blur-sm text-white text-xs sm:text-sm font-medium rounded-full border border-white/30">
+                                    24/7 Access
+                                  </span>
+                                )}
                               </div>
                             </div>
                             {/* Mobile facility number indicator - moved inline */}
@@ -300,21 +298,13 @@ export default function FacilitiesPage() {
         <div className="mt-12 sm:mt-16 lg:mt-20 text-center">
           <div className="bg-white/70 backdrop-blur-md border border-white/20 rounded-2xl sm:rounded-3xl p-6 sm:p-8 lg:p-12 shadow-2xl animate-fade-in">
             <h2 className="text-responsive-2xl font-bold bg-gradient-to-r from-slate-900 to-amber-900 bg-clip-text text-transparent mb-3 sm:mb-4 font-serif">
-              Experience Luxury Like Never Before
+              Experience Comfort Like Never Before
             </h2>
             <p className="text-responsive-base text-slate-600 max-w-2xl mx-auto mb-6 sm:mb-8">
               Every facility at Hotel 734 is designed with your comfort and satisfaction in mind. 
-              Discover the perfect blend of luxury, convenience, and exceptional service.
+              Discover the perfect blend of comfort, convenience, and exceptional service.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-amber-100 to-orange-100 rounded-full">
-                <Star className="w-3 h-3 sm:w-4 sm:h-4 text-amber-600 fill-current" />
-                <span className="text-xs sm:text-sm font-medium text-amber-700">5-Star Rated</span>
-              </div>
-              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-slate-100 to-gray-100 rounded-full">
-                <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-slate-600" />
-                <span className="text-xs sm:text-sm font-medium text-slate-700">24/7 Service</span>
-              </div>
               <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gradient-to-r from-amber-100 to-orange-100 rounded-full">
                 <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-amber-600" />
                 <span className="text-xs sm:text-sm font-medium text-amber-700">Prime Location</span>

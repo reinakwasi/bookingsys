@@ -7,29 +7,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import EventBookingForm from "@/components/EventBookingForm";
 import { Calendar, Users, ArrowRight, Sparkles, Award, Star, Zap, PartyPopper, Building2 } from "lucide-react";
 
-// Static event data - focusing on the two main events
+// Event space options - generic spaces that require custom event type input
 const mainEvents = [
   {
-    _id: 'compound',
-    name: 'Compound Events',
-    description: 'Perfect for large gatherings and celebrations. Our spacious compound can accommodate weddings, parties, corporate events, and family reunions with comprehensive event setup.',
-    type: 'Compound',
-    price: 1000,
-    capacity: 300,
+    _id: 'outdoor-space',
+    name: 'Outdoor Event Space',
+    description: 'Perfect for large gatherings and celebrations. Our spacious outdoor area can accommodate various events with comprehensive setup and professional equipment.',
+    type: '',
     image: '/cont.jpg',
-    features: ['Outdoor Space', 'Premium Chairs', 'Professional Speakers', 'Event Tent', 'Parking', 'Sound System', 'Lighting Setup'],
-    category: 'Large Events'
+    features: ['Outdoor Space', 'Professional Chairs', 'Professional Speakers', 'Event Tent', 'Parking', 'Sound System'],
+    category: 'Outdoor Events'
   },
   {
-    _id: 'conference',
-    name: 'Conference Events',
-    description: 'Professional settings for business meetings and conferences. Equipped with state-of-the-art AV equipment, high-speed internet, and comfortable seating arrangements.',
-    type: 'Conference',
-    price: 800,
-    capacity: 150,
+    _id: 'conference-space',
+    name: 'Conference Event Space',
+    description: 'Professional conference settings perfect for business meetings, presentations, and corporate gatherings. Equipped with state-of-the-art facilities and comfortable arrangements.',
+    type: '',
     image: '/backimg2.jpg',
-    features: ['AV Equipment', 'High-Speed WiFi', 'Projectors', 'Whiteboards', 'Coffee Service', 'Climate Control'],
-    category: 'Business Events'
+    features: ['AV Equipment', 'Projectors', 'Whiteboards'],
+    category: 'Conference Events'
   }
 ];
 
@@ -66,7 +62,7 @@ export default function EventsPage() {
             <div className="relative bg-gradient-to-r from-amber-500 to-yellow-500 text-white px-4 sm:px-6 lg:px-8 py-3 sm:py-4 rounded-full border border-amber-300/30 backdrop-blur-sm shadow-2xl">
               <div className="flex items-center gap-2 sm:gap-3">
                 <PartyPopper className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 animate-bounce" />
-                <span className="font-bold text-sm sm:text-base lg:text-lg">Premium Event Experiences</span>
+                <span className="font-bold text-sm sm:text-base lg:text-lg">Elite Event Experiences</span>
                 <Zap className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6 animate-bounce" style={{animationDelay: '0.5s'}} />
               </div>
             </div>
@@ -86,7 +82,7 @@ export default function EventsPage() {
               <div className="hidden sm:block w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />
-                <span className="font-semibold text-sm sm:text-base">450+ Capacity</span>
+                <span className="font-semibold text-sm sm:text-base">Expert Planning</span>
               </div>
               <div className="hidden sm:block w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
               <div className="flex items-center gap-2">
@@ -120,12 +116,6 @@ export default function EventsPage() {
                           <p className="text-amber-200 text-xs sm:text-sm font-medium">{event.category}</p>
                         </div>
                       </div>
-                      <div className="text-left sm:text-right">
-                        <div className="text-2xl sm:text-3xl font-black text-transparent bg-gradient-to-r from-amber-300 to-yellow-300 bg-clip-text drop-shadow-lg">
-                          GH₵{event.price}
-                        </div>
-                        <p className="text-amber-200 text-xs sm:text-sm">per event</p>
-                      </div>
                     </div>
                   </div>
 
@@ -140,13 +130,13 @@ export default function EventsPage() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-slate-900/40 to-transparent" />
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-400/25 via-transparent to-yellow-400/25 opacity-0 group-hover:opacity-100 hover-transition" />
                   
-                    {/* Capacity indicator */}
+                    {/* Event Info */}
                     <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-4 right-3 sm:right-4">
                       <div className="bg-black/70 backdrop-blur-md rounded-lg sm:rounded-xl p-2 sm:p-3 border border-amber-400/30 shadow-lg">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-white">
                           <div className="flex items-center gap-2">
                             <Users className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
-                            <span className="font-semibold text-sm sm:text-base">Up to {event.capacity} guests</span>
+                            <span className="font-semibold text-sm sm:text-base">Expert Planning</span>
                           </div>
                           <div className="flex gap-1">
                             {[...Array(5)].map((_, i) => (
@@ -188,7 +178,7 @@ export default function EventsPage() {
                         onClick={() => handleBookEvent(event)}
                       >
                         <Calendar className="mr-2 sm:mr-3 h-4 w-4 sm:h-5 sm:w-5" />
-                        Book {event.type} Event
+                        Book Event Space
                         <ArrowRight className="ml-2 sm:ml-3 h-4 w-4 sm:h-5 sm:w-5 transition-transform group-hover:translate-x-1" />
                       </Button>
                     </div>
@@ -247,15 +237,13 @@ export default function EventsPage() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-slate-900/95 backdrop-blur-xl border border-amber-400/40 shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-amber-300 to-yellow-300 bg-clip-text text-transparent drop-shadow-lg">
-              Book {selectedEvent?.name}
+              Request Event Booking
             </DialogTitle>
           </DialogHeader>
           {selectedEvent && (
             <EventBookingForm
               eventId={selectedEvent._id}
               eventType={selectedEvent.type}
-              price={selectedEvent.price}
-              capacity={selectedEvent.capacity}
               onSuccess={handleBookingSuccess}
             />
           )}

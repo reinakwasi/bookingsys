@@ -837,8 +837,8 @@ export default function AdminDashboard() {
           <SidebarItem label="Events" active={activeMenu === "events"} onClick={() => { setActiveMenu("events"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           {activeMenu === "events" && (
             <div className="ml-4 space-y-1">
-              <SidebarSubItem label="Conference" active={activeSubMenu === "conference"} onClick={() => { setActiveSubMenu("conference"); setIsMobileSidebarOpen(false); }} />
-              <SidebarSubItem label="Compound" active={activeSubMenu === "compound"} onClick={() => { setActiveSubMenu("compound"); setIsMobileSidebarOpen(false); }} />
+              <SidebarSubItem label="Conference Event Space" active={activeSubMenu === "conference"} onClick={() => { setActiveSubMenu("conference"); setIsMobileSidebarOpen(false); }} />
+              <SidebarSubItem label="Outdoor Event Space" active={activeSubMenu === "compound"} onClick={() => { setActiveSubMenu("compound"); setIsMobileSidebarOpen(false); }} />
             </div>
           )}
           <SidebarItem label="Tickets" active={activeMenu === "tickets"} onClick={() => { setActiveMenu("tickets"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
@@ -1465,11 +1465,11 @@ export default function AdminDashboard() {
                   return (
                     <div key={ticket.id} className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
                       {ticket.image_url ? (
-                        <div className="h-48 bg-gray-200 overflow-hidden relative">
+                        <div className="w-full bg-gray-100 overflow-hidden relative">
                           <img
                             src={ticket.image_url}
                             alt={ticket.title}
-                            className={`w-full h-full object-cover hover:scale-105 transition-transform duration-300 ${isExpired ? 'grayscale opacity-60' : ''}`}
+                            className={`w-full h-auto object-cover hover:scale-105 transition-transform duration-300 ${isExpired ? 'grayscale opacity-60' : ''}`}
                           />
                           {/* Status overlays */}
                           <div className="absolute top-3 right-3 flex flex-col gap-2">
@@ -2648,11 +2648,13 @@ export default function AdminDashboard() {
                       </label>
                     ) : (
                       <div className="relative">
-                        <img
-                          src={imagePreview}
-                          alt="Preview"
-                          className="w-full h-64 object-cover rounded-lg"
-                        />
+                        <div className="w-full bg-gray-100 rounded-lg overflow-hidden">
+                          <img
+                            src={imagePreview}
+                            alt="Preview"
+                            className="w-full h-auto object-cover rounded-lg"
+                          />
+                        </div>
                         <div className="absolute inset-0 bg-black bg-opacity-40 opacity-0 hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
                           <div className="flex gap-2">
                             <label htmlFor="image_upload" className="bg-white text-gray-700 px-4 py-2 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">

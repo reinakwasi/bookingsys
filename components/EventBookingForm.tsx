@@ -23,7 +23,6 @@ const bookingSchema = z.object({
   phone: z.string().min(10, 'Phone number must be at least 10 digits'),
   startDate: z.string().min(1, 'Start date is required'),
   endDate: z.string().min(1, 'End date is required'),
-  numberOfGuests: z.number().min(1, 'Number of guests is required'),
   eventType: z.string().min(1, 'Event type is required'),
   specialRequests: z.string().optional(),
 });
@@ -33,16 +32,12 @@ type BookingFormData = z.infer<typeof bookingSchema>;
 interface EventBookingFormProps {
   eventId: string;
   eventType: string;
-  price: number;
-  capacity: number;
   onSuccess?: () => void;
 }
 
 export default function EventBookingForm({
   eventId,
   eventType,
-  price,
-  capacity,
   onSuccess,
 }: EventBookingFormProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -58,18 +53,12 @@ export default function EventBookingForm({
   } = useForm<BookingFormData>({
     resolver: zodResolver(bookingSchema),
     defaultValues: {
-      numberOfGuests: 1,
+      eventType: '',
     },
   });
 
-  const numberOfGuests = watch('numberOfGuests');
   const startDate = watch('startDate');
   const endDate = watch('endDate');
-
-  const calculateTotalPrice = () => {
-    const days = calculateDays();
-    return price * days;
-  };
 
   const calculateDays = () => {
     if (!startDate || !endDate) return 1;
@@ -129,10 +118,10 @@ export default function EventBookingForm({
         phone: data.phone,
         start_date: data.startDate,
         end_date: data.endDate,
-        guests_count: data.numberOfGuests,
+        guests_count: 1,
         booking_type: 'event',
         item_id: eventId,
-        total_price: calculateTotalPrice(),
+        total_price: 0,
         special_requests: data.specialRequests || '',
       });
       
@@ -150,11 +139,11 @@ export default function EventBookingForm({
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
               </svg>
             </div>
-            <h3 class="text-2xl font-bold text-slate-800 mb-4">Booking Confirmed!</h3>
-            <div class="space-y-2 text-left bg-white/50 rounded-2xl p-4 mb-6">
+            <h3 class="text-2xl font-bold text-slate-800 mb-4">Event Request Submitted!</h3>
+            <div class="space-y-3 text-left bg-white/50 rounded-2xl p-4 mb-6">
               <div class="flex justify-between">
-                <span class="text-slate-600 font-medium">Event:</span>
-                <span class="text-slate-800 font-bold">${eventType}</span>
+                <span class="text-slate-600 font-medium">Event Type:</span>
+                <span class="text-slate-800 font-bold">${data.eventType}</span>
               </div>
               <div class="flex justify-between">
                 <span class="text-slate-600 font-medium">Guest:</span>
@@ -164,14 +153,9 @@ export default function EventBookingForm({
                 <span class="text-slate-600 font-medium">Dates:</span>
                 <span class="text-slate-800 font-bold">${data.startDate} to ${data.endDate}</span>
               </div>
-              <div class="flex justify-between">
-                <span class="text-slate-600 font-medium">Duration:</span>
-                <span class="text-slate-800 font-bold">${calculateDays()} day(s)</span>
-              </div>
-              <div class="border-t border-slate-200 pt-2 mt-2">
-                <div class="flex justify-between">
-                  <span class="text-slate-700 font-bold text-lg">Total:</span>
-                  <span class="text-emerald-600 font-bold text-xl">$${calculateTotalPrice()}</span>
+              <div class="border-t border-slate-200 pt-3 mt-3">
+                <div class="text-center">
+                  <p class="text-slate-700 font-semibold text-sm">📞 Our team will contact you soon</p>
                 </div>
               </div>
             </div>
@@ -203,7 +187,7 @@ export default function EventBookingForm({
         itemName: `${eventType} - ${data.eventType}`,
         startDate: data.startDate,
         endDate: data.endDate,
-        totalPrice: calculateTotalPrice(),
+        totalPrice: 0,
         bookingId: booking.id || `EVENT_${Date.now()}`,
         specialRequests: data.specialRequests
       }).then(notificationResults => {
@@ -304,60 +288,15 @@ export default function EventBookingForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="numberOfGuests" className="text-amber-100 font-medium">Number of Guests *</Label>
-                <Input
-                  id="numberOfGuests"
-                  type="number"
-                  min="1"
-                  max={capacity}
-                  placeholder="1"
-                  className="bg-slate-800/50 border-amber-400/30 focus:border-amber-400 focus:ring-amber-400/50 text-white placeholder:text-slate-400"
-                  {...register('numberOfGuests', { valueAsNumber: true })}
-                  disabled={isLoading}
-                />
-                {errors.numberOfGuests && (
-                  <p className="text-sm text-red-400 flex items-center gap-1">
-                    <AlertCircle className="h-4 w-4" />
-                    {errors.numberOfGuests.message}
-                  </p>
-                )}
-                <p className="text-sm text-amber-300 font-medium">
-                  Maximum capacity: {capacity} guests
-                </p>
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="eventType" className="text-amber-100 font-medium">Event Type *</Label>
-                <select
+                <Input
                   id="eventType"
-                  className="w-full bg-slate-800/50 border border-amber-400/30 focus:border-amber-400 focus:ring-amber-400/50 text-white placeholder:text-slate-400 rounded-md px-3 py-2"
+                  type="text"
+                  placeholder="Enter your event type (e.g., Wedding, Birthday, Corporate Event)"
+                  className="bg-slate-800/50 border-amber-400/30 focus:border-amber-400 focus:ring-amber-400/50 text-white placeholder:text-slate-400"
                   {...register('eventType')}
                   disabled={isLoading}
-                >
-                  <option value="">Select event type</option>
-                  {eventId === 'compound' && (
-                    <>
-                      <option value="Wedding">Wedding</option>
-                      <option value="Birthday Party">Birthday Party</option>
-                      <option value="Corporate Event">Corporate Event</option>
-                      <option value="Family Reunion">Family Reunion</option>
-                      <option value="Anniversary">Anniversary</option>
-                      <option value="Graduation Party">Graduation Party</option>
-                      <option value="Other Celebration">Other Celebration</option>
-                    </>
-                  )}
-                  {eventId === 'conference' && (
-                    <>
-                      <option value="Business Meeting">Business Meeting</option>
-                      <option value="Conference">Conference</option>
-                      <option value="Workshop">Workshop</option>
-                      <option value="Seminar">Seminar</option>
-                      <option value="Training Session">Training Session</option>
-                      <option value="Product Launch">Product Launch</option>
-                      <option value="Board Meeting">Board Meeting</option>
-                    </>
-                  )}
-                </select>
+                />
                 {errors.eventType && (
                   <p className="text-sm text-red-400 flex items-center gap-1">
                     <AlertCircle className="h-4 w-4" />
@@ -481,34 +420,7 @@ export default function EventBookingForm({
             </div>
           </div>
 
-          <Separator className="my-6" />
 
-          {/* Pricing Summary */}
-          <div className="bg-gradient-to-r from-amber-500/15 to-yellow-500/15 p-6 rounded-xl border border-amber-400/30 shadow-inner">
-            <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-amber-400" />
-              Booking Summary
-            </h4>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-amber-200">Base Price per Day:</span>
-                <span className="font-semibold text-white">${price}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-amber-200">Number of Guests:</span>
-                <span className="font-semibold text-white">{numberOfGuests || 1}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-amber-200">Duration:</span>
-                <span className="font-semibold text-white">{calculateDays()} day(s)</span>
-              </div>
-              <Separator className="my-3" />
-              <div className="flex justify-between items-center text-lg">
-                <span className="font-bold text-white">Total Price:</span>
-                <span className="text-2xl font-bold text-amber-300 drop-shadow-lg">${calculateTotalPrice()}</span>
-              </div>
-            </div>
-          </div>
 
           {/* Submit Button */}
           <Button 
