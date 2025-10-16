@@ -125,7 +125,7 @@ export default function DynamicHeader() {
           </h1>
           
           <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 lg:mb-10 font-light tracking-wide text-slate-200 animate-slide-up-delay-1">
-            Where Luxury Meets Unforgettable Experiences
+            Excellence Pays It All
           </p>
           
           <div className="flex flex-row gap-3 sm:gap-4 justify-center animate-slide-up-delay-2 max-w-md mx-auto sm:max-w-none">

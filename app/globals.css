@@ -126,7 +126,7 @@ body {
   }
   
   .animate-glow {
-    animation: glow 2s ease-in-out infinite alternate;
+    animation: glow-basic 2s ease-in-out infinite alternate;
   }
   
   .animate-slide-up {
@@ -168,7 +168,7 @@ body {
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
   
-  .glass-morphism {
+  .glass-morphism-basic {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.2);
@@ -210,7 +210,7 @@ body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
   
-  .text-gradient {
+  .text-gradient-simple {
     background: linear-gradient(135deg, #C49B66, #F4E4BC, #C49B66);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -296,9 +296,7 @@ body {
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-}
-
-@layer base {
+  
   * {
     @apply border-border;
   }
@@ -306,6 +304,7 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
 
 @keyframes float {
   0%, 100% {
@@ -316,7 +315,7 @@ body {
   }
 }
 
-@keyframes glow {
+@keyframes glow-basic {
   from {
     box-shadow: 0 0 20px rgba(196, 155, 102, 0.4);
   }
@@ -367,7 +366,7 @@ body {
   }
 }
 
-@keyframes shimmer {
+@keyframes shimmer-bg {
   0% {
     background-position: -200% 0;
   }
@@ -379,7 +378,7 @@ body {
 .shimmer {
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
   background-size: 200% 100%;
-  animation: shimmer 2s infinite;
+  animation: shimmer-bg 2s infinite;
 }
 
 /* Custom scrollbar */
@@ -640,7 +639,7 @@ button, a, [role="button"] {
 }
 
 /* Spectacular Ticket Banner Animations */
-@keyframes shimmer {
+@keyframes shimmer-slide {
   0% { transform: translateX(-100%) skewX(-15deg); }
   100% { transform: translateX(200%) skewX(-15deg); }
 }
@@ -681,7 +680,7 @@ button, a, [role="button"] {
 }
 
 .animate-shimmer {
-  animation: shimmer 2s infinite;
+  animation: shimmer-slide 2s infinite;
 }
 
 .animate-glow-pulse {
@@ -715,7 +714,7 @@ button, a, [role="button"] {
   display: none;
 }
 
-/* Glass Morphism Enhancement */
+/* Glass Morphism Enhancement - Enhanced Version */
 .glass-morphism {
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);

@@ -14,6 +14,8 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
+    domains: [], // Restrict image domains for security
+    dangerouslyAllowSVG: false, // Prevent SVG XSS
   },
   outputFileTracingRoot: __dirname,
   experimental: {
@@ -21,6 +23,49 @@ const nextConfig = {
   },
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
+  },
+  // Security headers
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+        ],
+      },
+    ]
+  },
+  // Redirect HTTP to HTTPS in production
+  async redirects() {
+    return process.env.NODE_ENV === 'production' ? [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'header',
+            key: 'x-forwarded-proto',
+            value: 'http',
+          },
+        ],
+        destination: 'https://hotel734.com/:path*',
+        permanent: true,
+      },
+    ] : []
   },
 }
 

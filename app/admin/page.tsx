@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { eventsAPI, bookingsAPI, ticketsAPI, ticketPurchasesAPI } from "@/lib/api";
 import { messagesAPI } from "@/lib/messagesAPI";
 import { Plus, Edit, Trash2, Calendar, Users, DollarSign, CheckCircle, Clock, XCircle, QrCode, Ticket, Scan, Camera, CameraOff, Menu, X } from "lucide-react";
-import { QRScanner } from "@/components/QRScanner";
+import { SmartQRScanner } from '@/components/SmartQRScanner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -2179,21 +2179,23 @@ export default function AdminDashboard() {
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        <QRScanner 
+                        <SmartQRScanner 
                           onScan={handleQRScan}
                           onError={(error) => {
-                            toast.error('Camera access failed');
-                            setIsScanning(false);
+                            toast.error(`Scanner error: ${error}`);
+                            console.error('QR Scanner error:', error);
                           }}
                         />
-                        <Button 
-                          variant="outline"
-                          onClick={() => setIsScanning(false)}
-                          className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                        >
-                          <CameraOff className="h-4 w-4 mr-2" />
-                          Stop Camera
-                        </Button>
+                        <div className="flex justify-center">
+                          <Button 
+                            variant="outline"
+                            onClick={() => setIsScanning(false)}
+                            className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                          >
+                            <CameraOff className="h-4 w-4 mr-2" />
+                            Close Scanner
+                          </Button>
+                        </div>
                       </div>
                     )}
                     <p className="text-xs text-emerald-700 mt-2">
