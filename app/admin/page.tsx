@@ -10,6 +10,7 @@ import { eventsAPI, bookingsAPI, ticketsAPI, ticketPurchasesAPI } from "@/lib/ap
 import { messagesAPI } from "@/lib/messagesAPI";
 import { Plus, Edit, Trash2, Calendar, Users, DollarSign, CheckCircle, Clock, XCircle, QrCode, Ticket, Scan, Camera, CameraOff, Menu, X } from "lucide-react";
 import { SmartQRScanner } from '@/components/SmartQRScanner';
+import { NewsletterManager } from '@/components/NewsletterManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -843,6 +844,7 @@ export default function AdminDashboard() {
           )}
           <SidebarItem label="Tickets" active={activeMenu === "tickets"} onClick={() => { setActiveMenu("tickets"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           <SidebarItem label="Ticket Validation" active={activeMenu === "ticket-validation"} onClick={() => { setActiveMenu("ticket-validation"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
+          <SidebarItem label="Newsletter" active={activeMenu === "newsletter"} onClick={() => { setActiveMenu("newsletter"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           <SidebarItem label="Messages" active={activeMenu === "messages"} onClick={() => { setActiveMenu("messages"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           <SidebarItem label="Trash" active={activeMenu === "trash"} onClick={() => { setActiveMenu("trash"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
           <SidebarItem label="Security" active={activeMenu === "security"} onClick={() => { setActiveMenu("security"); setActiveSubMenu(""); setIsMobileSidebarOpen(false); }} />
@@ -2988,6 +2990,18 @@ export default function AdminDashboard() {
             </div>
           </DialogContent>
         </Dialog>
+          {/* Newsletter Management */}
+          {activeMenu === 'newsletter' && (
+            <div>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 gap-4">
+                <h1 className="font-serif text-2xl sm:text-3xl text-[#1a233b]" style={{ fontFamily: 'Cormorant Garamond, serif' }}>
+                  Newsletter Management
+                </h1>
+              </div>
+              <NewsletterManager />
+            </div>
+          )}
+
         </main>
       </div>
     </div>

@@ -143,7 +143,7 @@ export default function Home() {
                 
                 <h3 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-white mb-2 sm:mb-3 animate-fade-in-up drop-shadow-lg">
                   <span className="bg-gradient-to-r from-[#FFD700] via-white to-[#C49B66] bg-clip-text text-transparent animate-glow">
-                    Luxury Experiences Await You!
+                    Premium Experiences Await You!
                   </span>
                 </h3>
                 
@@ -347,8 +347,8 @@ export default function Home() {
                 <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                   <div className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center group hover:scale-105 transition-transform">
                     <Award className="h-6 w-6 sm:h-8 sm:w-8 text-[#C49B66] mx-auto mb-2 sm:mb-3 group-hover:animate-spin-slow" />
-                    <div className="text-2xl sm:text-3xl font-bold text-[#C49B66] mb-1">5★</div>
-                    <div className="text-xs sm:text-sm text-slate-600 font-medium">Luxury Rating</div>
+                    <div className="text-2xl sm:text-3xl font-bold text-[#C49B66] mb-1">24/7</div>
+                    <div className="text-xs sm:text-sm text-slate-600 font-medium">Service</div>
                   </div>
                   <div className="glass-dark rounded-xl sm:rounded-2xl p-4 sm:p-6 text-center group hover:scale-105 transition-transform">
                     <Users className="h-6 w-6 sm:h-8 sm:w-8 text-[#C49B66] mx-auto mb-2 sm:mb-3 group-hover:animate-pulse" />

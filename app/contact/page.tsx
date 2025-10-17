@@ -147,7 +147,7 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <p className="font-semibold text-slate-800">Address</p>
-                      <p className="text-amber-600 font-medium">New Edubiase, Ashanti Region, Ghana</p>
+                      <p className="text-amber-600 font-medium">Bronikrom, New Edubiase, Ashanti Region, Ghana</p>
                     </div>
                   </div>
                 </div>
@@ -156,14 +156,14 @@ export default function ContactPage() {
                 <div className="mt-8 pt-6 border-t border-amber-200">
                   <h4 className="font-bold text-slate-800 mb-4 text-center">Connect with us</h4>
                   <div className="flex justify-center space-x-6">
-                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="bg-blue-500 hover:bg-blue-600 p-3 rounded-full transition-all duration-300 transform hover:scale-110">
-                      <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M22.675 0h-21.35C.595 0 0 .592 0 1.326v21.348C0 23.406.595 24 1.326 24h11.495v-9.294H9.691v-3.622h3.13V8.413c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.797.143v3.24l-1.918.001c-1.504 0-1.797.715-1.797 1.763v2.313h3.587l-.467 3.622h-3.12V24h6.116C23.406 24 24 23.406 24 22.674V1.326C24 .592 23.406 0 22.675 0"/></svg>
+                    <a href="https://www.facebook.com/hotel734?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="bg-blue-500 hover:bg-blue-600 p-3 rounded-full transition-all duration-300 transform hover:scale-110">
+                      <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                     </a>
-                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="bg-pink-500 hover:bg-pink-600 p-3 rounded-full transition-all duration-300 transform hover:scale-110">
-                      <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 1.366.062 2.633.334 3.608 1.308.974.974 1.246 2.241 1.308 3.608.058 1.266.069 1.646.069 4.85s-.012 3.584-.07 4.85c-.062 1.366-.334 2.633-1.308 3.608-.974.974-2.241 1.246-3.608 1.308-1.266.058-1.646.069-4.85.069s-3.584-.012-4.85-.07c-1.366-.062-2.633-.334-3.608-1.308-.974-.974-1.246-2.241-1.308-3.608C2.175 15.647 2.163 15.267 2.163 12s.012-3.584.07-4.85c.062-1.366.334-2.633 1.308-3.608C4.515 2.497 5.782 2.225 7.148 2.163 8.414 2.105 8.794 2.094 12 2.094zm0-2.163C8.741 0 8.332.012 7.052.07 5.771.128 4.635.4 3.661 1.374c-.974.974-1.246 2.241-1.308 3.608C2.175 8.414 2.163 8.794 2.163 12s.012 3.584.07 4.85c.062 1.366.334 2.633 1.308 3.608.974.974 2.241 1.246 3.608 1.308 1.266.058 1.646.069 4.85.069s3.584-.012 4.85-.07c1.366-.062 2.633-.334 3.608-1.308.974-.974 1.246-2.241 1.308-3.608.058-1.266.069-1.646.069-4.85s-.012-3.584-.07-4.85c-.062-1.366-.334-2.633-1.308-3.608-.974-.974-2.241-1.246-3.608-1.308C15.647 2.175 15.267 2.163 12 2.163z"/><circle cx="12" cy="12" r="3.5"/><circle cx="18.406" cy="5.594" r="1.44"/></svg>
+                    <a href="https://www.instagram.com/hotel.734?igsh=MWw2NXBxZ3R5a3V3YQ==" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 p-3 rounded-full transition-all duration-300 transform hover:scale-110">
+                      <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
                     </a>
-                    <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="bg-black hover:bg-gray-800 p-3 rounded-full transition-all duration-300 transform hover:scale-110">
-                      <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12.75 2v12.75a3.25 3.25 0 1 1-3.25-3.25h1.5a1.75 1.75 0 1 0 1.75 1.75V2h2.25a5.75 5.75 0 0 0 5.75 5.75v2.25A8 8 0 0 1 12.75 2z"/></svg>
+                    <a href="https://www.tiktok.com/@hotel.734" target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="bg-black hover:bg-gray-800 p-3 rounded-full transition-all duration-300 transform hover:scale-110">
+                      <svg className="h-5 w-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
                     </a>
                   </div>
                 </div>
@@ -285,7 +285,7 @@ export default function ContactPage() {
               </div>
             </div>
           </div>
-          {/* Google Map Section */}
+          {/* Map Section */}
           <div className="mt-16 animate-fade-in-up" style={{animationDelay: '0.3s'}}>
             <div className="text-center mb-8">
               <h3 className="text-3xl font-bold text-slate-800 mb-4">Find Us</h3>
@@ -293,17 +293,25 @@ export default function ContactPage() {
                 Located in the heart of New Edubiase, Hotel 734 is easily accessible and surrounded by beautiful scenery.
               </p>
             </div>
+            
             <div className="glass-morphism rounded-3xl overflow-hidden shadow-luxury">
               <iframe
-                title="Hotel Location"
-                src="https://www.google.com/maps?q=6.066667,-1.399999&z=15&output=embed"
+                title="Hotel 734 Location - New Edubiase, Ghana"
                 width="100%"
                 height="400"
                 style={{ border: 0 }}
+                src="https://maps.google.com/maps?q=Hotel+734,+New+Edubiase,+Ghana&t=&z=15&ie=UTF8&iwloc=&output=embed"
                 allowFullScreen={true}
                 loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
-              ></iframe>
+                onLoad={() => console.log('Google Maps loaded successfully')}
+                onError={(e) => {
+                  console.error('Google Maps failed to load, trying fallback:', e);
+                  // Try New Edubiase if Hotel 734 not found
+                  const iframe = e.target as HTMLIFrameElement;
+                  iframe.src = "https://maps.google.com/maps?q=New+Edubiase,+Ashanti+Region,+Ghana&t=&z=15&ie=UTF8&iwloc=&output=embed";
+                }}
+              />
             </div>
           </div>
         </div>

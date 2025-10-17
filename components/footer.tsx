@@ -1,8 +1,69 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Facebook, Instagram, Phone, Mail, MapPin } from "lucide-react"
+import { useState } from "react"
 
 export default function Footer() {
+  const [email, setEmail] = useState("")
+  const [isSubscribing, setIsSubscribing] = useState(false)
+  const [subscriptionStatus, setSubscriptionStatus] = useState<"idle" | "success" | "error" | "already_subscribed">("idle")
+  const [subscriptionMessage, setSubscriptionMessage] = useState("")
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email.trim()) return
+
+    setIsSubscribing(true)
+    
+    try {
+      // Send subscription request to API
+      const response = await fetch('/api/newsletter/subscribe', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: email.trim() }),
+      })
+
+      const result = await response.json()
+      
+      if (response.ok) {
+        setSubscriptionStatus("success")
+        setSubscriptionMessage("Successfully subscribed!")
+        setEmail("")
+        setTimeout(() => {
+          setSubscriptionStatus("idle")
+          setSubscriptionMessage("")
+        }, 5000)
+      } else {
+        // Check if it's a duplicate subscription (not really an error)
+        if (result.error && result.error.includes('already subscribed')) {
+          setSubscriptionStatus("already_subscribed")
+          setSubscriptionMessage("You're already subscribed!")
+          setEmail("")
+          console.log('User already subscribed:', result.error)
+          setTimeout(() => {
+            setSubscriptionStatus("idle")
+            setSubscriptionMessage("")
+          }, 5000)
+        } else {
+          setSubscriptionStatus("error")
+          setSubscriptionMessage(result.error || "Subscription failed. Please try again.")
+          console.error('Subscription error:', result.error)
+          setTimeout(() => {
+            setSubscriptionStatus("idle")
+            setSubscriptionMessage("")
+          }, 5000)
+        }
+      }
+    } catch (error) {
+      console.error('Newsletter subscription error:', error)
+      setSubscriptionStatus("error")
+      setTimeout(() => setSubscriptionStatus("idle"), 3000)
+    } finally {
+      setIsSubscribing(false)
+    }
+  }
   return (
     <footer className="bg-[#0A0A0A] text-white">
       <div className="container-responsive">
@@ -44,6 +105,17 @@ export default function Footer() {
                 aria-label="Instagram"
               >
                 <Instagram className="h-4 w-4 sm:h-5 sm:w-5" />
+              </a>
+              <a
+                href="https://www.tiktok.com/@hotel.734"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#A3A3A3] hover:text-white transition-all duration-300 p-1"
+                aria-label="TikTok"
+              >
+                <svg className="h-4 w-4 sm:h-5 sm:w-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                </svg>
               </a>
             </div>
           </div>
@@ -103,39 +175,41 @@ export default function Footer() {
             <p className="text-[#A3A3A3] text-xs sm:text-sm mb-3">
               Subscribe for special offers
             </p>
-            <form className="space-y-2">
+            <form onSubmit={handleSubscribe} className="space-y-2">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#333333] text-white placeholder:text-[#666666] focus:outline-none focus:border-[#666666] transition-all duration-300 text-xs sm:text-sm rounded"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubscribing}
+                className="w-full px-3 py-2 bg-[#1A1A1A] border border-[#333333] text-white placeholder:text-[#666666] focus:outline-none focus:border-[#666666] transition-all duration-300 text-xs sm:text-sm rounded disabled:opacity-50"
               />
               <button
                 type="submit"
-                className="w-full px-3 py-2 bg-white text-black font-medium hover:bg-[#E5E5E5] transition-all duration-300 text-xs sm:text-sm rounded"
+                disabled={isSubscribing || !email.trim()}
+                className="w-full px-3 py-2 bg-white text-black font-medium hover:bg-[#E5E5E5] transition-all duration-300 text-xs sm:text-sm rounded disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Subscribe
+                {isSubscribing ? "Subscribing..." : 
+                 subscriptionStatus === "success" ? "Subscribed!" : 
+                 subscriptionStatus === "already_subscribed" ? "Already Subscribed!" :
+                 subscriptionStatus === "error" ? "Try Again" : "Subscribe"}
               </button>
             </form>
+            {(subscriptionStatus === "success" || subscriptionStatus === "already_subscribed") && (
+              <p className="text-green-400 text-xs mt-2">{subscriptionMessage}</p>
+            )}
+            {subscriptionStatus === "error" && (
+              <p className="text-red-400 text-xs mt-2">{subscriptionMessage}</p>
+            )}
           </div>
         </div>
 
         {/* Bottom Bar */}
         <div className="border-t border-[#1A1A1A]">
-          <div className="flex flex-col sm:flex-row justify-between items-center py-3 sm:py-4 gap-3">
-            <p className="text-[#A3A3A3] text-xs text-center sm:text-left">
-              © {new Date().getFullYear()} Hotel 734. All rights reserved.
+          <div className="flex justify-center items-center py-4">
+            <p className="text-[#A3A3A3] text-sm text-center">
+              © 2025 Hotel 734. All rights reserved.
             </p>
-            <div className="flex flex-wrap justify-center sm:justify-end gap-3 sm:gap-4 text-xs">
-              <Link href="/privacy" className="text-[#A3A3A3] hover:text-white transition-all duration-300">
-                Privacy Policy
-              </Link>
-              <Link href="/terms" className="text-[#A3A3A3] hover:text-white transition-all duration-300">
-                Terms of Service
-              </Link>
-              <Link href="/cookies" className="text-[#A3A3A3] hover:text-white transition-all duration-300">
-                Cookie Policy
-              </Link>
-            </div>
           </div>
         </div>
       </div>
