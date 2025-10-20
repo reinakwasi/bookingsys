@@ -1,30 +1,3 @@
-import type { Metadata } from "next"
-
-export const metadata: Metadata = {
-  title: "Photo Gallery - Hotel 734 Images & Virtual Tour",
-  description: "Explore Hotel 734's stunning photo gallery featuring luxury rooms, facilities, amenities, and beautiful spaces. See why we're the premier choice for luxury accommodation.",
-  keywords: ["hotel gallery", "Hotel 734 photos", "luxury hotel images", "room photos", "hotel facilities photos", "virtual tour"],
-  openGraph: {
-    title: "Photo Gallery - Hotel 734",
-    description: "Explore Hotel 734's stunning photo gallery featuring luxury rooms, facilities, and beautiful spaces.",
-    url: "https://hotel734.com/gallery",
-    images: [
-      {
-        url: "/gallery-og.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Hotel 734 - Photo Gallery",
-      }
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Photo Gallery - Hotel 734",
-    description: "Explore Hotel 734's stunning photo gallery featuring luxury rooms, facilities, and beautiful spaces.",
-    images: ["/gallery-og.jpg"],
-  },
-}
-
 "use client"
 
 import { useState, useEffect } from "react"
