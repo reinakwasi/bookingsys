@@ -3,30 +3,33 @@ import nodemailer from 'nodemailer'
 
 export async function POST(request: NextRequest) {
   try {
-    const { purchase_id, access_token, customer_email, customer_name } = await request.json()
+    const { purchase_id, access_token, customer_email, customer_name, my_tickets_link } = await request.json()
 
-    // Get the proper base URL for the email link
-    let baseUrl;
+    console.log('📧 Email request data:', { purchase_id, access_token, customer_email, customer_name, my_tickets_link });
+
+    // Use the my_tickets_link if provided, otherwise generate the URL
+    let ticketUrl;
     
-    if (process.env.NEXT_PUBLIC_APP_URL) {
-      // Use the explicitly set app URL
-      baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-    } else if (process.env.VERCEL_URL) {
-      // Use Vercel's automatically provided URL
-      baseUrl = `https://${process.env.VERCEL_URL}`;
+    if (my_tickets_link) {
+      ticketUrl = my_tickets_link;
+      console.log('✅ Using provided my_tickets_link:', ticketUrl);
     } else {
-      // Fallback for local development
-      baseUrl = 'http://localhost:3000';
+      // Fallback to generating my-tickets URL
+      let baseUrl;
+      
+      if (process.env.NEXT_PUBLIC_APP_URL) {
+        baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+      } else if (process.env.VERCEL_URL) {
+        baseUrl = `https://${process.env.VERCEL_URL}`;
+      } else {
+        baseUrl = 'http://localhost:3000';
+      }
+      
+      ticketUrl = `${baseUrl}/my-tickets/${access_token}`;
+      console.log('⚠️ Using fallback URL generation:', ticketUrl);
     }
     
-    const ticketUrl = `${baseUrl}/my-tickets/${access_token}`;
-    
-    console.log('🔗 Generated ticket URL:', ticketUrl);
-    console.log('📧 Environment check:', {
-      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ? 'SET' : 'NOT SET',
-      VERCEL_URL: process.env.VERCEL_URL ? 'SET' : 'NOT SET',
-      baseUrl
-    });
+    console.log('🔗 Final ticket URL:', ticketUrl);
     
     // Check for required email credentials
     const emailUser = process.env.GMAIL_USER || process.env.SMTP_USER

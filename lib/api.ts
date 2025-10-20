@@ -69,27 +69,27 @@ export const roomsAPI = {
         id: '1',
         name: 'Royal Suite',
         type: 'royal_suite',
-        price: 500,
+        price: 350,
         capacity: 4,
-        amenities: ['WiFi', 'AC', 'TV', 'Mini Bar', 'Jacuzzi'],
+        amenities: ['Large Bed', 'AC', 'Smart TV', 'Luxury Bathroom', 'Fridge', 'Table & Chair', 'Breakfast Included'],
         images: ['https://images.unsplash.com/photo-1566665797739-1674de7a421a']
       },
       {
         id: '2',
         name: 'Superior Room',
         type: 'superior_room',
-        price: 250,
+        price: 300,
         capacity: 3,
-        amenities: ['WiFi', 'AC', 'TV', 'Mini Bar'],
+        amenities: ['Standard Bed', 'AC', 'Smart TV', 'Modern Bathroom', 'Fridge', 'Table & Chair', 'Breakfast Included'],
         images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304']
       },
       {
         id: '3',
         name: 'Classic Room',
         type: 'classic_room',
-        price: 150,
+        price: 250,
         capacity: 2,
-        amenities: ['WiFi', 'AC', 'TV'],
+        amenities: ['Classic Bed', 'AC', 'TV', 'Private Bathroom', 'Fridge', 'Table & Chair', 'Breakfast Included'],
         images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304']
       }
     ];
@@ -336,23 +336,27 @@ export const bookingsAPI = {
       // If we can't get bookings data, assume rooms are available but log the issue
       if (!Array.isArray(bookings)) {
         console.error('⚠️ Could not fetch bookings data, assuming rooms are available');
+        // Default inventory varies by room type
+        const defaultInventory = roomType.includes('royal') || roomType.includes('expensive') ? 1 : 
+                                roomType.includes('superior') || roomType.includes('standard') ? 7 : 5;
         return {
           available: true,
-          availableRooms: 5, // Default to full capacity
-          totalRooms: 5,
+          availableRooms: defaultInventory,
+          totalRooms: defaultInventory,
           bookedRooms: 0,
           message: 'Unable to verify current bookings, but rooms should be available'
         };
       }
     
-    // Room inventory: each room type has 5 individual rooms
+    // Room inventory: updated room counts per type
     // Support both old and new room type names for compatibility
     const ROOM_INVENTORY = {
-      'royal_suite': 5,    // Royal Suite has 5 rooms
-      'superior_room': 5,  // Superior Room has 5 rooms  
+      'royal_suite': 1,    // Royal Suite has 1 room
+      'superior_room': 7,  // Superior Room has 7 rooms  
       'classic_room': 5,   // Classic Room has 5 rooms
-      'expensive': 5,      // Legacy: Royal Suite
-      'standard': 5,       // Legacy: Superior Room
+      // Legacy names for backward compatibility
+      'expensive': 1,      // Legacy: Royal Suite
+      'standard': 7,       // Legacy: Superior Room
       'regular': 5         // Legacy: Classic Room
     };
     
@@ -568,8 +572,31 @@ export const ticketsAPI = {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('❌ Get tickets API error:', errorData);
+        console.error('❌ Get tickets API response not ok:', response.status, response.statusText);
+        
+        // Check if response is HTML (error page) instead of JSON
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          const htmlText = await response.text();
+          console.error('❌ API returned HTML instead of JSON:', htmlText.substring(0, 200) + '...');
+          return [];
+        }
+        
+        try {
+          const errorData = await response.json();
+          console.error('❌ Get tickets API error:', errorData);
+        } catch (jsonError) {
+          console.error('❌ Failed to parse error response as JSON:', jsonError);
+        }
+        return [];
+      }
+
+      // Check content type before parsing JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('❌ Response is not JSON, content-type:', contentType);
+        const text = await response.text();
+        console.error('❌ Response text:', text.substring(0, 200) + '...');
         return [];
       }
 
@@ -579,6 +606,14 @@ export const ticketsAPI = {
       
     } catch (error: any) {
       console.error('❌ Unexpected error in getAll():', error);
+      
+      // Check if this is the JSON parsing error
+      if (error.message && error.message.includes('Unexpected token')) {
+        console.error('🚨 JSON PARSING ERROR DETECTED:', error.message);
+        console.error('🚨 This usually means the API returned HTML instead of JSON');
+        console.error('🚨 Check if the API route exists and is working properly');
+      }
+      
       return [];
     }
   },

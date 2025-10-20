@@ -16,16 +16,17 @@ const rooms = [
     image: "/three.jpg",
     type: "expensive",
     rating: 5.0,
-    price: 500,
+    price: 350,
     maxGuests: 4,
     features: [
-      "Free Swimming Pool",
+      "Large Bed",
       "Satellite TV Channels", 
       "Air Conditioned Room",
-      "Free Wifi",
+      "Fridge",
+      "Table & Chair",
       "Daily Laundry / Dry Cleaning",
       "24h Room Service",
-      "Max 4 people"
+      "Breakfast Included"
     ]
   },
   {
@@ -35,16 +36,17 @@ const rooms = [
     image: "/two.jpg",
     type: "standard",
     rating: 4.8,
-    price: 250,
+    price: 300,
     maxGuests: 3,
     features: [
-      "Free Swimming Pool",
+      "Standard Bed",
       "Satellite TV Channels",
       "Air Conditioned Room", 
-      "Free Wifi",
+      "Fridge",
+      "Table & Chair",
       "Daily Laundry / Dry Cleaning",
       "24h Room Service",
-      "Max 3 people"
+      "Breakfast Included"
     ]
   },
   {
@@ -54,16 +56,17 @@ const rooms = [
     image: "/one.jpg",
     type: "regular",
     rating: 4.5,
-    price: 150,
+    price: 250,
     maxGuests: 2,
     features: [
-      "Free Swimming Pool",
+      "Classic Bed",
       "Satellite TV Channels",
       "Air Conditioned Room",
-      "Free Wifi", 
+      "Fridge",
+      "Table & Chair",
       "Daily Laundry / Dry Cleaning",
       "24h Room Service",
-      "Max 2 people"
+      "Breakfast Included"
     ]
   },
 ]

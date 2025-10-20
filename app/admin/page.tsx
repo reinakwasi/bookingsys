@@ -18,8 +18,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const TOTAL_ROOMS = {
-  royal_suite: 5,
-  superior_room: 5,
+  royal_suite: 1,
+  superior_room: 7,
   classic_room: 5
 };
 
@@ -206,9 +206,9 @@ export default function AdminDashboard() {
     try {
       // Calculate room price based on room type
       const roomPrices = {
-        'royal_suite': 500,
+        'royal_suite': 350,
         'superior_room': 300,
-        'classic_room': 200
+        'classic_room': 250
       };
       
       const checkInDate = new Date(bookingForm.checkIn);
@@ -2864,9 +2864,9 @@ export default function AdminDashboard() {
                       className="h-12 w-full px-4 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:ring-opacity-20"
                     >
                       <option value="">Select room type</option>
-                      <option value="royal_suite">👑 Royal Suite - GHC 500/night</option>
+                      <option value="royal_suite">👑 Royal Suite - GHC 350/night</option>
                       <option value="superior_room">🏨 Superior Room - GHC 300/night</option>
-                      <option value="classic_room">🛏️ Classic Room - GHC 200/night</option>
+                      <option value="classic_room">🛏️ Classic Room - GHC 250/night</option>
                     </select>
                   </div>
                   
@@ -2918,7 +2918,7 @@ export default function AdminDashboard() {
                     <div className="h-12 px-4 border border-gray-300 rounded-md bg-gray-50 flex items-center">
                       <span className="text-lg font-bold text-green-600">
                         {bookingForm.roomType && bookingForm.checkIn && bookingForm.checkOut ? (() => {
-                          const roomPrices = { 'royal_suite': 500, 'superior_room': 300, 'classic_room': 200 };
+                          const roomPrices = { 'royal_suite': 350, 'superior_room': 300, 'classic_room': 250 };
                           const checkInDate = new Date(bookingForm.checkIn);
                           const checkOutDate = new Date(bookingForm.checkOut);
                           const nights = Math.ceil((checkOutDate.getTime() - checkInDate.getTime()) / (1000 * 3600 * 24));

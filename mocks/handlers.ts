@@ -8,30 +8,33 @@ const mockRooms = [
     _id: '1',
     name: 'Royal Suite',
     description: 'Spacious suite with premium amenities and city view',
-    price: 500,
+    price: 350,
     capacity: 2,
-    amenities: ['WiFi', 'Air Conditioning', 'Mini Bar', 'Room Service'],
+    amenities: ['Large Bed', 'Air Conditioning', 'Smart TV', 'Luxury Bathroom', 'Fridge', 'Table & Chair', 'Breakfast Included'],
     images: ['/one.jpg', '/two.jpg'],
+    type: 'expensive',
     available: true
   },
   {
     _id: '2', 
     name: 'Superior Room',
     description: 'Comfortable room with modern facilities',
-    price: 200,
+    price: 300,
     capacity: 2,
-    amenities: ['WiFi', 'Air Conditioning', 'TV'],
+    amenities: ['Standard Bed', 'Air Conditioning', 'Smart TV', 'Modern Bathroom', 'Fridge', 'Table & Chair', 'Breakfast Included'],
     images: ['/three.jpg'],
+    type: 'standard',
     available: true
   },
   {
     _id: '3',
     name: 'Classic Room', 
     description: 'Basic room with essential amenities',
-    price: 150,
+    price: 250,
     capacity: 1,
-    amenities: ['WiFi', 'TV'],
+    amenities: ['Classic Bed', 'Air Conditioning', 'TV', 'Private Bathroom', 'Fridge', 'Table & Chair', 'Breakfast Included'],
     images: ['/room1.jpg'],
+    type: 'regular',
     available: false
   }
 ];

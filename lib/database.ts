@@ -1,5 +1,7 @@
 import { supabase } from './supabase'
 import type { Event, Booking, User, Ticket, TicketPurchase } from './supabase'
+import { generateUniqueShortHash, generateTicketShortLink, createTicketSMSMessage } from './shortLinkGenerator'
+import { generateTicketNumber, generateQRCode } from './ticketUtils'
 
 // Events API
 export const eventsAPI = {
@@ -351,27 +353,85 @@ export const individualTicketsAPI = {
 // Ticket Purchases API
 export const ticketPurchasesAPI = {
   async create(purchase: Omit<TicketPurchase, 'id' | 'purchase_date' | 'created_at' | 'access_token'>): Promise<TicketPurchase> {
+    // Generate unique short hash for ticket access
+    const shortHash = await generateUniqueShortHash();
+    
+    // Get ticket details for SMS
+    const { data: ticketData } = await supabase
+      .from('tickets')
+      .select('*')
+      .eq('id', purchase.ticket_id)
+      .single();
+
     const { data, error } = await supabase
       .from('ticket_purchases')
       .insert({
         ...purchase,
-        purchase_date: new Date().toISOString()
+        purchase_date: new Date().toISOString(),
+        access_token: shortHash,
+        qr_code: `QR-${shortHash.toUpperCase()}`
       })
       .select()
       .single()
     
     if (error) throw error
     
-    // Send email notification
+    console.log('✅ Ticket purchase created with short hash:', shortHash);
+
+    // Generate short link for /t/ system (new system)
+    const shortLink = generateTicketShortLink(shortHash);
+    
+    // Generate my-tickets link for email (uses the access_token from database)
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://hotel734.com';
+    const myTicketsLink = `${baseUrl}/my-tickets/${data.access_token}`;
+    
+    // Send SMS notification with short link
+    if (purchase.customer_phone && purchase.customer_phone.trim()) {
+      try {
+        const smsMessage = createTicketSMSMessage({
+          customerName: purchase.customer_name,
+          eventName: ticketData?.title || 'Event',
+          eventDate: ticketData?.event_date || new Date().toISOString(),
+          ticketNumber: generateTicketNumber(data.id),
+          shortLink: shortLink,
+          quantity: purchase.quantity
+        });
+
+        console.log('📱 Sending SMS with short link:', shortLink);
+
+        const smsResponse = await fetch('/api/send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: purchase.customer_phone,
+            message: smsMessage
+          })
+        });
+
+        const smsResult = await smsResponse.json();
+        
+        if (smsResult.success) {
+          console.log('✅ SMS sent successfully with short link');
+        } else {
+          console.error('❌ SMS sending failed:', smsResult.error);
+        }
+      } catch (smsError) {
+        console.error('❌ Failed to send SMS:', smsError);
+        // Don't fail the purchase if SMS fails
+      }
+    }
+    
+    // Send email notification (existing functionality)
     try {
       await fetch('/api/send-ticket-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           purchase_id: data.id,
-          access_token: data.access_token,
+          access_token: data.access_token, // Use the actual access_token from database (might be overridden by trigger)
           customer_email: data.customer_email,
-          customer_name: data.customer_name
+          customer_name: data.customer_name,
+          my_tickets_link: myTicketsLink // Use my-tickets link for email
         })
       })
     } catch (emailError) {
