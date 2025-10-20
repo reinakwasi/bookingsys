@@ -23,19 +23,14 @@ export async function POST(request: NextRequest) {
       ticketUrl = my_tickets_link;
       console.log('✅ Using provided my_tickets_link:', ticketUrl);
     } else {
-      // Fallback to generating my-tickets URL
-      let baseUrl;
-      
-      if (process.env.NEXT_PUBLIC_APP_URL) {
-        baseUrl = process.env.NEXT_PUBLIC_APP_URL;
-      } else if (process.env.VERCEL_URL) {
-        baseUrl = `https://${process.env.VERCEL_URL}`;
-      } else {
-        baseUrl = 'https://hotel734.com';
-      }
+      // Fallback to generating my-tickets URL with consistent environment variable checking
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
+        process.env.NEXT_PUBLIC_BASE_URL || 
+        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+        'https://hotel734.com';
       
       ticketUrl = `${baseUrl}/t/${access_token}`;
-      console.log('⚠️ Using fallback URL generation:', ticketUrl);
+      console.log('⚠️ Using fallback URL generation with base:', baseUrl, '→', ticketUrl);
     }
     
     console.log('🔗 Final ticket URL:', ticketUrl);

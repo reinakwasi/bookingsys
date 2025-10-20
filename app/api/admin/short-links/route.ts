@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
       event_name: purchase.ticket?.title || 'Unknown Event',
       event_date: purchase.ticket?.event_date,
       short_hash: purchase.access_token,
-      short_link: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://hotel734.com'}/t/${purchase.access_token}`,
+      short_link: `${process.env.NEXT_PUBLIC_APP_URL || process.env.NEXT_PUBLIC_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) || 'https://hotel734.com'}/t/${purchase.access_token}`,
       payment_status: purchase.payment_status,
       created_at: purchase.created_at
     })) || [];

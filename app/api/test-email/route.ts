@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         access_token: 'TEST1234',
         customer_email: email,
         customer_name: 'Test Customer',
-        my_tickets_link: 'https://hotel734.vercel.app/my-tickets/TEST1234'
+        my_tickets_link: 'https://hotel734.com/my-tickets/TEST1234'
       })
     });
 

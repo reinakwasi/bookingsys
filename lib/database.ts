@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 import type { Event, Booking, User, Ticket, TicketPurchase } from './supabase'
 import { generateUniqueShortHash, generateTicketShortLink, createTicketSMSMessage } from './shortLinkGenerator'
+import { getBaseUrl } from './config'
 import { generateTicketNumber, generateQRCode } from './ticketUtils'
 
 // Events API
@@ -382,7 +383,9 @@ export const ticketPurchasesAPI = {
     const shortLink = generateTicketShortLink(shortHash);
     
     // Generate ticket access link for email (uses the access_token from database)
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://hotel734.com';
+    const baseUrl = getBaseUrl();
+    
+    console.log('🔗 Email ticket link base URL:', baseUrl);
     const myTicketsLink = `${baseUrl}/t/${data.access_token}`;
     
     // Send SMS notification with short link (async, non-blocking)
