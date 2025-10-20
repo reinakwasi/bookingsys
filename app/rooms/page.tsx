@@ -1,30 +1,3 @@
-import type { Metadata } from "next"
-
-export const metadata: Metadata = {
-  title: "Luxury Rooms & Suites - Premium Accommodations",
-  description: "Discover our luxury rooms and suites at Hotel 734. From Classic Rooms to Royal Suites, experience premium amenities, stunning views, and exceptional comfort. Book your perfect room today.",
-  keywords: ["luxury rooms", "hotel suites", "premium accommodations", "Royal Suite", "Superior Room", "Classic Room", "hotel booking", "luxury hotel rooms"],
-  openGraph: {
-    title: "Luxury Rooms & Suites - Hotel 734",
-    description: "Discover our luxury rooms and suites at Hotel 734. From Classic Rooms to Royal Suites, experience premium amenities and exceptional comfort.",
-    url: "https://hotel734.com/rooms",
-    images: [
-      {
-        url: "/rooms-og.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Hotel 734 - Luxury Rooms & Suites",
-      }
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Luxury Rooms & Suites - Hotel 734",
-    description: "Discover our luxury rooms and suites at Hotel 734. From Classic Rooms to Royal Suites, experience premium amenities and exceptional comfort.",
-    images: ["/rooms-og.jpg"],
-  },
-}
-
 "use client"
 
 import { useState } from "react"
