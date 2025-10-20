@@ -1,3 +1,30 @@
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Book Your Stay - Hotel Reservations",
+  description: "Book your perfect stay at Hotel 734. Choose from luxury rooms and suites, select your dates, and enjoy our premium accommodations and exceptional service.",
+  keywords: ["hotel booking", "room reservation", "Hotel 734 booking", "luxury hotel reservation", "book hotel room", "hotel stay"],
+  openGraph: {
+    title: "Book Your Stay - Hotel 734",
+    description: "Book your perfect stay at Hotel 734. Choose from luxury rooms and suites with premium accommodations and exceptional service.",
+    url: "https://hotel734.com/booking",
+    images: [
+      {
+        url: "/booking-og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Hotel 734 - Book Your Stay",
+      }
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Book Your Stay - Hotel 734",
+    description: "Book your perfect stay at Hotel 734. Choose from luxury rooms and suites with premium accommodations.",
+    images: ["/booking-og.jpg"],
+  },
+}
+
 "use client"
 
 import { useState, useEffect } from 'react'

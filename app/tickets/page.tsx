@@ -1,3 +1,30 @@
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Event Tickets - Buy Tickets for Exclusive Events",
+  description: "Purchase tickets for exclusive events at Hotel 734. Discover upcoming concerts, shows, conferences, and special celebrations. Secure your spot at our luxury events today.",
+  keywords: ["event tickets", "Hotel 734 events", "buy tickets", "concerts", "shows", "conferences", "luxury events", "event booking"],
+  openGraph: {
+    title: "Event Tickets - Hotel 734",
+    description: "Purchase tickets for exclusive events at Hotel 734. Discover upcoming concerts, shows, conferences, and special celebrations.",
+    url: "https://hotel734.com/tickets",
+    images: [
+      {
+        url: "/tickets-og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Hotel 734 - Event Tickets",
+      }
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Event Tickets - Hotel 734",
+    description: "Purchase tickets for exclusive events at Hotel 734. Discover upcoming concerts, shows, and special celebrations.",
+    images: ["/tickets-og.jpg"],
+  },
+}
+
 "use client";
 
 import { useState, useEffect } from "react";

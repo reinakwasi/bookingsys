@@ -1,3 +1,30 @@
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Hotel Facilities - Luxury Amenities & Services",
+  description: "Explore Hotel 734's world-class facilities including swimming pool, fitness center, spa, restaurant, and premium amenities. Experience luxury and comfort at every turn.",
+  keywords: ["hotel facilities", "luxury amenities", "swimming pool", "fitness center", "spa services", "hotel restaurant", "Hotel 734 amenities"],
+  openGraph: {
+    title: "Hotel Facilities - Hotel 734",
+    description: "Explore Hotel 734's world-class facilities including swimming pool, fitness center, spa, restaurant, and premium amenities.",
+    url: "https://hotel734.com/facilities",
+    images: [
+      {
+        url: "/facilities-og.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Hotel 734 - Luxury Facilities",
+      }
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hotel Facilities - Hotel 734",
+    description: "Explore Hotel 734's world-class facilities including swimming pool, fitness center, spa, and premium amenities.",
+    images: ["/facilities-og.jpg"],
+  },
+}
+
 "use client"
 
 import { useState, useEffect } from "react"

@@ -1,0 +1,27 @@
+{
+  "name": "Hotel 734 - Luxury Hotel & Resort",
+  "short_name": "Hotel 734",
+  "description": "Experience unparalleled luxury at Hotel 734. Premium accommodations, world-class facilities, elegant event spaces, and exceptional service.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a233b",
+  "theme_color": "#1a233b",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["hospitality", "travel", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr"
+}

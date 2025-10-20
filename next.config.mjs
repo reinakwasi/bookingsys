@@ -14,13 +14,17 @@ const nextConfig = {
   },
   images: {
     unoptimized: true,
-    domains: [], // Restrict image domains for security
+    domains: ['hotel734.com', 'www.hotel734.com'], // Allow hotel domain images
     dangerouslyAllowSVG: false, // Prevent SVG XSS
+    formats: ['image/webp', 'image/avif'], // Modern image formats for better performance
   },
   outputFileTracingRoot: __dirname,
   experimental: {
     optimizePackageImports: ['@/lib', '@/components', '@/hooks'],
   },
+  // SEO optimizations
+  trailingSlash: false, // Prevent duplicate content issues
+  poweredByHeader: false, // Remove X-Powered-By header for security
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
