@@ -355,6 +355,13 @@ export const ticketPurchasesAPI = {
     // Generate simple access token
     const accessToken = `TKT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
+    // Get ticket details for SMS message
+    const { data: ticketData } = await supabase
+      .from('tickets')
+      .select('*')
+      .eq('id', purchase.ticket_id)
+      .single();
+    
     const { data, error } = await supabase
       .from('ticket_purchases')
       .insert({
@@ -369,6 +376,10 @@ export const ticketPurchasesAPI = {
     if (error) throw error
     
     console.log('✅ Ticket purchase created:', data.id);
+    
+    // Generate ticket access URL
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://hotel734.com';
+    const ticketUrl = `${baseUrl}/my-tickets/${data.access_token}`;
     
     // Send email notification
     try {
@@ -385,6 +396,65 @@ export const ticketPurchasesAPI = {
     } catch (emailError) {
       console.error('Failed to send ticket email:', emailError)
       // Don't fail the purchase if email fails
+    }
+    
+    // Send SMS notification if phone number is provided
+    if (purchase.customer_phone && purchase.customer_phone.trim()) {
+      try {
+        // Create SMS message with ticket details and access link
+        const eventDate = new Date(ticketData?.event_date || '').toLocaleDateString('en-GB', {
+          weekday: 'short',
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric'
+        });
+        
+        const ticketText = purchase.quantity === 1 ? 'Ticket' : 'Tickets';
+        
+        const smsMessage = `HOTEL 734 - TICKET CONFIRMED
+
+Hello ${purchase.customer_name}!
+
+EVENT: ${(ticketData?.title || 'Event').toUpperCase()}
+DATE: ${eventDate}
+${ticketText.toUpperCase()}: ${purchase.quantity}
+REFERENCE: ${data.access_token}
+
+VIEW TICKET: ${ticketUrl}
+
+IMPORTANT: Present this SMS or scan QR code at venue entrance.
+
+Thank you for choosing Hotel 734!
+
+Support: 0244093821
+Email: info@hotel734.com
+
+- Hotel 734 Management`;
+
+        console.log('📱 Sending SMS notification to:', purchase.customer_phone.substring(0, 6) + '***');
+        
+        const smsResponse = await fetch('/api/send-sms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: purchase.customer_phone,
+            message: smsMessage
+          })
+        });
+        
+        const smsResult = await smsResponse.json();
+        
+        if (smsResult.success) {
+          console.log('✅ SMS sent successfully:', smsResult.messageId);
+        } else {
+          console.error('❌ SMS sending failed:', smsResult.error);
+        }
+      } catch (smsError) {
+        console.error('❌ Failed to send SMS:', smsError);
+        // Don't fail the purchase if SMS fails
+      }
+    } else {
+      console.log('📱 No phone number provided, skipping SMS notification');
     }
     
     return data
