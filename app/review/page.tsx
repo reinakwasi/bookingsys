@@ -1,31 +1,4 @@
-import type { Metadata } from "next"
-
-export const metadata: Metadata = {
-  title: "Write a Review - Share Your Hotel 734 Experience",
-  description: "Share your experience at Hotel 734. Write a review about your stay, rate our services, and help other guests discover our luxury accommodations and exceptional service.",
-  keywords: ["hotel review", "Hotel 734 review", "guest feedback", "hotel rating", "customer testimonials", "hotel experience"],
-  openGraph: {
-    title: "Write a Review - Hotel 734",
-    description: "Share your experience at Hotel 734. Write a review about your stay and help other guests discover our luxury accommodations.",
-    url: "https://hotel734.com/review",
-    images: [
-      {
-        url: "/review-og.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Hotel 734 - Write a Review",
-      }
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Write a Review - Hotel 734",
-    description: "Share your experience at Hotel 734. Write a review about your stay and help other guests.",
-    images: ["/review-og.jpg"],
-  },
-}
-
-'use client';
+"use client"
 
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';

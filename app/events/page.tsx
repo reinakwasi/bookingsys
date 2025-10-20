@@ -1,30 +1,3 @@
-import type { Metadata } from "next"
-
-export const metadata: Metadata = {
-  title: "Luxury Event Spaces - Weddings, Conferences & Corporate Events",
-  description: "Host unforgettable events at Hotel 734's luxury event spaces. Perfect for weddings, conferences, corporate meetings, and special celebrations. Professional facilities and exceptional service.",
-  keywords: ["event venue", "wedding venue", "conference center", "corporate events", "event spaces", "luxury events", "Hotel 734 events", "meeting rooms"],
-  openGraph: {
-    title: "Luxury Event Spaces - Hotel 734",
-    description: "Host unforgettable events at Hotel 734's luxury event spaces. Perfect for weddings, conferences, corporate meetings, and special celebrations.",
-    url: "https://hotel734.com/events",
-    images: [
-      {
-        url: "/events-og.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Hotel 734 - Luxury Event Spaces",
-      }
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Luxury Event Spaces - Hotel 734",
-    description: "Host unforgettable events at Hotel 734's luxury event spaces. Perfect for weddings, conferences, and special celebrations.",
-    images: ["/events-og.jpg"],
-  },
-}
-
 "use client"
 
 import Image from "next/image";
