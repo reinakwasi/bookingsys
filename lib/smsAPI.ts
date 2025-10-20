@@ -58,67 +58,17 @@ export const smsTemplates = {
     const itemLabel = bookingType === 'room' ? 'Room' : 'Event';
     const dateLabel = bookingType === 'room' ? 'Check-in' : 'Start';
     
-    return `HOTEL 734 - BOOKING CONFIRMED
+    return `🏨 Hotel 734 Booking Confirmed!
 
-Hello ${guestName}!
+Dear ${guestName},
 
-${itemLabel.toUpperCase()}: ${itemName}
-${dateLabel.toUpperCase()}: ${startDate}
-TOTAL: GHC ${totalPrice}
-REFERENCE: ${bookingId}
+${itemLabel}: ${itemName}
+${dateLabel}: ${startDate}
+Total: GHC ${totalPrice}
+ID: ${bookingId}
 
-IMPORTANT: Present this SMS or booking ID on arrival.
+Present this SMS or booking ID on arrival. Contact us: 0244093821
 
-Thank you for choosing Hotel 734!
-
-Support: 0244093821
-Email: info@hotel734.com
-
-- Hotel 734 Management`;
-  },
-
-  ticketConfirmation: ({
-    customerName,
-    eventName,
-    eventDate,
-    ticketNumber,
-    shortLink,
-    quantity
-  }: {
-    customerName: string;
-    eventName: string;
-    eventDate: string;
-    ticketNumber: string;
-    shortLink: string;
-    quantity: number;
-  }) => {
-    const formattedDate = new Date(eventDate).toLocaleDateString('en-GB', {
-      weekday: 'short',
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-    
-    const ticketText = quantity === 1 ? 'Ticket' : 'Tickets';
-    
-    return `HOTEL 734 - TICKET CONFIRMED
-
-Hello ${customerName}!
-
-EVENT: ${eventName.toUpperCase()}
-DATE: ${formattedDate}
-${ticketText.toUpperCase()}: ${quantity}
-REFERENCE: ${ticketNumber}
-
-VIEW TICKET: ${shortLink}
-
-IMPORTANT: Present this SMS or scan QR code at venue entrance.
-
-Thank you for choosing Hotel 734!
-
-Support: 0244093821
-Email: info@hotel734.com
-
-- Hotel 734 Management`;
+Hotel 734 Team`;
   }
 };

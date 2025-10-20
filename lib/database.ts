@@ -1,7 +1,5 @@
 import { supabase } from './supabase'
 import type { Event, Booking, User, Ticket, TicketPurchase } from './supabase'
-import { generateUniqueShortHash, generateTicketShortLink, createTicketSMSMessage } from './shortLinkGenerator'
-import { getBaseUrl } from './config'
 import { generateTicketNumber, generateQRCode } from './ticketUtils'
 
 // Events API
@@ -354,180 +352,42 @@ export const individualTicketsAPI = {
 // Ticket Purchases API
 export const ticketPurchasesAPI = {
   async create(purchase: Omit<TicketPurchase, 'id' | 'purchase_date' | 'created_at' | 'access_token'>): Promise<TicketPurchase> {
-    // Generate unique short hash for ticket access
-    const shortHash = await generateUniqueShortHash();
+    // Generate simple access token
+    const accessToken = `TKT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
-    // Get ticket details for SMS
-    const { data: ticketData } = await supabase
-      .from('tickets')
-      .select('*')
-      .eq('id', purchase.ticket_id)
-      .single();
-
     const { data, error } = await supabase
       .from('ticket_purchases')
       .insert({
         ...purchase,
         purchase_date: new Date().toISOString(),
-        access_token: shortHash,
-        qr_code: `QR-${shortHash.toUpperCase()}`
+        access_token: accessToken,
+        qr_code: `QR-${accessToken.toUpperCase()}`
       })
       .select()
       .single()
     
     if (error) throw error
     
-    console.log('✅ Ticket purchase created with short hash:', shortHash);
-
-    // Generate short link for /t/ system (new system)
-    const shortLink = generateTicketShortLink(shortHash);
+    console.log('✅ Ticket purchase created:', data.id);
     
-    // Generate ticket access link for email (uses the access_token from database)
-    const baseUrl = getBaseUrl();
-    
-    console.log('🔗 Email ticket link base URL:', baseUrl);
-    const myTicketsLink = `${baseUrl}/t/${data.access_token}`;
-    
-    // Send notifications with proper error handling and timeouts
-    const notificationPromises = [];
-    
-    // Send SMS notification with short link
-    if (purchase.customer_phone && purchase.customer_phone.trim()) {
-      const smsPromise = (async () => {
-        try {
-          const smsMessage = createTicketSMSMessage({
-            customerName: purchase.customer_name,
-            eventName: ticketData?.title || 'Event',
-            eventDate: ticketData?.event_date || new Date().toISOString(),
-            ticketNumber: generateTicketNumber(data.id),
-            shortLink: shortLink,
-            quantity: purchase.quantity
-          });
-
-          console.log('📱 Sending SMS with short link:', shortLink);
-
-          // Add timeout to SMS request
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-
-          const smsResponse = await fetch('/api/send-sms', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to: purchase.customer_phone,
-              message: smsMessage
-            }),
-            signal: controller.signal
-          });
-
-          clearTimeout(timeoutId);
-          
-          if (!smsResponse.ok) {
-            throw new Error(`SMS API returned ${smsResponse.status}`);
-          }
-          
-          const smsResult = await smsResponse.json();
-          
-          if (smsResult.success) {
-            console.log('✅ SMS sent successfully with short link');
-            return { type: 'sms', success: true, provider: smsResult.provider };
-          } else {
-            throw new Error(smsResult.error || 'SMS sending failed');
-          }
-        } catch (smsError: any) {
-          const errorMsg = smsError.name === 'AbortError' ? 'SMS request timeout after 15 seconds' : `SMS failed: ${smsError.message}`;
-          console.error('❌', errorMsg);
-          return { type: 'sms', success: false, error: errorMsg };
-        }
-      })();
-      
-      notificationPromises.push(smsPromise);
+    // Send email notification
+    try {
+      await fetch('/api/send-ticket-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          purchase_id: data.id,
+          access_token: data.access_token,
+          customer_email: data.customer_email,
+          customer_name: data.customer_name
+        })
+      })
+    } catch (emailError) {
+      console.error('Failed to send ticket email:', emailError)
+      // Don't fail the purchase if email fails
     }
     
-    // Send email notification with timeout and proper error handling
-    if (purchase.customer_email && purchase.customer_email.trim()) {
-      const emailPromise = (async () => {
-        try {
-          console.log('📧 Sending email notification to:', purchase.customer_email);
-          
-          // Add timeout to email request
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for email
-          
-          const emailResponse = await fetch('/api/send-ticket-email', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              purchase_id: data.id,
-              access_token: data.access_token,
-              customer_email: data.customer_email,
-              customer_name: data.customer_name,
-              my_tickets_link: myTicketsLink
-            }),
-            signal: controller.signal
-          });
-          
-          clearTimeout(timeoutId);
-          
-          if (!emailResponse.ok) {
-            throw new Error(`Email API returned ${emailResponse.status}`);
-          }
-          
-          const emailResult = await emailResponse.json();
-          
-          if (emailResult.success) {
-            console.log('✅ Email sent successfully');
-            return { type: 'email', success: true };
-          } else {
-            throw new Error(emailResult.error || 'Email sending failed');
-          }
-        } catch (emailError: any) {
-          const errorMsg = emailError.name === 'AbortError' ? 'Email request timeout after 30 seconds' : `Email failed: ${emailError.message}`;
-          console.error('❌', errorMsg);
-          return { type: 'email', success: false, error: errorMsg };
-        }
-      })();
-      
-      notificationPromises.push(emailPromise);
-    }
-    
-    // Wait for all notifications to complete (with timeout)
-    if (notificationPromises.length > 0) {
-      try {
-        const notificationResults = await Promise.allSettled(notificationPromises);
-        
-        // Log notification results
-        notificationResults.forEach((result, index) => {
-          if (result.status === 'fulfilled') {
-            const notification = result.value;
-            if (notification.success) {
-              console.log(`✅ ${notification.type.toUpperCase()} notification sent successfully`);
-            } else {
-              console.error(`❌ ${notification.type.toUpperCase()} notification failed:`, notification.error);
-            }
-          } else {
-            console.error(`❌ Notification ${index} promise rejected:`, result.reason);
-          }
-        });
-        
-        // Check if any notifications failed
-        const failedNotifications = notificationResults
-          .filter(result => result.status === 'fulfilled' && !result.value.success)
-          .map(result => result.status === 'fulfilled' ? result.value.type : 'unknown');
-          
-        if (failedNotifications.length > 0) {
-          console.warn(`⚠️ Some notifications failed: ${failedNotifications.join(', ')}`);
-        }
-      } catch (notificationError) {
-        console.error('❌ Notification processing error:', notificationError);
-      }
-    }
-    
-    // Return purchase data with notification status
-    return {
-      ...data,
-      notifications_sent: notificationPromises.length > 0
-    }
+    return data
   },
 
   async getByEmail(email: string): Promise<TicketPurchase[]> {

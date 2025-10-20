@@ -50,34 +50,30 @@ export const notificationService = {
       }
     }
 
-    // Send SMS if phone number is provided (always required) - async, non-blocking
+    // Send SMS if phone number is provided (always required)
     if (data.phone && data.phone.trim()) {
-      // Send SMS asynchronously to avoid blocking the booking process
-      setImmediate(async () => {
-        try {
-          const smsMessage = smsTemplates.bookingConfirmation({
-            guestName: data.guestName,
-            bookingType: data.bookingType,
-            itemName: data.itemName,
-            startDate: data.startDate,
-            endDate: data.endDate,
-            totalPrice: data.totalPrice,
-            bookingId: data.bookingId
-          });
+      try {
+        const smsMessage = smsTemplates.bookingConfirmation({
+          guestName: data.guestName,
+          bookingType: data.bookingType,
+          itemName: data.itemName,
+          startDate: data.startDate,
+          endDate: data.endDate,
+          totalPrice: data.totalPrice,
+          bookingId: data.bookingId
+        });
 
-          await smsAPI.sendSMS({
-            to: data.phone,
-            message: smsMessage
-          });
+        await smsAPI.sendSMS({
+          to: data.phone,
+          message: smsMessage
+        });
 
-          console.log('✅ SMS confirmation sent to:', data.phone);
-        } catch (error: any) {
-          console.error('❌ Failed to send SMS confirmation:', error);
-        }
-      });
-      
-      // Mark as sent immediately (optimistic)
-      results.sms.sent = true;
+        results.sms.sent = true;
+        console.log('✅ SMS confirmation sent to:', data.phone);
+      } catch (error: any) {
+        results.sms.error = error.message;
+        console.error('❌ Failed to send SMS confirmation:', error);
+      }
     }
 
     return results;

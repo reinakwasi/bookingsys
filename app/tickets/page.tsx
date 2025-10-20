@@ -680,15 +680,17 @@ export default function TicketsPage() {
                 </div>
 
                 {/* Next steps */}
-                <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg p-3 border border-blue-400/20">
-                  <h5 className="font-semibold text-blue-200 mb-2 flex items-center gap-2 text-sm">
+                <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg p-4 border border-blue-400/20">
+                  <h5 className="font-semibold text-blue-200 mb-2 flex items-center gap-2 text-sm sm:text-base">
                     <Calendar className="h-4 w-4" />
                     What's Next?
                   </h5>
-                  <ul className="text-xs text-blue-200/80 space-y-1">
-                    <li>• Check email & SMS for ticket confirmation with QR codes</li>
-                    <li>• Present QR codes at event entrance</li>
-                    <li>• Arrive 15 minutes early</li>
+                  <ul className="text-xs sm:text-sm text-blue-200/80 space-y-1">
+                    <li>• Check your email for Hotel 734 ticket confirmation with QR codes</li>
+                    <li>• Individual QR codes for each ticket will be in your email</li>
+                    <li>• You can download and share individual tickets</li>
+                    <li>• Present QR codes at the event entrance</li>
+                    <li>• Arrive 15 minutes before event time</li>
                   </ul>
                 </div>
               </div>

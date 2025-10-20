@@ -52,13 +52,15 @@ export async function POST(request: NextRequest) {
       }
     });
 
-    // Get the proper base URL for email links with consistent environment variable checking
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-      process.env.NEXT_PUBLIC_BASE_URL || 
-      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-      'https://hotel734.com';
-    
-    console.log('🔗 Checkout email base URL:', baseUrl);
+    // Get the proper base URL for email links
+    let baseUrl;
+    if (process.env.NEXT_PUBLIC_BASE_URL) {
+      baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    } else if (process.env.VERCEL_URL) {
+      baseUrl = `https://${process.env.VERCEL_URL}`;
+    } else {
+      baseUrl = 'https://hotel734.com';
+    }
     
     const reviewUrl = `${baseUrl}/review?booking=${bookingId}`;
     

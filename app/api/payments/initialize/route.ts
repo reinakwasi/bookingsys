@@ -39,9 +39,9 @@ export async function POST(request: NextRequest) {
             value: "true"
           }
         ],
-        cancel_action: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://hotel734.com'}/tickets`
+        cancel_action: `${process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')}/tickets`
       },
-      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://hotel734.com'}/tickets?payment=success`,
+      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')}/tickets?payment=success`,
       channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
     };
     

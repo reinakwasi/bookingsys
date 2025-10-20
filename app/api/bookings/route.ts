@@ -1,21 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
     console.log('📋 Fetching all bookings');
-
-    // Validate environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('❌ Missing Supabase environment variables for bookings');
-      return NextResponse.json([]);
-    }
-
-    // Create Supabase client
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     // First, let's try a simple query without joins
     const { data, error } = await supabase
@@ -41,15 +29,14 @@ export async function GET(request: NextRequest) {
       
       return NextResponse.json({
         error: 'Failed to fetch bookings',
-        details: error.message,
-        code: error.code
+        details: error.message
       }, { status: 500 });
     }
 
     console.log(`✅ Fetched ${data?.length || 0} bookings`);
     
     // Filter out deleted bookings on the server side
-    const activeBookings = data?.filter((booking: any) => booking.status !== 'deleted') || [];
+    const activeBookings = data?.filter(booking => booking.status !== 'deleted') || [];
     console.log(`✅ Returning ${activeBookings.length} active bookings`);
 
     return NextResponse.json(activeBookings);
@@ -59,9 +46,7 @@ export async function GET(request: NextRequest) {
     
     return NextResponse.json({
       error: 'Failed to fetch bookings',
-      details: error.message || 'Unknown error',
-      stack: error.stack,
-      timestamp: new Date().toISOString()
+      details: error.message
     }, { status: 500 });
   }
 }
@@ -70,21 +55,6 @@ export async function POST(request: NextRequest) {
   try {
     const bookingData = await request.json();
     console.log('📝 Creating new booking:', bookingData);
-
-    // Validate environment variables
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseKey) {
-      console.error('❌ Missing Supabase environment variables for booking creation');
-      return NextResponse.json({
-        error: 'Database not configured',
-        details: 'Missing Supabase configuration'
-      }, { status: 500 });
-    }
-
-    // Create Supabase client
-    const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { data, error } = await supabase
       .from('bookings')
@@ -96,8 +66,7 @@ export async function POST(request: NextRequest) {
       console.error('❌ Booking creation error:', error);
       return NextResponse.json({
         error: 'Failed to create booking',
-        details: error.message,
-        code: error.code
+        details: error.message
       }, { status: 500 });
     }
 
@@ -114,9 +83,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       error: 'Failed to create booking',
-      details: error.message || 'Unknown error',
-      stack: error.stack,
-      timestamp: new Date().toISOString()
+      details: error.message
     }, { status: 500 });
   }
 }

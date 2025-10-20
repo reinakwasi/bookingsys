@@ -19,14 +19,13 @@ const rooms = [
     price: 350,
     maxGuests: 4,
     features: [
-      "Large Bed",
+      "Free Swimming Pool",
       "Satellite TV Channels", 
       "Air Conditioned Room",
-      "Fridge",
-      "Table & Chair",
+      "Free Wifi",
       "Daily Laundry / Dry Cleaning",
       "24h Room Service",
-      "Breakfast Included"
+      "Max 4 people"
     ]
   },
   {
@@ -39,14 +38,13 @@ const rooms = [
     price: 300,
     maxGuests: 3,
     features: [
-      "Standard Bed",
+      "Free Swimming Pool",
       "Satellite TV Channels",
       "Air Conditioned Room", 
-      "Fridge",
-      "Table & Chair",
+      "Free Wifi",
       "Daily Laundry / Dry Cleaning",
       "24h Room Service",
-      "Breakfast Included"
+      "Max 3 people"
     ]
   },
   {
@@ -59,14 +57,13 @@ const rooms = [
     price: 250,
     maxGuests: 2,
     features: [
-      "Classic Bed",
+      "Free Swimming Pool",
       "Satellite TV Channels",
       "Air Conditioned Room",
-      "Fridge",
-      "Table & Chair",
+      "Free Wifi", 
       "Daily Laundry / Dry Cleaning",
       "24h Room Service",
-      "Breakfast Included"
+      "Max 2 people"
     ]
   },
 ]

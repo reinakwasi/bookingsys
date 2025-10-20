@@ -23,14 +23,19 @@ export async function POST(request: NextRequest) {
       ticketUrl = my_tickets_link;
       console.log('✅ Using provided my_tickets_link:', ticketUrl);
     } else {
-      // Fallback to generating my-tickets URL with consistent environment variable checking
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 
-        process.env.NEXT_PUBLIC_BASE_URL || 
-        (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
-        'https://hotel734.com';
+      // Fallback to generating my-tickets URL
+      let baseUrl;
+      
+      if (process.env.NEXT_PUBLIC_APP_URL) {
+        baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+      } else if (process.env.VERCEL_URL) {
+        baseUrl = `https://${process.env.VERCEL_URL}`;
+      } else {
+        baseUrl = 'https://hotel734.com';
+      }
       
       ticketUrl = `${baseUrl}/t/${access_token}`;
-      console.log('⚠️ Using fallback URL generation with base:', baseUrl, '→', ticketUrl);
+      console.log('⚠️ Using fallback URL generation:', ticketUrl);
     }
     
     console.log('🔗 Final ticket URL:', ticketUrl);
@@ -50,21 +55,13 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Create Gmail SMTP transporter with timeout settings
+    // Create Gmail SMTP transporter
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: emailUser,
         pass: emailPass
-      },
-      pool: true,
-      maxConnections: 1,
-      maxMessages: 3,
-      rateDelta: 1000,
-      rateLimit: 5,
-      connectionTimeout: 60000, // 60 seconds
-      greetingTimeout: 30000,   // 30 seconds
-      socketTimeout: 60000      // 60 seconds
+      }
     })
 
     const emailContent = `
@@ -123,13 +120,7 @@ export async function POST(request: NextRequest) {
       html: emailContent
     }
 
-    // Send email with timeout handling
-    const emailPromise = transporter.sendMail(mailOptions);
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Email sending timeout after 45 seconds')), 45000)
-    );
-    
-    await Promise.race([emailPromise, timeoutPromise]);
+    await transporter.sendMail(mailOptions)
 
     console.log('✅ Email sent successfully to:', customer_email)
 

@@ -69,10 +69,10 @@ const mockBookings = [
 
 export const handlers = [
   // Rooms API
-  http.get('https://hotel734.com/api/rooms', () => {
+  http.get('http://localhost:5000/api/rooms', () => {
     return HttpResponse.json(mockRooms);
   }),
-  http.get('https://hotel734.com/api/rooms/:id', ({ params }) => {
+  http.get('http://localhost:5000/api/rooms/:id', ({ params }) => {
     const room = mockRooms.find(r => r._id === params.id);
     if (!room) {
       return new HttpResponse(JSON.stringify({ error: 'Room not found' }), { status: 404 });
@@ -81,11 +81,11 @@ export const handlers = [
   }),
 
   // Events API
-  http.get('https://hotel734.com/api/events', () => {
+  http.get('http://localhost:5000/api/events', () => {
     return HttpResponse.json(mockEvents);
   }),
 
-  http.get('https://hotel734.com/api/events/:id', ({ params }) => {
+  http.get('http://localhost:5000/api/events/:id', ({ params }) => {
     const { id } = params;
     const event = mockEvents.find(e => e._id === id);
     if (event) {
@@ -94,7 +94,7 @@ export const handlers = [
     return HttpResponse.json({ message: 'Event not found' }, { status: 404 });
   }),
 
-  http.post('https://hotel734.com/api/events', async ({ request }) => {
+  http.post('http://localhost:5000/api/events', async ({ request }) => {
     const body = await request.json() as any;
     const newEvent = {
       _id: String(mockEvents.length + 1),
@@ -111,7 +111,7 @@ export const handlers = [
     return HttpResponse.json(newEvent, { status: 201 });
   }),
 
-  http.put('https://hotel734.com/api/events/:id', async ({ params, request }) => {
+  http.put('http://localhost:5000/api/events/:id', async ({ params, request }) => {
     const { id } = params;
     const body = await request.json() as any;
     const eventIndex = mockEvents.findIndex(e => e._id === id);
@@ -123,7 +123,7 @@ export const handlers = [
     return HttpResponse.json({ message: 'Event not found' }, { status: 404 });
   }),
 
-  http.delete('https://hotel734.com/api/events/:id', ({ params }) => {
+  http.delete('http://localhost:5000/api/events/:id', ({ params }) => {
     const { id } = params;
     const eventIndex = mockEvents.findIndex(e => e._id === id);
     
@@ -135,15 +135,15 @@ export const handlers = [
   }),
 
   // Bookings API
-  http.get('https://hotel734.com/api/bookings', () => {
+  http.get('http://localhost:5000/api/bookings', () => {
     return HttpResponse.json(mockBookings);
   }),
 
-  http.get('https://hotel734.com/api/bookings/my-bookings', () => {
+  http.get('http://localhost:5000/api/bookings/my-bookings', () => {
     return HttpResponse.json(mockBookings);
   }),
 
-  http.post('https://hotel734.com/api/bookings', async ({ request }) => {
+  http.post('http://localhost:5000/api/bookings', async ({ request }) => {
     const body = await request.json() as any;
     const newBooking = {
       id: String(mockBookings.length + 1),
@@ -157,14 +157,14 @@ export const handlers = [
 
 
   // Auth API (basic mock)
-  http.post('https://hotel734.com/api/auth/login', () => {
+  http.post('http://localhost:5000/api/auth/login', () => {
     return HttpResponse.json({
       token: 'mock-jwt-token',
       user: { id: '1', username: 'testuser', email: 'test@example.com' }
     });
   }),
 
-  http.get('https://hotel734.com/api/auth/me', () => {
+  http.get('http://localhost:5000/api/auth/me', () => {
     return HttpResponse.json({ id: '1', username: 'testuser', email: 'test@example.com' });
   })
 ];

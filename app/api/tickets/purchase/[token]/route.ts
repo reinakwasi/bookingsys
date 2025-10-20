@@ -11,16 +11,8 @@ export async function GET(
     // Debug logging
     console.log('Looking for purchase with access_token:', token)
 
-    // First, check if access_token column exists and has data
-    const { data: allPurchases, error: debugError } = await supabase
-      .from('ticket_purchases')
-      .select('id, access_token, customer_name')
-      .limit(5)
-
-    console.log('Sample purchases for debugging:', { allPurchases, debugError })
-
     // Fetch the purchase by access token
-    let { data: purchase, error: purchaseError } = await supabase
+    const { data: purchase, error: purchaseError } = await supabase
       .from('ticket_purchases')
       .select(`
         *,
@@ -42,39 +34,11 @@ export async function GET(
     console.log('Purchase query result:', { purchase, purchaseError })
 
     if (purchaseError || !purchase) {
-      // If not found by access_token, try to find by ID as fallback
-      console.log('Trying fallback search by ID...')
-      
-      const { data: fallbackPurchase, error: fallbackError } = await supabase
-        .from('ticket_purchases')
-        .select(`
-          *,
-          tickets (
-            id,
-            title,
-            description,
-            event_date,
-            event_time,
-            price,
-            venue,
-            image_url,
-            activity_type
-          )
-        `)
-        .eq('id', token)
-        .single()
-
-      if (fallbackError || !fallbackPurchase) {
-        console.error('Purchase not found even with fallback:', { token, purchaseError, fallbackError })
-        return NextResponse.json(
-          { error: 'Purchase not found', token, details: { purchaseError, fallbackError } },
-          { status: 404 }
-        )
-      }
-
-      // Use fallback purchase
-      purchase = fallbackPurchase
-      console.log('Found purchase using fallback ID search')
+      console.error('Purchase not found:', { token, purchaseError })
+      return NextResponse.json(
+        { error: 'Purchase not found', token, details: purchaseError },
+        { status: 404 }
+      )
     }
 
     // Fetch individual tickets for this purchase

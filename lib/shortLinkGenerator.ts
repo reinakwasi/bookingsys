@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { getBaseUrl } from './config';
 
 /**
  * Generate a short, unique hash for ticket access
@@ -51,10 +50,7 @@ export async function generateUniqueShortHash(): Promise<string> {
  * Generate the complete short link URL for a ticket
  */
 export function generateTicketShortLink(shortHash: string, baseUrl?: string): string {
-  // Use provided baseUrl or get from config utility
-  const domain = baseUrl || getBaseUrl();
-  
-  console.log('🔗 Generating short link with domain:', domain);
+  const domain = baseUrl || process.env.NEXT_PUBLIC_BASE_URL || 'https://hotel734.com';
   return `${domain}/t/${shortHash}`;
 }
 

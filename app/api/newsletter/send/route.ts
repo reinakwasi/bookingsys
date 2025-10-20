@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
     // Send emails to all subscribers
     const emailPromises = subscribers.map(async (subscriber) => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://hotel734.com'}/api/send-email-working`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/send-email-working`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

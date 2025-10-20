@@ -43,8 +43,6 @@ SMTP_USER=info.hotel734@gmail.com
 SMTP_PASS=your_gmail_app_password
 FROM_EMAIL=info.hotel734@gmail.com
 FROM_NAME=Hotel 734
-BULKSMS_API_KEY=your_bulksms_api_key
-BULKSMS_SENDER_ID=HOTEL 734
 ```
 
 #### Optional Variables:
