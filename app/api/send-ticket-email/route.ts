@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
         baseUrl = 'https://hotel734.com';
       }
       
-      ticketUrl = `${baseUrl}/t/${access_token}`;
+      ticketUrl = `${baseUrl}/my-tickets/${access_token}`;
       console.log('⚠️ Using fallback URL generation:', ticketUrl);
     }
     
