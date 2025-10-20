@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       } else if (process.env.VERCEL_URL) {
         baseUrl = `https://${process.env.VERCEL_URL}`;
       } else {
-        baseUrl = 'http://localhost:3000';
+        baseUrl = 'https://hotel734.com';
       }
       
       ticketUrl = `${baseUrl}/my-tickets/${access_token}`;

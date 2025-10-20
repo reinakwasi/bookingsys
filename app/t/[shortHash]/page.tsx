@@ -112,7 +112,8 @@ export default function TicketAccessPage() {
               </div>
             </div>
             <div class="qr-section">
-              <p><strong>QR Code:</strong> ${ticket.qr_code}</p>
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(ticket.qr_code)}" alt="QR Code" style="margin: 0 auto; display: block;">
+              <p style="margin-top: 10px;"><strong>QR Code:</strong> ${ticket.qr_code}</p>
               <p style="font-size: 12px; color: #666;">Present this ticket at the venue for entry</p>
             </div>
           </div>
@@ -271,11 +272,20 @@ export default function TicketAccessPage() {
 
             {/* QR Code */}
             <div className="border-t border-white/20 pt-6 text-center">
-              <h3 className="text-lg font-semibold text-[#FFD700] mb-4">Entry Code</h3>
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 inline-block">
-                <p className="text-2xl font-mono text-white font-bold">{ticket.qr_code}</p>
+              <h3 className="text-lg font-semibold text-[#FFD700] mb-4">Entry QR Code</h3>
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 inline-block">
+                {/* QR Code Image */}
+                <div className="bg-white p-4 rounded-lg mb-4">
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(ticket.qr_code)}`}
+                    alt="QR Code"
+                    className="w-48 h-48 mx-auto"
+                  />
+                </div>
+                {/* QR Code Text */}
+                <p className="text-lg font-mono text-white font-bold">{ticket.qr_code}</p>
               </div>
-              <p className="text-sm text-gray-300 mt-2">Present this code at the venue for entry</p>
+              <p className="text-sm text-gray-300 mt-2">Present this QR code at the venue for entry</p>
             </div>
 
             {/* Status */}

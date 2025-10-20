@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
     // Send welcome email
     let emailSent = false
     try {
-      const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/send-email-working`, {
+      const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'https://hotel734.com'}/api/send-email-working`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
