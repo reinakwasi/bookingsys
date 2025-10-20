@@ -50,13 +50,21 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Create Gmail SMTP transporter
+    // Create Gmail SMTP transporter with timeout settings
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: emailUser,
         pass: emailPass
-      }
+      },
+      pool: true,
+      maxConnections: 1,
+      maxMessages: 3,
+      rateDelta: 1000,
+      rateLimit: 5,
+      connectionTimeout: 60000, // 60 seconds
+      greetingTimeout: 30000,   // 30 seconds
+      socketTimeout: 60000      // 60 seconds
     })
 
     const emailContent = `
@@ -115,7 +123,13 @@ export async function POST(request: NextRequest) {
       html: emailContent
     }
 
-    await transporter.sendMail(mailOptions)
+    // Send email with timeout handling
+    const emailPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Email sending timeout after 45 seconds')), 45000)
+    );
+    
+    await Promise.race([emailPromise, timeoutPromise]);
 
     console.log('✅ Email sent successfully to:', customer_email)
 
