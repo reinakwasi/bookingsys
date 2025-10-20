@@ -381,44 +381,57 @@ export const ticketPurchasesAPI = {
     // Generate short link for /t/ system (new system)
     const shortLink = generateTicketShortLink(shortHash);
     
-    // Generate my-tickets link for email (uses the access_token from database)
+    // Generate ticket access link for email (uses the access_token from database)
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://hotel734.com';
-    const myTicketsLink = `${baseUrl}/my-tickets/${data.access_token}`;
+    const myTicketsLink = `${baseUrl}/t/${data.access_token}`;
     
-    // Send SMS notification with short link
+    // Send SMS notification with short link (async, non-blocking)
     if (purchase.customer_phone && purchase.customer_phone.trim()) {
-      try {
-        const smsMessage = createTicketSMSMessage({
-          customerName: purchase.customer_name,
-          eventName: ticketData?.title || 'Event',
-          eventDate: ticketData?.event_date || new Date().toISOString(),
-          ticketNumber: generateTicketNumber(data.id),
-          shortLink: shortLink,
-          quantity: purchase.quantity
-        });
+      // Send SMS asynchronously without blocking the purchase completion
+      setImmediate(async () => {
+        try {
+          const smsMessage = createTicketSMSMessage({
+            customerName: purchase.customer_name,
+            eventName: ticketData?.title || 'Event',
+            eventDate: ticketData?.event_date || new Date().toISOString(),
+            ticketNumber: generateTicketNumber(data.id),
+            shortLink: shortLink,
+            quantity: purchase.quantity
+          });
 
-        console.log('📱 Sending SMS with short link:', shortLink);
+          console.log('📱 Sending SMS with short link (async):', shortLink);
 
-        const smsResponse = await fetch('/api/send-sms', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            to: purchase.customer_phone,
-            message: smsMessage
-          })
-        });
+          // Add timeout to SMS request
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-        const smsResult = await smsResponse.json();
-        
-        if (smsResult.success) {
-          console.log('✅ SMS sent successfully with short link');
-        } else {
-          console.error('❌ SMS sending failed:', smsResult.error);
+          const smsResponse = await fetch('/api/send-sms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: purchase.customer_phone,
+              message: smsMessage
+            }),
+            signal: controller.signal
+          });
+
+          clearTimeout(timeoutId);
+          const smsResult = await smsResponse.json();
+          
+          if (smsResult.success) {
+            console.log('✅ SMS sent successfully with short link');
+          } else {
+            console.error('❌ SMS sending failed:', smsResult.error);
+          }
+        } catch (smsError: any) {
+          if (smsError.name === 'AbortError') {
+            console.error('❌ SMS request timeout after 10 seconds');
+          } else {
+            console.error('❌ Failed to send SMS:', smsError);
+          }
+          // Don't fail the purchase if SMS fails
         }
-      } catch (smsError) {
-        console.error('❌ Failed to send SMS:', smsError);
-        // Don't fail the purchase if SMS fails
-      }
+      });
     }
     
     // Send email notification (existing functionality)
@@ -431,7 +444,7 @@ export const ticketPurchasesAPI = {
           access_token: data.access_token, // Use the actual access_token from database (might be overridden by trigger)
           customer_email: data.customer_email,
           customer_name: data.customer_name,
-          my_tickets_link: myTicketsLink // Use my-tickets link for email
+          my_tickets_link: myTicketsLink // Use ticket access link for email
         })
       })
     } catch (emailError) {

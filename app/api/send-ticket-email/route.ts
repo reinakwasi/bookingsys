@@ -7,6 +7,15 @@ export async function POST(request: NextRequest) {
 
     console.log('📧 Email request data:', { purchase_id, access_token, customer_email, customer_name, my_tickets_link });
 
+    // Validate required parameters
+    if (!access_token) {
+      console.error('❌ Missing access_token for ticket email');
+      return NextResponse.json(
+        { error: 'Access token is required for ticket email' },
+        { status: 400 }
+      );
+    }
+
     // Use the my_tickets_link if provided, otherwise generate the URL
     let ticketUrl;
     
@@ -25,7 +34,7 @@ export async function POST(request: NextRequest) {
         baseUrl = 'https://hotel734.com';
       }
       
-      ticketUrl = `${baseUrl}/my-tickets/${access_token}`;
+      ticketUrl = `${baseUrl}/t/${access_token}`;
       console.log('⚠️ Using fallback URL generation:', ticketUrl);
     }
     
