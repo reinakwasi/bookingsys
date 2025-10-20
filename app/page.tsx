@@ -1,32 +1,6 @@
-import type { Metadata } from "next"
-import Link from "next/link"
-
-export const metadata: Metadata = {
-  title: "Home - Luxury Hotel & Resort Experience",
-  description: "Welcome to Hotel 734 - Experience unparalleled luxury with our premium accommodations, world-class facilities, elegant event spaces, and exceptional service. Book your perfect stay today.",
-  keywords: ["luxury hotel", "premium resort", "hotel booking", "luxury accommodations", "event venue", "wedding venue", "conference center", "Hotel 734"],
-  openGraph: {
-    title: "Hotel 734 - Luxury Hotel & Resort Experience",
-    description: "Welcome to Hotel 734 - Experience unparalleled luxury with our premium accommodations, world-class facilities, and exceptional service.",
-    url: "https://hotel734.com",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Hotel 734 - Luxury Hotel & Resort",
-      }
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Hotel 734 - Luxury Hotel & Resort Experience",
-    description: "Welcome to Hotel 734 - Experience unparalleled luxury with our premium accommodations, world-class facilities, and exceptional service.",
-    images: ["/og-image.jpg"],
-  },
-}
-
 "use client"
+
+import Link from "next/link"
 
 import Image from "next/image"
 import { Card } from "@/components/ui/card"
