@@ -23,8 +23,18 @@ export async function POST(request: NextRequest) {
     if (qr_code) {
       console.log('Searching by QR code:', qr_code)
       
-      // Try searching by ticket_number first (since QR code might be same as ticket number)
-      const ticketNumberResult = await supabase
+      // Normalize the search term (remove QR- prefix if present)
+      const searchTerm = qr_code.startsWith('QR-') ? qr_code.substring(3) : qr_code;
+      const ticketSearchTerm = qr_code.startsWith('TKT-') ? qr_code : `TKT-${searchTerm}`;
+      const qrSearchTerm = qr_code.startsWith('QR-') ? qr_code : `QR-${searchTerm}`;
+      
+      console.log('Search terms:', { original: qr_code, ticket: ticketSearchTerm, qr: qrSearchTerm });
+      
+      // Try multiple search strategies
+      let searchResults = [];
+      
+      // 1. Search by exact match (ticket_number)
+      const exactTicketResult = await supabase
         .from('individual_tickets')
         .select(`
           *,
@@ -39,16 +49,14 @@ export async function POST(request: NextRequest) {
             )
           )
         `)
-        .eq('ticket_number', qr_code)
-        .single()
+        .eq('ticket_number', qr_code);
       
-      if (ticketNumberResult.data) {
-        ticket = ticketNumberResult.data
-        ticketError = ticketNumberResult.error
-        console.log('Found ticket by ticket_number:', qr_code)
+      if (exactTicketResult.data && exactTicketResult.data.length > 0) {
+        ticket = exactTicketResult.data[0];
+        console.log('Found ticket by exact ticket_number match:', qr_code);
       } else {
-        // If not found by ticket_number, try by qr_code
-        const qrResult = await supabase
+        // 2. Search by formatted ticket number
+        const formattedTicketResult = await supabase
           .from('individual_tickets')
           .select(`
             *,
@@ -63,12 +71,85 @@ export async function POST(request: NextRequest) {
               )
             )
           `)
-          .eq('qr_code', qr_code)
-          .single()
+          .eq('ticket_number', ticketSearchTerm);
         
-        ticket = qrResult.data
-        ticketError = qrResult.error
-        console.log('Searched by qr_code:', qr_code)
+        if (formattedTicketResult.data && formattedTicketResult.data.length > 0) {
+          ticket = formattedTicketResult.data[0];
+          console.log('Found ticket by formatted ticket_number:', ticketSearchTerm);
+        } else {
+          // 3. Search by QR code field
+          const qrResult = await supabase
+            .from('individual_tickets')
+            .select(`
+              *,
+              ticket_purchases!inner (
+                *,
+                tickets (
+                  id,
+                  title,
+                  event_date,
+                  event_time,
+                  venue
+                )
+              )
+            `)
+            .eq('qr_code', qr_code);
+          
+          if (qrResult.data && qrResult.data.length > 0) {
+            ticket = qrResult.data[0];
+            console.log('Found ticket by qr_code field:', qr_code);
+          } else {
+            // 4. Search by formatted QR code
+            const formattedQrResult = await supabase
+              .from('individual_tickets')
+              .select(`
+                *,
+                ticket_purchases!inner (
+                  *,
+                  tickets (
+                    id,
+                    title,
+                    event_date,
+                    event_time,
+                    venue
+                  )
+                )
+              `)
+              .eq('qr_code', qrSearchTerm);
+            
+            if (formattedQrResult.data && formattedQrResult.data.length > 0) {
+              ticket = formattedQrResult.data[0];
+              console.log('Found ticket by formatted qr_code:', qrSearchTerm);
+            } else {
+              // 5. Partial match search for old format tickets
+              const partialResult = await supabase
+                .from('individual_tickets')
+                .select(`
+                  *,
+                  ticket_purchases!inner (
+                    *,
+                    tickets (
+                      id,
+                      title,
+                      event_date,
+                      event_time,
+                      venue
+                    )
+                  )
+                `)
+                .or(`ticket_number.ilike.%${searchTerm}%,qr_code.ilike.%${searchTerm}%`);
+              
+              if (partialResult.data && partialResult.data.length > 0) {
+                ticket = partialResult.data[0];
+                console.log('Found ticket by partial match:', searchTerm);
+              }
+            }
+          }
+        }
+      }
+      
+      if (!ticket) {
+        ticketError = { message: 'Ticket not found with any search method' };
       }
     } else if (purchase_id) {
       // Find tickets by purchase ID
@@ -102,13 +183,24 @@ export async function POST(request: NextRequest) {
     if (ticketError || !ticket) {
       console.log('TICKET NOT FOUND - Error details:', ticketError)
       
-      // Let's also check what tickets exist for debugging
+      // Enhanced debugging - show more ticket info
       const debugResult = await supabase
         .from('individual_tickets')
-        .select('ticket_number, qr_code, status')
+        .select('ticket_number, qr_code, status, created_at')
+        .order('created_at', { ascending: false })
+        .limit(10)
+      
+      console.log('Available tickets (last 10):', debugResult.data)
+      console.log('Search attempted for:', { qr_code, purchase_id })
+      
+      // Also check if there are tickets with similar patterns
+      const similarResult = await supabase
+        .from('individual_tickets')
+        .select('ticket_number, qr_code')
+        .or(`ticket_number.ilike.%${qr_code?.slice(-4) || ''}%,qr_code.ilike.%${qr_code?.slice(-4) || ''}%`)
         .limit(5)
       
-      console.log('Available tickets (first 5):', debugResult.data)
+      console.log('Similar tickets found:', similarResult.data)
       
       return NextResponse.json(
         { 
