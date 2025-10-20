@@ -16,7 +16,7 @@ const rooms = [
     image: "/three.jpg",
     type: "expensive",
     rating: 5.0,
-    price: 350,
+    price: 352,
     maxGuests: 4,
     features: [
       "Large Bed",
