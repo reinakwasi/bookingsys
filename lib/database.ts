@@ -378,8 +378,16 @@ export const ticketPurchasesAPI = {
     console.log('✅ Ticket purchase created:', data.id);
     
     // Generate ticket access URL
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://hotel734.com';
+    let baseUrl = 'https://hotel734.com'; // Default to production domain
+    
+    if (process.env.NEXT_PUBLIC_BASE_URL) {
+      baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    } else if (process.env.VERCEL_URL) {
+      baseUrl = `https://${process.env.VERCEL_URL}`;
+    }
+    
     const ticketUrl = `${baseUrl}/my-tickets/${data.access_token}`;
+    console.log('🔗 Generated ticket URL:', ticketUrl);
     
     // Send email notification
     try {
