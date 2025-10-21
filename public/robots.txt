@@ -1,0 +1,21 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /private/
+Disallow: /_next/
+Disallow: /temp/
+
+# Googlebot
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /private/
+
+# Host
+Host: https://hotel734.com
+
+# Sitemaps
+Sitemap: https://hotel734.com/sitemap.xml

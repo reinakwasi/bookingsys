@@ -1,11 +1,13 @@
 "use client"
 
 import Link from "next/link"
-
 import Image from "next/image"
+import Head from "next/head"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import DynamicHeader from "@/components/dynamic-header"
+import SEOMetadata, { seoConfigs } from "@/components/SEOMetadata"
+import StructuredData, { BreadcrumbStructuredData } from "@/components/StructuredData"
 import { useState, useEffect } from "react"
 import { ticketsAPI } from "@/lib/api"
 import { ArrowRight, Star, Sparkles, Calendar, MapPin, Wifi, Car, Coffee, Dumbbell, Waves, Shield, Clock, Award, Users, Heart, Camera, CalendarDays, ExternalLink, AlertCircle, Ticket, DollarSign } from "lucide-react"
@@ -95,7 +97,14 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
+    <>
+      <SEOMetadata {...seoConfigs.home} />
+      <StructuredData type="hotel" />
+      <BreadcrumbStructuredData items={[
+        { name: "Home", url: "/" }
+      ]} />
+      
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
       {/* Floating background elements */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-[#C49B66]/20 to-[#F4E4BC]/20 rounded-full blur-3xl animate-float-slow"></div>
@@ -762,5 +771,6 @@ export default function Home() {
         </div>
       </section>
     </div>
+    </>
   )
 }

@@ -17,17 +17,22 @@ const nextConfig = {
     domains: ['hotel734.com', 'www.hotel734.com'], // Allow hotel domain images
     dangerouslyAllowSVG: false, // Prevent SVG XSS
     formats: ['image/webp', 'image/avif'], // Modern image formats for better performance
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days cache
   },
   outputFileTracingRoot: __dirname,
   experimental: {
     optimizePackageImports: ['@/lib', '@/components', '@/hooks'],
   },
-  // SEO optimizations
-  trailingSlash: false, // Prevent duplicate content issues
-  poweredByHeader: false, // Remove X-Powered-By header for security
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },
+  // Enable compression for better performance
+  compress: true,
+  // Generate sitemap and robots.txt
+  trailingSlash: false,
+  // SEO optimizations
+  generateEtags: true,
+  poweredByHeader: false, // Remove X-Powered-By header for security
   // Security headers
   async headers() {
     return [

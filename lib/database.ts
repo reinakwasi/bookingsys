@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 import type { Event, Booking, User, Ticket, TicketPurchase } from './supabase'
+import { generateTicketNumber, generateQRCode } from './ticketUtils'
 
 // Events API
 export const eventsAPI = {
