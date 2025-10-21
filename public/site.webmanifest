@@ -29,15 +29,9 @@
   "categories": ["travel", "hospitality", "accommodation"],
   "screenshots": [
     {
-      "src": "/images/hotel-734-mobile-screenshot.png",
-      "sizes": "540x720",
-      "type": "image/png",
-      "form_factor": "narrow"
-    },
-    {
-      "src": "/images/hotel-734-desktop-screenshot.png",
+      "src": "/view.jpg",
       "sizes": "1280x720",
-      "type": "image/png",
+      "type": "image/jpeg",
       "form_factor": "wide"
     }
   ]

@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     siteName: 'Hotel 734',
     images: [
       {
-        url: '/images/hotel-734-exterior.jpg',
+        url: '/view.jpg',
         width: 1200,
         height: 630,
         alt: 'Hotel 734 - Luxury Hotel in New Edubiase, Ghana',
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: "Hotel 734 | Luxury Accommodation in New Edubiase, Ghana",
     description: "Experience luxury at Hotel 734 in New Edubiase. Premium rooms, world-class amenities, event spaces, and exceptional service.",
-    images: ['/images/hotel-734-exterior.jpg'],
+    images: ['/view.jpg'],
     creator: '@Hotel734Ghana',
     site: '@Hotel734Ghana',
   },
