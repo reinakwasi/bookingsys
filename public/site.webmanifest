@@ -4,17 +4,17 @@
   "description": "Experience luxury at Hotel 734 in New Edubiase. Premium rooms, world-class amenities, event spaces, and exceptional service.",
   "icons": [
     {
-      "src": "/android-chrome-192x192.png",
+      "src": "/logo.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/android-chrome-512x512.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "/apple-touch-icon.png",
+      "src": "/logo.png",
       "sizes": "180x180",
       "type": "image/png"
     }
