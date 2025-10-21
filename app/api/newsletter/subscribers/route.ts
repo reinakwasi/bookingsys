@@ -1,13 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+function getSupabaseClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Missing Supabase configuration')
+  }
+
+  return createClient(supabaseUrl, supabaseKey)
+}
 
 export async function GET(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient()
+    
     // Get all newsletter subscribers
     const { data: subscribers, error } = await supabase
       .from('newsletter_subscribers')
@@ -38,8 +46,8 @@ export async function GET(request: NextRequest) {
     // Calculate statistics
     const stats = {
       total: subscribers?.length || 0,
-      active: subscribers?.filter(s => s.status === 'active').length || 0,
-      unsubscribed: subscribers?.filter(s => s.status === 'unsubscribed').length || 0
+      active: subscribers?.filter((s: any) => s.status === 'active').length || 0,
+      unsubscribed: subscribers?.filter((s: any) => s.status === 'unsubscribed').length || 0
     }
 
     return NextResponse.json({
@@ -58,6 +66,8 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const supabase = getSupabaseClient()
+    
     const { searchParams } = new URL(request.url)
     const email = searchParams.get('email')
 
