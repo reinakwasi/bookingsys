@@ -69,7 +69,7 @@ export const roomsAPI = {
         id: '1',
         name: 'Royal Suite',
         type: 'royal_suite',
-        price: 500,
+        price: 350,
         capacity: 4,
         amenities: ['WiFi', 'AC', 'TV', 'Mini Bar', 'Jacuzzi'],
         images: ['https://images.unsplash.com/photo-1566665797739-1674de7a421a']
@@ -78,7 +78,7 @@ export const roomsAPI = {
         id: '2',
         name: 'Superior Room',
         type: 'superior_room',
-        price: 250,
+        price: 300,
         capacity: 3,
         amenities: ['WiFi', 'AC', 'TV', 'Mini Bar'],
         images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304']
@@ -87,7 +87,7 @@ export const roomsAPI = {
         id: '3',
         name: 'Classic Room',
         type: 'classic_room',
-        price: 150,
+        price: 250,
         capacity: 2,
         amenities: ['WiFi', 'AC', 'TV'],
         images: ['https://images.unsplash.com/photo-1631049307264-da0ec9d70304']
@@ -328,8 +328,19 @@ export const bookingsAPI = {
     return await checkAvailability(eventId, startDate, endDate);
   },
 
-  // Check room availability with inventory system (5 rooms per type)
+  // Check room availability with inventory system (updated room counts)
   async checkRoomAvailability(roomType: string, checkIn: string, checkOut: string) {
+    // Room inventory: updated room counts - total 13 rooms
+    // Support both old and new room type names for compatibility
+    const ROOM_INVENTORY = {
+      'royal_suite': 1,    // Royal Suite has 1 room
+      'superior_room': 7,  // Superior Room has 7 rooms  
+      'classic_room': 5,   // Classic Room has 5 rooms
+      'expensive': 1,      // Legacy: Royal Suite
+      'standard': 7,       // Legacy: Superior Room
+      'regular': 5         // Legacy: Classic Room
+    };
+    
     try {
       const bookings = await this.getAll();
       
@@ -338,23 +349,12 @@ export const bookingsAPI = {
         console.error('⚠️ Could not fetch bookings data, assuming rooms are available');
         return {
           available: true,
-          availableRooms: 5, // Default to full capacity
-          totalRooms: 5,
+          availableRooms: ROOM_INVENTORY[roomType as keyof typeof ROOM_INVENTORY] || 0, // Default to room type capacity
+          totalRooms: ROOM_INVENTORY[roomType as keyof typeof ROOM_INVENTORY] || 0,
           bookedRooms: 0,
           message: 'Unable to verify current bookings, but rooms should be available'
         };
       }
-    
-    // Room inventory: each room type has 5 individual rooms
-    // Support both old and new room type names for compatibility
-    const ROOM_INVENTORY = {
-      'royal_suite': 5,    // Royal Suite has 5 rooms
-      'superior_room': 5,  // Superior Room has 5 rooms  
-      'classic_room': 5,   // Classic Room has 5 rooms
-      'expensive': 5,      // Legacy: Royal Suite
-      'standard': 5,       // Legacy: Superior Room
-      'regular': 5         // Legacy: Classic Room
-    };
     
     const totalRooms = ROOM_INVENTORY[roomType as keyof typeof ROOM_INVENTORY] || 0;
     
@@ -452,8 +452,8 @@ export const bookingsAPI = {
       // Return default availability on error
       return {
         available: true,
-        availableRooms: 5,
-        totalRooms: 5,
+        availableRooms: ROOM_INVENTORY[roomType as keyof typeof ROOM_INVENTORY] || 0,
+        totalRooms: ROOM_INVENTORY[roomType as keyof typeof ROOM_INVENTORY] || 0,
         bookedRooms: 0,
         conflictingBookings: [],
         message: 'Error checking availability, assuming rooms are available'

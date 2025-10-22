@@ -18,8 +18,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const TOTAL_ROOMS = {
-  royal_suite: 5,
-  superior_room: 5,
+  royal_suite: 1,
+  superior_room: 7,
   classic_room: 5
 };
 
@@ -206,9 +206,9 @@ export default function AdminDashboard() {
     try {
       // Calculate room price based on room type
       const roomPrices = {
-        'royal_suite': 500,
+        'royal_suite': 350,
         'superior_room': 300,
-        'classic_room': 200
+        'classic_room': 250
       };
       
       const checkInDate = new Date(bookingForm.checkIn);
