@@ -57,7 +57,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "frame-src 'self' https://www.google.com https://maps.google.com https://www.openstreetmap.org; script-src 'self' 'unsafe-inline' 'unsafe-eval'; object-src 'none';",
+            value: "frame-src 'self' https://www.google.com https://maps.google.com https://www.openstreetmap.org https://unified-pay.hubtel.com https://pay.hubtel.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; object-src 'none';",
           },
         ],
       },

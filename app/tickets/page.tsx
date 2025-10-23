@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ticketsAPI, ticketPurchasesAPI } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Calendar, Clock, DollarSign, Users, MapPin, Minus, Plus, CheckCircle, X, Sparkles, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { HubtelService } from "@/lib/hubtel";
+// @ts-ignore - Hubtel SDK doesn't have TypeScript definitions
+import CheckoutSdk from "@hubteljs/checkout";
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -27,6 +29,8 @@ export default function TicketsPage() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isConfirmingBooking, setIsConfirmingBooking] = useState(false);
   const [loadingTicketId, setLoadingTicketId] = useState<string | null>(null);
+  const [showHubtelModal, setShowHubtelModal] = useState(false);
+  const checkoutSdkRef = useRef<any>(null);
 
   useEffect(() => {
     loadTickets();
@@ -245,270 +249,99 @@ export default function TicketsPage() {
         timestamp: Date.now()
       }));
 
-      console.log('🚀 Loading Hubtel checkout on your website (Onsite Checkout)');
+      console.log('🚀 Opening Hubtel checkout using official SDK (Modal Integration)');
       console.log('📋 Payment reference:', clientReference);
-      console.log('🔗 Checkout URL:', initResult.checkoutDirectUrl);
 
-      // Create full-screen modal overlay for true onsite checkout
-      const modal = document.createElement('div');
-      modal.id = 'hubtel-checkout-modal';
-      modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.95);
-        z-index: 999999;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-        animation: fadeIn 0.3s ease-in-out;
-      `;
-
-      // Create modal content container
-      const modalContent = document.createElement('div');
-      modalContent.style.cssText = `
-        width: 100%;
-        max-width: 900px;
-        height: 90vh;
-        background: white;
-        border-radius: 16px;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        animation: slideUp 0.3s ease-out;
-      `;
-
-      // Create header with close button
-      const header = document.createElement('div');
-      header.style.cssText = `
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: white;
-        padding: 20px 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid rgba(255,255,255,0.1);
-      `;
-      
-      header.innerHTML = `
-        <div>
-          <h2 style="margin: 0; font-size: 20px; font-weight: 600;">Complete Your Payment</h2>
-          <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">
-            ${selectedTicket.title} • ${quantity} ticket(s) • GHS ${(selectedTicket.price * quantity).toFixed(2)}
-          </p>
-        </div>
-        <button id="close-checkout-btn" style="
-          background: rgba(255,255,255,0.2);
-          border: none;
-          color: white;
-          width: 36px;
-          height: 36px;
-          border-radius: 50%;
-          cursor: pointer;
-          font-size: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background 0.2s;
-          line-height: 1;
-        " title="Close">×</button>
-      `;
-
-      // Create loading indicator
-      const loadingDiv = document.createElement('div');
-      loadingDiv.id = 'checkout-loading';
-      loadingDiv.style.cssText = `
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        text-align: center;
-        z-index: 10;
-      `;
-      loadingDiv.innerHTML = `
-        <div style="
-          width: 60px;
-          height: 60px;
-          border: 4px solid #e5e7eb;
-          border-top-color: #10b981;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 20px;
-        "></div>
-        <p style="color: #6b7280; font-size: 16px; margin: 0;">Loading payment page...</p>
-      `;
-
-      // Create iframe container
-      const iframeContainer = document.createElement('div');
-      iframeContainer.style.cssText = `
-        flex: 1;
-        position: relative;
-        background: #f9fafb;
-      `;
-
-      // Create iframe with sandbox attributes to bypass restrictions
-      const iframe = document.createElement('iframe');
-      iframe.id = 'hubtel-checkout-iframe';
-      iframe.src = initResult.checkoutDirectUrl;
-      iframe.style.cssText = `
-        width: 100%;
-        height: 100%;
-        border: none;
-        display: none;
-      `;
-      
-      // Use sandbox attributes to allow necessary features
-      iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation');
-      iframe.setAttribute('allow', 'payment; geolocation');
-      iframe.setAttribute('loading', 'eager');
-
-      // Handle iframe load
-      iframe.onload = () => {
-        console.log('✅ Hubtel checkout loaded successfully');
-        iframe.style.display = 'block';
-        const loading = document.getElementById('checkout-loading');
-        if (loading) loading.remove();
-        toast.success('Payment page loaded. Complete your payment below.', { duration: 3000 });
-      };
-
-      iframe.onerror = () => {
-        console.error('❌ Failed to load Hubtel checkout');
-        const loading = document.getElementById('checkout-loading');
-        if (loading) {
-          loading.innerHTML = `
-            <div style="text-align: center; padding: 40px;">
-              <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
-              <h3 style="color: #ef4444; margin-bottom: 10px;">Failed to Load Payment Page</h3>
-              <p style="color: #6b7280; margin-bottom: 20px;">
-                The payment page could not be loaded. This might be due to browser security settings.
-              </p>
-              <button onclick="window.open('${initResult.checkoutUrl}', '_blank')" style="
-                background: #10b981;
-                color: white;
-                border: none;
-                padding: 12px 24px;
-                border-radius: 8px;
-                cursor: pointer;
-                font-size: 16px;
-                font-weight: 600;
-              ">Open in New Tab</button>
-            </div>
-          `;
-        }
-      };
-
-      // Assemble modal
-      iframeContainer.appendChild(loadingDiv);
-      iframeContainer.appendChild(iframe);
-      modalContent.appendChild(header);
-      modalContent.appendChild(iframeContainer);
-      modal.appendChild(modalContent);
-
-      // Add CSS animations
-      const style = document.createElement('style');
-      style.textContent = `
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from { transform: translateY(50px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `;
-      document.head.appendChild(style);
-
-      // Add to page
-      document.body.appendChild(modal);
-      document.body.style.overflow = 'hidden'; // Prevent background scrolling
-
-      // Close button handler
-      const closeBtn = document.getElementById('close-checkout-btn');
-      if (closeBtn) {
-        closeBtn.onmouseover = () => {
-          closeBtn.style.background = 'rgba(255,255,255,0.3)';
-        };
-        closeBtn.onmouseout = () => {
-          closeBtn.style.background = 'rgba(255,255,255,0.2)';
-        };
-        closeBtn.onclick = () => {
-          if (confirm('Are you sure you want to cancel this payment?')) {
-            document.body.removeChild(modal);
-            document.body.style.overflow = '';
-            sessionStorage.removeItem('pendingPayment');
-            toast.info('Payment cancelled');
-            setIsPurchaseDialogOpen(true);
-          }
-        };
+      // Initialize Hubtel Checkout SDK
+      if (!checkoutSdkRef.current) {
+        checkoutSdkRef.current = new CheckoutSdk();
       }
 
-      // Monitor for payment completion via polling
-      let pollCount = 0;
-      const maxPolls = 300; // 5 minutes (300 * 1 second)
-      
-      const pollPaymentStatus = setInterval(async () => {
-        pollCount++;
-        
-        // Check if modal still exists
-        if (!document.getElementById('hubtel-checkout-modal')) {
-          clearInterval(pollPaymentStatus);
-          return;
-        }
+      // Use the basicAuth from the API response (already generated server-side)
+      // The API response includes the basicAuth we need
+      const basicAuth = initResult.basicAuth;
+      const merchantAccount = initResult.merchantAccount;
 
-        // Stop polling after max attempts
-        if (pollCount >= maxPolls) {
-          clearInterval(pollPaymentStatus);
-          console.log('⏱️ Payment polling timeout');
-          return;
-        }
+      if (!basicAuth || !merchantAccount) {
+        throw new Error('Payment configuration missing from API response.');
+      }
 
-        // Try to verify payment status every 5 seconds
-        if (pollCount % 5 === 0) {
-          try {
-            const verifyResponse = await fetch('/api/payments/verify', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ clientReference })
-            });
+      // Purchase information for Hubtel SDK
+      const purchaseInfo = {
+        amount: selectedTicket.price * quantity,
+        purchaseDescription: `${selectedTicket.title} - ${quantity} ticket(s)`,
+        customerPhoneNumber: customerForm.phone.replace(/^0/, '233'), // Convert to international format
+        clientReference: clientReference,
+      };
 
-            const result = await verifyResponse.json();
+      // Configuration for Hubtel SDK
+      const config = {
+        branding: "enabled",
+        callbackUrl: `${window.location.origin}/api/payments/hubtel/callback`,
+        merchantAccount: parseInt(merchantAccount),
+        basicAuth: basicAuth,
+      };
+
+      console.log('📤 Opening Hubtel modal with:', { 
+        amount: purchaseInfo.amount,
+        description: purchaseInfo.purchaseDescription,
+        phone: purchaseInfo.customerPhoneNumber,
+        reference: purchaseInfo.clientReference
+      });
+
+      // Open Hubtel checkout modal using official SDK
+      checkoutSdkRef.current.openModal({
+        purchaseInfo,
+        config,
+        callBacks: {
+          onInit: () => {
+            console.log('✅ Hubtel checkout initialized');
+            toast.info('Loading payment options...', { duration: 2000 });
+          },
+          onPaymentSuccess: (data: any) => {
+            console.log('✅ Payment succeeded:', data);
+            toast.success('Payment successful! Processing your ticket...');
             
-            if (result.success && result.isPaid) {
-              clearInterval(pollPaymentStatus);
-              
-              // Close modal
-              const modalEl = document.getElementById('hubtel-checkout-modal');
-              if (modalEl) document.body.removeChild(modalEl);
-              document.body.style.overflow = '';
-              
-              // Show success
-              handlePaymentSuccess(clientReference);
+            // Close the modal
+            checkoutSdkRef.current?.closePopUp();
+            
+            // Handle successful payment
+            handlePaymentSuccess(clientReference);
+          },
+          onPaymentFailure: (data: any) => {
+            console.error('❌ Payment failed:', data);
+            toast.error('Payment failed. Please try again.');
+            
+            // Clear pending payment
+            sessionStorage.removeItem('pendingPayment');
+            
+            // Reopen purchase dialog
+            setIsPurchaseDialogOpen(true);
+          },
+          onLoad: () => {
+            console.log('✅ Hubtel checkout loaded');
+            toast.success('Payment page loaded. Select your payment method.', { duration: 3000 });
+          },
+          onFeesChanged: (fees: any) => {
+            console.log('💰 Fees changed:', fees);
+          },
+          onResize: (size: any) => {
+            console.log('📐 Modal resized:', size?.height);
+          },
+          onClose: () => {
+            console.log('❌ Modal closed by user');
+            
+            // Check if payment was completed
+            const pendingPaymentStr = sessionStorage.getItem('pendingPayment');
+            if (pendingPaymentStr) {
+              toast.info('Payment cancelled. Click "Pay Now" to try again.');
+              sessionStorage.removeItem('pendingPayment');
             }
-          } catch (error) {
-            // Ignore verification errors, keep polling
-            console.log('Verification check:', pollCount);
-          }
-        }
-      }, 1000); // Check every second
+          },
+        },
+      });
 
-      // Cleanup after 20 minutes
-      setTimeout(() => {
-        clearInterval(pollPaymentStatus);
-        const modalEl = document.getElementById('hubtel-checkout-modal');
-        if (modalEl) {
-          document.body.removeChild(modalEl);
-          document.body.style.overflow = '';
-          toast.error('Payment session expired. Please try again.');
-        }
-      }, 1200000); // 20 minutes
+      console.log('✅ Hubtel modal opened successfully');
 
     } catch (error: any) {
       console.error('❌ Payment initialization error:', error);

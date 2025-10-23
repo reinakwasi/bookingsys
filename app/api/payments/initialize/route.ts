@@ -51,12 +51,23 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('✅ Hubtel payment initialized successfully');
+    
+    // Get credentials for SDK (safe to send since it's over HTTPS)
+    const apiId = process.env.NEXT_PUBLIC_HUBTEL_API_ID;
+    const apiKey = process.env.HUBTEL_API_KEY;
+    const merchantAccount = process.env.NEXT_PUBLIC_HUBTEL_MERCHANT_ACCOUNT;
+    
+    // Create Basic Auth for SDK
+    const basicAuth = Buffer.from(`${apiId}:${apiKey}`).toString('base64');
+    
     console.log('📤 Sending response:', {
       success: true,
       checkoutUrl: result.data?.checkoutUrl,
       checkoutDirectUrl: result.data?.checkoutDirectUrl,
       checkoutId: result.data?.checkoutId,
-      clientReference: result.data?.clientReference
+      clientReference: result.data?.clientReference,
+      merchantAccount: merchantAccount,
+      hasBasicAuth: !!basicAuth
     });
     
     return NextResponse.json({
@@ -65,7 +76,9 @@ export async function POST(request: NextRequest) {
       checkoutUrl: result.data?.checkoutUrl,
       checkoutDirectUrl: result.data?.checkoutDirectUrl,
       checkoutId: result.data?.checkoutId,
-      clientReference: result.data?.clientReference
+      clientReference: result.data?.clientReference,
+      basicAuth: basicAuth, // For SDK usage
+      merchantAccount: parseInt(merchantAccount || '0') // For SDK usage
     })
 
   } catch (error) {
