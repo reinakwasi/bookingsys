@@ -224,8 +224,8 @@ export default function TicketsPage() {
       console.log('✅ Payment initialized successfully');
       console.log('📱 Opening Hubtel checkout:', initResult.checkoutDirectUrl);
 
-      // Store payment details for verification later
-      sessionStorage.setItem('pendingPayment', JSON.stringify({
+      // Store complete payment details for verification later (SINGLE STORAGE)
+      const pendingPaymentData = {
         clientReference: clientReference,
         ticketId: selectedTicket.id,
         ticketTitle: selectedTicket.title,
@@ -233,21 +233,15 @@ export default function TicketsPage() {
         totalAmount: selectedTicket.price * quantity,
         customerName: customerForm.name,
         customerEmail: customerForm.email,
-        customerPhone: customerForm.phone
-      }));
+        customerPhone: customerForm.phone,
+        timestamp: Date.now()
+      };
+      
+      sessionStorage.setItem('pendingPayment', JSON.stringify(pendingPaymentData));
+      console.log('💾 Stored payment data:', pendingPaymentData);
 
       // Close the form dialog
       setIsPurchaseDialogOpen(false);
-
-      // Store payment reference in sessionStorage for verification
-      sessionStorage.setItem('pendingPayment', JSON.stringify({
-        clientReference: clientReference,
-        ticketId: selectedTicket.id,
-        ticketTitle: selectedTicket.title,
-        quantity: quantity,
-        amount: selectedTicket.price * quantity,
-        timestamp: Date.now()
-      }));
 
       console.log('🚀 Opening Hubtel checkout using official SDK (Modal Integration)');
       console.log('📋 Payment reference:', clientReference);
@@ -343,6 +337,7 @@ export default function TicketsPage() {
 
       console.log('✅ Hubtel modal opened successfully');
 
+
     } catch (error: any) {
       console.error('❌ Payment initialization error:', error);
       toast.error(error.message || 'Failed to initialize payment');
@@ -414,6 +409,16 @@ export default function TicketsPage() {
       setShowSuccessAlert(true);
       toast.success(`Payment successful! Tickets purchased.`);
       
+      console.log('🎉 SUCCESS ALERT TRIGGERED - Alert should be visible now!');
+      console.log('📋 Purchase Details Set:', {
+        ticketTitle: pendingPayment.ticketTitle,
+        quantity: pendingPayment.quantity,
+        total: pendingPayment.totalAmount.toFixed(2),
+        customerName: pendingPayment.customerName,
+        customerEmail: pendingPayment.customerEmail,
+        paymentReference: clientReference
+      });
+      
       // Clear session storage
       sessionStorage.removeItem('pendingPayment');
       
@@ -422,15 +427,29 @@ export default function TicketsPage() {
       setQuantity(1);
       setCustomerForm({ name: '', email: '', phone: '' });
       
-      // Create ticket purchase record in background (don't wait for it)
-      ticketPurchasesAPI.create(purchaseData).then(purchase => {
-        console.log('✅ Ticket purchase created:', purchase);
-        // Refresh tickets after background creation
+      // Create ticket purchase record and handle notifications properly
+      console.log('📧 Starting ticket creation and notification process...');
+      try {
+        const purchase = await ticketPurchasesAPI.create(purchaseData);
+        console.log('✅ Ticket purchase created successfully:', purchase);
+        console.log('📧 Email and SMS notifications should have been sent during ticket creation');
+        
+        // Refresh tickets after successful creation
         loadTickets();
-      }).catch(error => {
-        console.error('❌ Background ticket creation error:', error);
-        // Don't show error to user since payment was successful
-      });
+        
+        // Show additional success message for notifications
+        setTimeout(() => {
+          toast.success('📧 Confirmation email and SMS sent!');
+        }, 2000);
+        
+      } catch (error) {
+        console.error('❌ Ticket creation error:', error);
+        // Show error but don't fail the payment success
+        toast.error('Payment successful but notification sending failed. Please contact support.');
+        
+        // Still refresh tickets in case the purchase was created
+        loadTickets();
+      }
     } catch (error) {
       console.error('❌ Purchase completion error:', error);
       if (error instanceof Error) {

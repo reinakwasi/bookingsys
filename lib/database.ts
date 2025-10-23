@@ -390,8 +390,9 @@ export const ticketPurchasesAPI = {
     console.log('🔗 Generated ticket URL:', ticketUrl);
     
     // Send email notification
+    console.log('📧 Attempting to send email notification...');
     try {
-      await fetch('/api/send-ticket-email', {
+      const emailResponse = await fetch('/api/send-ticket-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -400,10 +401,20 @@ export const ticketPurchasesAPI = {
           customer_email: data.customer_email,
           customer_name: data.customer_name
         })
-      })
+      });
+      
+      const emailResult = await emailResponse.json();
+      
+      if (emailResponse.ok && emailResult.success) {
+        console.log('✅ Email sent successfully:', emailResult);
+      } else {
+        console.error('❌ Email sending failed:', emailResult);
+        throw new Error(emailResult.error || 'Email sending failed');
+      }
     } catch (emailError) {
-      console.error('Failed to send ticket email:', emailError)
-      // Don't fail the purchase if email fails
+      console.error('❌ Failed to send ticket email:', emailError);
+      // Don't fail the purchase if email fails, but log the error
+      console.error('📧 EMAIL NOTIFICATION FAILED - Check environment variables GMAIL_USER and GMAIL_PASS');
     }
     
     // Send SMS notification if phone number is provided
@@ -453,12 +464,22 @@ Email: info@hotel734.com
         const smsResult = await smsResponse.json();
         
         if (smsResult.success) {
-          console.log('✅ SMS sent successfully:', smsResult.messageId);
+          console.log('✅ SMS sent successfully:', {
+            messageId: smsResult.messageId,
+            provider: smsResult.provider,
+            to: smsResult.to?.substring(0, 6) + '***'
+          });
+          
+          if (smsResult.provider?.includes('Fallback')) {
+            console.warn('⚠️ SMS sent via fallback - Check BULKSMS_API_KEY environment variable for real SMS delivery');
+          }
         } else {
           console.error('❌ SMS sending failed:', smsResult.error);
+          throw new Error(smsResult.error || 'SMS sending failed');
         }
       } catch (smsError) {
         console.error('❌ Failed to send SMS:', smsError);
+        console.error('📱 SMS NOTIFICATION FAILED - Check environment variable BULKSMS_API_KEY');
         // Don't fail the purchase if SMS fails
       }
     } else {
