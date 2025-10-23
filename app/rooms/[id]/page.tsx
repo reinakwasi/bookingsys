@@ -18,7 +18,7 @@ const rooms = {
     name: "Royal Suite",
     type: "royal_suite",
     description: "Luxurious room with ocean view and premium amenities",
-    price: 500,
+    price: 350,
     images: [
       { src: "/room1.jpg", alt: "Expensive Room Main" },
       { src: "/view.jpg", alt: "Expensive Room View" },
@@ -40,7 +40,7 @@ const rooms = {
     name: "Superior Room",
     type: "superior_room",
     description: "Comfortable room with modern amenities and city view",
-    price: 250,
+    price: 300,
     images: [
       { src: "/room2.jpg", alt: "Standard Room Main" },
       { src: "/one.jpg", alt: "Standard Room Alt 1" },
@@ -62,7 +62,7 @@ const rooms = {
     name: "Classic Room",
     type: "classic_room",
     description: "Cozy room with essential amenities and garden view",
-    price: 150,
+    price: 250,
     images: [
       { src: "/room3.jpg", alt: "Regular Room Main" },
       { src: "/three.jpg", alt: "Regular Room Alt 1" },

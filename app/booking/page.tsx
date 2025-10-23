@@ -201,13 +201,13 @@ export default function BookingPage() {
   
   function getRoomPrice(roomType: string): number {
     const prices = {
-      'royal_suite': 500,
-      'superior_room': 250,
-      'classic_room': 150,
+      'royal_suite': 350,
+      'superior_room': 300,
+      'classic_room': 250,
       // Legacy support for old names
-      'expensive': 500,
-      'standard': 250,
-      'regular': 150
+      'expensive': 350,
+      'standard': 300,
+      'regular': 250
     }
     return prices[roomType as keyof typeof prices] || 0
   }

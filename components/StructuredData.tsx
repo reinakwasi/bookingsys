@@ -136,7 +136,7 @@ export default function StructuredData({ type = 'hotel', data }: StructuredDataP
               "name": "Royal Suite",
               "description": "Luxury suite with premium amenities",
               "priceCurrency": "GHS",
-              "price": "800",
+              "price": "350",
               "priceValidUntil": "2025-12-31",
               "availability": "https://schema.org/InStock"
             },
@@ -145,7 +145,7 @@ export default function StructuredData({ type = 'hotel', data }: StructuredDataP
               "name": "Superior Room",
               "description": "Comfortable room with modern amenities",
               "priceCurrency": "GHS",
-              "price": "400",
+              "price": "300",
               "priceValidUntil": "2025-12-31",
               "availability": "https://schema.org/InStock"
             },
@@ -154,7 +154,7 @@ export default function StructuredData({ type = 'hotel', data }: StructuredDataP
               "name": "Classic Room",
               "description": "Cozy room with essential amenities",
               "priceCurrency": "GHS",
-              "price": "200",
+              "price": "250",
               "priceValidUntil": "2025-12-31",
               "availability": "https://schema.org/InStock"
             }

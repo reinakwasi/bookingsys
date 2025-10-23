@@ -1,83 +1,75 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { HubtelService } from '@/lib/hubtel'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('Payment initialization request received');
-    const { email, amount, metadata } = await request.json()
-    console.log('Request data:', { email, amount, metadata });
+    console.log('💳 Payment initialization request received');
+    const { amount, description, metadata } = await request.json()
+    console.log('📋 Request data:', { amount, description, metadata });
 
-    if (!email || !amount) {
-      console.error('Missing required fields:', { email: !!email, amount: !!amount });
+    if (!amount || !description) {
+      console.error('❌ Missing required fields:', { amount: !!amount, description: !!description });
       return NextResponse.json(
-        { error: 'Email and amount are required' },
+        { success: false, error: 'Amount and description are required' },
         { status: 400 }
       )
     }
 
-    const paystackSecretKey = process.env.PAYSTACK_SECRET_KEY
-    console.log('Paystack secret key configured:', !!paystackSecretKey);
-    
-    if (!paystackSecretKey) {
-      console.error('Paystack secret key not found in environment variables');
+    // Validate Hubtel configuration
+    const configValidation = HubtelService.validateConfiguration();
+    if (!configValidation.isValid) {
+      console.error('❌ Hubtel configuration error:', configValidation.issues);
       return NextResponse.json(
-        { error: 'Paystack secret key not configured' },
+        { success: false, error: `Hubtel not configured: ${configValidation.issues.join(', ')}` },
         { status: 500 }
       )
     }
 
-    // Initialize payment with Paystack
-    const payloadData = {
-      email,
-      amount: amount * 100, // Convert to kobo (Paystack uses kobo)
-      currency: 'GHS', // Ghana Cedis
-      metadata: {
-        ...metadata,
-        custom_fields: [
-          {
-            display_name: "Hotel 734 Ticket Purchase",
-            variable_name: "ticket_purchase",
-            value: "true"
-          }
-        ],
-        cancel_action: `${process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')}/tickets`
-      },
-      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000')}/tickets?payment=success`,
-      channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
+    // Generate unique client reference
+    const clientReference = metadata?.clientReference || HubtelService.generateClientReference();
+
+    // Initialize payment with Hubtel
+    const paymentData = {
+      totalAmount: amount,
+      description: description,
+      clientReference: clientReference,
+      payeeName: metadata?.customer_name,
+      payeeMobileNumber: metadata?.customer_phone,
+      payeeEmail: metadata?.customer_email,
+      metadata: metadata
     };
-    
-    console.log('Sending to Paystack:', payloadData);
-    
-    const response = await fetch('https://api.paystack.co/transaction/initialize', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${paystackSecretKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payloadData),
-    })
 
-    console.log('Paystack response status:', response.status);
-    const data = await response.json()
-    console.log('Paystack response data:', data);
+    console.log('🚀 Initializing Hubtel payment...');
+    const result = await HubtelService.initializePayment(paymentData);
 
-    if (!response.ok) {
-      console.error('Paystack initialization error:', data)
+    if (!result.success) {
+      console.error('❌ Hubtel initialization failed:', result.error);
       return NextResponse.json(
-        { error: data.message || 'Payment initialization failed' },
-        { status: response.status }
+        { success: false, error: result.error || 'Payment initialization failed' },
+        { status: 400 }
       )
     }
 
+    console.log('✅ Hubtel payment initialized successfully');
+    console.log('📤 Sending response:', {
+      success: true,
+      checkoutUrl: result.data?.checkoutUrl,
+      checkoutDirectUrl: result.data?.checkoutDirectUrl,
+      checkoutId: result.data?.checkoutId,
+      clientReference: result.data?.clientReference
+    });
+    
     return NextResponse.json({
       success: true,
-      data: data.data,
-      authorization_url: data.data.authorization_url,
-      access_code: data.data.access_code,
-      reference: data.data.reference
+      data: result.data,
+      checkoutUrl: result.data?.checkoutUrl,
+      checkoutDirectUrl: result.data?.checkoutDirectUrl,
+      checkoutId: result.data?.checkoutId,
+      clientReference: result.data?.clientReference
     })
 
   } catch (error) {
-    console.error('Payment initialization error:', error)
+    console.error('❌ Payment initialization error:', error)
     console.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : 'No stack trace'
@@ -85,6 +77,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(
       { 
+        success: false,
         error: 'Internal server error',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

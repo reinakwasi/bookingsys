@@ -17,7 +17,7 @@ const featuredRooms = [
     id: 1,
     name: "Classic Room",
     description: "Spacious room with modern amenities and city views",
-    price: 150,
+    price: 250,
     image: "/one.jpg",
     link: "/rooms/1"
   },
@@ -25,7 +25,7 @@ const featuredRooms = [
     id: 2,
     name: "Superior Room",
     description: "Luxurious suite with separate living area and premium services",
-    price: 250,
+    price: 300,
     image: "/two.jpg",
     link: "/rooms/2"
   },
@@ -33,7 +33,7 @@ const featuredRooms = [
     id: 3,
     name: "Royal Suite",
     description: "Ultimate luxury with panoramic views and exclusive amenities",
-    price: 500,
+    price: 350,
     image: "/three.jpg",
     link: "/rooms/3"
   }

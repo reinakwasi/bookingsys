@@ -5,18 +5,19 @@ import Image from "next/image"
 import { ArrowRight, ChevronDown, Star, Sparkles } from "lucide-react"
 
 const headerImages = [
-  "/background.webp",
-  "/poolview1.jpg",
-  "/poolview2.jpg",
-  "/one.jpg",
-  "/two.jpg",
-  "/three.jpg",
-  "/four.jpg",
   "/view.jpg",
+  "/reception.jpg",
+  "/two.jpg",
+  "/darkclub7.jpg",
+  "/one.jpg",
+  "/stairs.jpg",
+  "/poolagyare.jpg",
+  "/pool5.jpg",
+  "/light1.jpg",
   "/pool.jpg",
-  "/cont.jpg",
-  "/backimg2.jpg",
-  "/outline.jpg"
+  "/room7.jpg",
+  "/summer.jpg",
+  "/conference.jpg"
 ]
 
 export default function DynamicHeader() {
@@ -93,7 +94,7 @@ export default function DynamicHeader() {
               src={image}
               alt="Hotel 734 View"
               fill
-              className="object-cover"
+              className="object-cover object-center"
               priority={index === 0}
               style={{
                 transform: isMobile 
