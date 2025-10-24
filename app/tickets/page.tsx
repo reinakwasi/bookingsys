@@ -321,32 +321,56 @@ export default function TicketsPage() {
             console.log('✅ Hubtel checkout loaded');
             toast.success('Payment page loaded. Select your payment method.', { duration: 3000 });
             
-            // Start polling for payment status since Hubtel may not trigger callbacks reliably
+            // Start polling for payment status - check callback confirmation first
             console.log('🔍 Starting payment status polling...');
             const pollInterval = setInterval(async () => {
               try {
                 console.log('🔍 Polling payment status for:', clientReference);
                 
-                const statusResponse = await fetch('/api/payments/verify', {
+                // Check callback confirmation first (more reliable)
+                const callbackResponse = await fetch('/api/payments/verify-callback', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ clientReference: clientReference })
                 });
                 
-                const statusResult = await statusResponse.json();
-                console.log('🔍 Poll result:', statusResult);
+                const callbackResult = await callbackResponse.json();
                 
-                if (statusResult.success && statusResult.isPaid) {
-                  console.log('✅ Payment detected via polling!');
+                if (callbackResult.success && callbackResult.confirmed) {
+                  console.log('✅ Payment detected via callback polling!');
                   clearInterval(pollInterval);
                   
                   // Close modal and trigger success handler
                   checkoutSdkRef.current?.closePopUp();
                   toast.success('Payment successful! Processing your ticket...');
                   handlePaymentSuccess(clientReference);
+                  return;
                 }
+                
+                // Fallback: Check API (will likely fail due to IP whitelisting, but try anyway)
+                const statusResponse = await fetch('/api/payments/verify', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ clientReference: clientReference })
+                });
+                
+                if (statusResponse.ok) {
+                  const statusResult = await statusResponse.json();
+                  
+                  if (statusResult.success && statusResult.isPaid) {
+                    console.log('✅ Payment detected via API polling!');
+                    clearInterval(pollInterval);
+                    
+                    // Close modal and trigger success handler
+                    checkoutSdkRef.current?.closePopUp();
+                    toast.success('Payment successful! Processing your ticket...');
+                    handlePaymentSuccess(clientReference);
+                  }
+                }
+                // Silently ignore 400 errors from API verification (expected due to IP whitelisting)
               } catch (pollError) {
-                console.error('❌ Status polling error:', pollError);
+                // Silently ignore polling errors (expected when API verification fails)
+                console.log('🔍 Polling check complete (callback not found yet)');
               }
             }, 3000); // Poll every 3 seconds
             
@@ -372,7 +396,9 @@ export default function TicketsPage() {
             const pendingPaymentStr = sessionStorage.getItem('pendingPayment');
             if (pendingPaymentStr) {
               // Do one final check before cancelling - check BOTH callback AND API
+              console.log('🔍 ========== MODAL CLOSED - FINAL CHECK ==========');
               console.log('🔍 Doing final status check before cancelling...');
+              console.log('🔍 Client Reference:', clientReference);
               console.log('🔍 Checking callback confirmation first...');
               
               // First check callback confirmation (more reliable)
@@ -381,14 +407,22 @@ export default function TicketsPage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ clientReference: clientReference })
               })
-              .then(res => res.json())
+              .then(res => {
+                console.log('🔍 Callback verify response status:', res.status);
+                return res.json();
+              })
               .then(callbackResult => {
+                console.log('🔍 Callback verify result:', callbackResult);
+                
                 if (callbackResult.success && callbackResult.confirmed) {
                   console.log('✅ Payment detected via callback in final check!');
+                  console.log('🔍 About to call handlePaymentSuccess...');
                   toast.success('Payment successful! Processing your ticket...');
                   handlePaymentSuccess(clientReference);
                 } else {
-                  console.log('🔍 No callback confirmation, trying API verification...');
+                  console.log('⚠️ No callback confirmation found');
+                  console.log('🔍 Callback result details:', JSON.stringify(callbackResult));
+                  console.log('🔍 Trying API verification as fallback...');
                   
                   // Fallback to API verification
                   return fetch('/api/payments/verify', {
@@ -396,14 +430,20 @@ export default function TicketsPage() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ clientReference: clientReference })
                   })
-                  .then(res => res.json())
+                  .then(res => {
+                    console.log('🔍 API verify response status:', res.status);
+                    return res.json();
+                  })
                   .then(result => {
+                    console.log('🔍 API verify result:', result);
+                    
                     if (result.success && result.isPaid) {
                       console.log('✅ Payment detected via API in final check!');
                       toast.success('Payment successful! Processing your ticket...');
                       handlePaymentSuccess(clientReference);
                     } else {
                       console.log('❌ No payment found in final check');
+                      console.log('🔍 API result details:', JSON.stringify(result));
                       toast.info('Payment cancelled. Click "Pay Now" to try again.');
                       sessionStorage.removeItem('pendingPayment');
                     }
@@ -412,9 +452,12 @@ export default function TicketsPage() {
               })
               .catch(err => {
                 console.error('❌ Final check error:', err);
+                console.error('🔍 Error details:', err.message, err.stack);
                 toast.info('Payment cancelled. Click "Pay Now" to try again.');
                 sessionStorage.removeItem('pendingPayment');
               });
+            } else {
+              console.log('🔍 No pending payment in session storage');
             }
           },
         },

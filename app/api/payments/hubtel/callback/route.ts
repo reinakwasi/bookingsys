@@ -72,17 +72,14 @@ export async function POST(request: NextRequest) {
       // Don't rely on frontend SDK callback as it's unreliable when user clicks "Check Status"
       
       console.log('🔍 ========== STARTING TICKET CREATION FROM CALLBACK ==========');
-      console.log('🔍 Retrieving pending payment details from session...');
+      console.log('🔍 Retrieving pending payment details from database...');
       
-      // Get ticket purchase details from database or reconstruct from callback data
-      // We need to find the pending payment details
       try {
-        // The client reference should match what was stored
         const clientRef = parsedData.Data.ClientReference;
         console.log('🔍 Looking for pending payment with reference:', clientRef);
         
         // Check if ticket purchase already exists (avoid duplicates)
-        const { data: existingPurchase, error: checkError } = await supabase
+        const { data: existingPurchase } = await supabase
           .from('ticket_purchases')
           .select('*')
           .eq('payment_reference', clientRef)
@@ -92,15 +89,56 @@ export async function POST(request: NextRequest) {
           console.log('✅ Ticket already created for this payment:', existingPurchase.id);
           console.log('🔍 Skipping duplicate ticket creation');
         } else {
-          console.log('🔍 No existing ticket found, need to create from metadata');
-          console.log('⚠️ NOTE: Cannot create ticket without customer details from frontend');
-          console.log('🔍 Callback confirmation stored - frontend will handle ticket creation');
+          // Get pending payment details
+          const { data: pendingPayment, error: pendingError } = await supabase
+            .from('pending_payments')
+            .select('*')
+            .eq('client_reference', clientRef)
+            .single();
+          
+          if (pendingError || !pendingPayment) {
+            console.error('❌ No pending payment found:', pendingError);
+            console.log('⚠️ Cannot create ticket without pending payment details');
+          } else {
+            console.log('✅ Pending payment found:', pendingPayment);
+            console.log('🔍 Creating ticket purchase...');
+            
+            // Create ticket purchase using ticketPurchasesAPI
+            const { ticketPurchasesAPI } = await import('@/lib/database');
+            
+            const purchaseData = {
+              ticket_id: pendingPayment.ticket_id,
+              customer_name: pendingPayment.customer_name,
+              customer_email: pendingPayment.customer_email,
+              customer_phone: pendingPayment.customer_phone,
+              quantity: pendingPayment.quantity,
+              total_amount: pendingPayment.total_amount,
+              payment_status: 'completed' as const,
+              payment_reference: clientRef,
+              payment_method: 'hubtel'
+            };
+            
+            console.log('🔍 Purchase data:', purchaseData);
+            
+            const purchase = await ticketPurchasesAPI.create(purchaseData);
+            console.log('✅ Ticket created successfully:', purchase.id);
+            console.log('✅ Email and SMS sent via ticketPurchasesAPI.create');
+            
+            // Update pending payment status
+            await supabase
+              .from('pending_payments')
+              .update({ status: 'completed' })
+              .eq('client_reference', clientRef);
+            
+            console.log('✅ Pending payment marked as completed');
+          }
         }
       } catch (ticketError) {
-        console.error('❌ Error checking for existing ticket:', ticketError);
+        console.error('❌ Error creating ticket:', ticketError);
+        console.error('🔍 Error details:', ticketError instanceof Error ? ticketError.message : 'Unknown');
       }
       
-      console.log('🔍 Callback confirmation stored for verification');
+      console.log('🔍 Callback processing complete');
       
       return NextResponse.json({
         success: true,

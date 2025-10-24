@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { HubtelService } from '@/lib/hubtel'
+import { supabase } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,6 +28,34 @@ export async function POST(request: NextRequest) {
 
     // Generate unique client reference
     const clientReference = metadata?.clientReference || HubtelService.generateClientReference();
+
+    // Store pending payment in database so callback can access it
+    console.log('🔍 Storing pending payment in database...');
+    try {
+      const { data: pendingPayment, error: pendingError } = await supabase
+        .from('pending_payments')
+        .insert({
+          client_reference: clientReference,
+          ticket_id: metadata?.ticket_id,
+          ticket_title: metadata?.ticket_title,
+          quantity: metadata?.quantity,
+          total_amount: amount,
+          customer_name: metadata?.customer_name,
+          customer_email: metadata?.customer_email,
+          customer_phone: metadata?.customer_phone,
+          status: 'pending'
+        })
+        .select()
+        .single();
+      
+      if (pendingError) {
+        console.error('❌ Failed to store pending payment:', pendingError);
+      } else {
+        console.log('✅ Pending payment stored:', pendingPayment.id);
+      }
+    } catch (dbError) {
+      console.error('❌ Database error storing pending payment:', dbError);
+    }
 
     // Initialize payment with Hubtel
     const paymentData = {
