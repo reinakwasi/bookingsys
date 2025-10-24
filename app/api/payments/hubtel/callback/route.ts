@@ -35,13 +35,15 @@ export async function POST(request: NextRequest) {
 
     // Check if payment was successful
     if (parsedData.ResponseCode === '0000' && parsedData.Data.Status === 'Success') {
-      console.log('✅ Payment successful:', parsedData.Data.ClientReference);
+      console.log('✅ Payment successful via callback:', parsedData.Data.ClientReference);
+      console.log('🔍 Hubtel callback received for successful payment');
       
-      // Here you can add logic to:
-      // 1. Update ticket purchase record in database
-      // 2. Send confirmation email/SMS
-      // 3. Generate QR codes
-      // 4. Update inventory
+      // Note: The main ticket creation and notification sending happens in the frontend
+      // handlePaymentSuccess function when the Hubtel SDK triggers the onPaymentSuccess callback.
+      // This server-side callback is mainly for logging and backup processing.
+      
+      console.log('🔍 Frontend should handle ticket creation via SDK callback');
+      console.log('🔍 If frontend fails, consider implementing backup logic here');
       
       return NextResponse.json({
         success: true,
