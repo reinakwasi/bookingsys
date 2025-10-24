@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { HubtelService } from '@/lib/hubtel'
+import { supabase } from '@/lib/supabase'
 
 /**
  * Hubtel Payment Callback Endpoint
@@ -38,12 +39,38 @@ export async function POST(request: NextRequest) {
       console.log('✅ Payment successful via callback:', parsedData.Data.ClientReference);
       console.log('🔍 Hubtel callback received for successful payment');
       
+      // SECURITY: Store callback confirmation in database for alternative verification
+      try {
+        const { data: callbackRecord, error: insertError } = await supabase
+          .from('payment_callbacks')
+          .insert({
+            client_reference: parsedData.Data.ClientReference,
+            checkout_id: parsedData.Data.CheckoutId,
+            amount: parsedData.Data.Amount,
+            status: parsedData.Data.Status,
+            payment_type: parsedData.Data.PaymentDetails.PaymentType,
+            channel: parsedData.Data.PaymentDetails.Channel,
+            response_code: parsedData.ResponseCode,
+            raw_callback_data: JSON.stringify(parsedData)
+          })
+          .select()
+          .single();
+        
+        if (insertError) {
+          console.error('❌ Failed to store callback confirmation:', insertError);
+        } else {
+          console.log('✅ Callback confirmation stored in database:', callbackRecord.id);
+        }
+      } catch (dbError) {
+        console.error('❌ Database error storing callback:', dbError);
+      }
+      
       // Note: The main ticket creation and notification sending happens in the frontend
       // handlePaymentSuccess function when the Hubtel SDK triggers the onPaymentSuccess callback.
       // This server-side callback is mainly for logging and backup processing.
       
       console.log('🔍 Frontend should handle ticket creation via SDK callback');
-      console.log('🔍 If frontend fails, consider implementing backup logic here');
+      console.log('🔍 Callback confirmation stored for alternative verification');
       
       return NextResponse.json({
         success: true,

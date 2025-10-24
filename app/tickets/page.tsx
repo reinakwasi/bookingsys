@@ -393,28 +393,65 @@ export default function TicketsPage() {
       console.log('🔍 Verification success:', verificationResult.success);
       console.log('🔍 Payment isPaid:', verificationResult.isPaid);
       
-      // Check verification result but don't fail completely if it's just IP whitelisting issue
+      // SECURITY: Proper payment verification - DO NOT bypass without confirmation
       let paymentVerified = false;
+      let verificationMethod = 'none';
+      
       if (verificationResult.success && verificationResult.isPaid) {
-        console.log('✅ Payment verification successful!');
+        console.log('✅ Payment verification successful via API!');
         paymentVerified = true;
+        verificationMethod = 'api';
       } else {
-        console.warn('⚠️ Payment verification failed, but continuing with success flow');
-        console.warn('🔍 Verification result:', verificationResult);
+        console.error('❌ Payment verification failed via API:', verificationResult);
         
-        // Check if it's an IP whitelisting issue
-        if (verificationResult.error && verificationResult.error.includes('IP')) {
-          console.warn('🔍 IP whitelisting issue detected - proceeding anyway since Hubtel SDK confirmed success');
-          paymentVerified = true; // Trust the SDK callback
+        // Check if it's specifically an IP whitelisting issue
+        if (verificationResult.error && (verificationResult.error.includes('IP') || verificationResult.error.includes('whitelisted'))) {
+          console.warn('⚠️ IP whitelisting issue detected - need alternative verification');
+          
+          // ALTERNATIVE VERIFICATION: Use Hubtel callback confirmation
+          // We'll implement a database check to see if Hubtel callback confirmed this payment
+          console.log('🔍 Attempting alternative verification via callback confirmation...');
+          
+          try {
+            // Check if we have a callback confirmation for this payment
+            const callbackVerifyResponse = await fetch('/api/payments/verify-callback', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ clientReference: clientReference })
+            });
+            
+            const callbackResult = await callbackVerifyResponse.json();
+            console.log('🔍 Callback verification result:', callbackResult);
+            
+            if (callbackResult.success && callbackResult.confirmed) {
+              console.log('✅ Payment verified via Hubtel callback confirmation!');
+              paymentVerified = true;
+              verificationMethod = 'callback';
+            } else {
+              console.error('❌ No callback confirmation found for this payment');
+              toast.error('Payment verification failed. Please contact support with reference: ' + clientReference);
+              return;
+            }
+          } catch (callbackError) {
+            console.error('❌ Callback verification failed:', callbackError);
+            toast.error('Payment verification failed. Please contact support.');
+            return;
+          }
         } else {
-          console.warn('🔍 Unknown verification issue - proceeding anyway since Hubtel SDK confirmed success');
-          paymentVerified = true; // Trust the SDK callback
+          console.error('❌ Payment verification failed - unknown error:', verificationResult);
+          toast.error('Payment verification failed. Please contact support.');
+          return;
         }
       }
       
-      console.log('✅ Proceeding with ticket creation...');
-      console.log('🔍 Payment verified via API:', paymentVerified);
-      console.log('🔍 Trusting Hubtel SDK success callback');
+      if (!paymentVerified) {
+        console.error('❌ SECURITY: Payment not verified - stopping ticket creation');
+        toast.error('Payment could not be verified. Please contact support.');
+        return;
+      }
+      
+      console.log('✅ Payment successfully verified via:', verificationMethod);
+      console.log('✅ Proceeding with secure ticket creation...');
 
       // Create ticket purchase record
       const purchaseData = {
