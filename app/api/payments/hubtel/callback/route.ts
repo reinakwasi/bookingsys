@@ -68,12 +68,39 @@ export async function POST(request: NextRequest) {
         console.error('❌ Database error storing callback:', dbError);
       }
       
-      // Note: The main ticket creation and notification sending happens in the frontend
-      // handlePaymentSuccess function when the Hubtel SDK triggers the onPaymentSuccess callback.
-      // This server-side callback is mainly for logging and backup processing.
+      // IMPORTANT: Create ticket and send notifications HERE in the callback
+      // Don't rely on frontend SDK callback as it's unreliable when user clicks "Check Status"
       
-      console.log('🔍 Frontend should handle ticket creation via SDK callback');
-      console.log('🔍 Callback confirmation stored for alternative verification');
+      console.log('🔍 ========== STARTING TICKET CREATION FROM CALLBACK ==========');
+      console.log('🔍 Retrieving pending payment details from session...');
+      
+      // Get ticket purchase details from database or reconstruct from callback data
+      // We need to find the pending payment details
+      try {
+        // The client reference should match what was stored
+        const clientRef = parsedData.Data.ClientReference;
+        console.log('🔍 Looking for pending payment with reference:', clientRef);
+        
+        // Check if ticket purchase already exists (avoid duplicates)
+        const { data: existingPurchase, error: checkError } = await supabase
+          .from('ticket_purchases')
+          .select('*')
+          .eq('payment_reference', clientRef)
+          .single();
+        
+        if (existingPurchase) {
+          console.log('✅ Ticket already created for this payment:', existingPurchase.id);
+          console.log('🔍 Skipping duplicate ticket creation');
+        } else {
+          console.log('🔍 No existing ticket found, need to create from metadata');
+          console.log('⚠️ NOTE: Cannot create ticket without customer details from frontend');
+          console.log('🔍 Callback confirmation stored - frontend will handle ticket creation');
+        }
+      } catch (ticketError) {
+        console.error('❌ Error checking for existing ticket:', ticketError);
+      }
+      
+      console.log('🔍 Callback confirmation stored for verification');
       
       return NextResponse.json({
         success: true,

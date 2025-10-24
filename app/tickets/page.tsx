@@ -371,24 +371,43 @@ export default function TicketsPage() {
             // Check if payment was completed
             const pendingPaymentStr = sessionStorage.getItem('pendingPayment');
             if (pendingPaymentStr) {
-              // Do one final check before cancelling
+              // Do one final check before cancelling - check BOTH callback AND API
               console.log('🔍 Doing final status check before cancelling...');
+              console.log('🔍 Checking callback confirmation first...');
               
-              fetch('/api/payments/verify', {
+              // First check callback confirmation (more reliable)
+              fetch('/api/payments/verify-callback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ clientReference: clientReference })
               })
               .then(res => res.json())
-              .then(result => {
-                if (result.success && result.isPaid) {
-                  console.log('✅ Payment detected in final check!');
+              .then(callbackResult => {
+                if (callbackResult.success && callbackResult.confirmed) {
+                  console.log('✅ Payment detected via callback in final check!');
                   toast.success('Payment successful! Processing your ticket...');
                   handlePaymentSuccess(clientReference);
                 } else {
-                  console.log('❌ No payment found in final check');
-                  toast.info('Payment cancelled. Click "Pay Now" to try again.');
-                  sessionStorage.removeItem('pendingPayment');
+                  console.log('🔍 No callback confirmation, trying API verification...');
+                  
+                  // Fallback to API verification
+                  return fetch('/api/payments/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ clientReference: clientReference })
+                  })
+                  .then(res => res.json())
+                  .then(result => {
+                    if (result.success && result.isPaid) {
+                      console.log('✅ Payment detected via API in final check!');
+                      toast.success('Payment successful! Processing your ticket...');
+                      handlePaymentSuccess(clientReference);
+                    } else {
+                      console.log('❌ No payment found in final check');
+                      toast.info('Payment cancelled. Click "Pay Now" to try again.');
+                      sessionStorage.removeItem('pendingPayment');
+                    }
+                  });
                 }
               })
               .catch(err => {
