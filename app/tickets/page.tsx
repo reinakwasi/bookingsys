@@ -320,6 +320,38 @@ export default function TicketsPage() {
           onLoad: () => {
             console.log('✅ Hubtel checkout loaded');
             toast.success('Payment page loaded. Select your payment method.', { duration: 3000 });
+            
+            // Start polling for payment status since Hubtel may not trigger callbacks reliably
+            console.log('🔍 Starting payment status polling...');
+            const pollInterval = setInterval(async () => {
+              try {
+                console.log('🔍 Polling payment status for:', clientReference);
+                
+                const statusResponse = await fetch('/api/payments/verify', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ clientReference: clientReference })
+                });
+                
+                const statusResult = await statusResponse.json();
+                console.log('🔍 Poll result:', statusResult);
+                
+                if (statusResult.success && statusResult.isPaid) {
+                  console.log('✅ Payment detected via polling!');
+                  clearInterval(pollInterval);
+                  
+                  // Close modal and trigger success handler
+                  checkoutSdkRef.current?.closePopUp();
+                  toast.success('Payment successful! Processing your ticket...');
+                  handlePaymentSuccess(clientReference);
+                }
+              } catch (pollError) {
+                console.error('❌ Status polling error:', pollError);
+              }
+            }, 3000); // Poll every 3 seconds
+            
+            // Store interval ID to clear later
+            (window as any).hubtelPollInterval = pollInterval;
           },
           onFeesChanged: (fees: any) => {
             console.log('💰 Fees changed:', fees);
@@ -330,11 +362,40 @@ export default function TicketsPage() {
           onClose: () => {
             console.log('❌ Modal closed by user');
             
+            // Clear polling interval
+            if ((window as any).hubtelPollInterval) {
+              clearInterval((window as any).hubtelPollInterval);
+              console.log('🔍 Stopped payment status polling');
+            }
+            
             // Check if payment was completed
             const pendingPaymentStr = sessionStorage.getItem('pendingPayment');
             if (pendingPaymentStr) {
-              toast.info('Payment cancelled. Click "Pay Now" to try again.');
-              sessionStorage.removeItem('pendingPayment');
+              // Do one final check before cancelling
+              console.log('🔍 Doing final status check before cancelling...');
+              
+              fetch('/api/payments/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ clientReference: clientReference })
+              })
+              .then(res => res.json())
+              .then(result => {
+                if (result.success && result.isPaid) {
+                  console.log('✅ Payment detected in final check!');
+                  toast.success('Payment successful! Processing your ticket...');
+                  handlePaymentSuccess(clientReference);
+                } else {
+                  console.log('❌ No payment found in final check');
+                  toast.info('Payment cancelled. Click "Pay Now" to try again.');
+                  sessionStorage.removeItem('pendingPayment');
+                }
+              })
+              .catch(err => {
+                console.error('❌ Final check error:', err);
+                toast.info('Payment cancelled. Click "Pay Now" to try again.');
+                sessionStorage.removeItem('pendingPayment');
+              });
             }
           },
         },
@@ -373,80 +434,66 @@ export default function TicketsPage() {
         return;
       }
 
-      // Verify payment with backend
-      console.log('🔍 Verifying payment with backend...');
-      console.log('🔍 Verification request:', { clientReference });
-      
-      const verifyResponse = await fetch('/api/payments/verify', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          clientReference: clientReference
-        })
-      });
-
-      console.log('🔍 Verify response status:', verifyResponse.status, verifyResponse.statusText);
-      const verificationResult = await verifyResponse.json();
-      console.log('📋 Payment verification response:', verificationResult);
-      console.log('🔍 Verification success:', verificationResult.success);
-      console.log('🔍 Payment isPaid:', verificationResult.isPaid);
-      
-      // SECURITY: Proper payment verification - DO NOT bypass without confirmation
+      // SECURITY: Proper payment verification with multiple methods
+      console.log('🔍 Starting payment verification...');
       let paymentVerified = false;
       let verificationMethod = 'none';
+      let paymentMethodName = 'Hubtel';
       
-      if (verificationResult.success && verificationResult.isPaid) {
-        console.log('✅ Payment verification successful via API!');
-        paymentVerified = true;
-        verificationMethod = 'api';
-      } else {
-        console.error('❌ Payment verification failed via API:', verificationResult);
+      // METHOD 1: Try callback verification first (faster and works without IP whitelisting)
+      console.log('🔍 METHOD 1: Checking callback confirmation...');
+      try {
+        const callbackVerifyResponse = await fetch('/api/payments/verify-callback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ clientReference: clientReference })
+        });
         
-        // Check if it's specifically an IP whitelisting issue
-        if (verificationResult.error && (verificationResult.error.includes('IP') || verificationResult.error.includes('whitelisted'))) {
-          console.warn('⚠️ IP whitelisting issue detected - need alternative verification');
-          
-          // ALTERNATIVE VERIFICATION: Use Hubtel callback confirmation
-          // We'll implement a database check to see if Hubtel callback confirmed this payment
-          console.log('🔍 Attempting alternative verification via callback confirmation...');
-          
-          try {
-            // Check if we have a callback confirmation for this payment
-            const callbackVerifyResponse = await fetch('/api/payments/verify-callback', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ clientReference: clientReference })
-            });
-            
-            const callbackResult = await callbackVerifyResponse.json();
-            console.log('🔍 Callback verification result:', callbackResult);
-            
-            if (callbackResult.success && callbackResult.confirmed) {
-              console.log('✅ Payment verified via Hubtel callback confirmation!');
-              paymentVerified = true;
-              verificationMethod = 'callback';
-            } else {
-              console.error('❌ No callback confirmation found for this payment');
-              toast.error('Payment verification failed. Please contact support with reference: ' + clientReference);
-              return;
-            }
-          } catch (callbackError) {
-            console.error('❌ Callback verification failed:', callbackError);
-            toast.error('Payment verification failed. Please contact support.');
-            return;
-          }
+        const callbackResult = await callbackVerifyResponse.json();
+        console.log('🔍 Callback verification result:', callbackResult);
+        
+        if (callbackResult.success && callbackResult.confirmed) {
+          console.log('✅ Payment verified via Hubtel callback confirmation!');
+          paymentVerified = true;
+          verificationMethod = 'callback';
         } else {
-          console.error('❌ Payment verification failed - unknown error:', verificationResult);
-          toast.error('Payment verification failed. Please contact support.');
-          return;
+          console.log('🔍 No callback confirmation yet, trying API...');
+        }
+      } catch (callbackError) {
+        console.log('🔍 Callback check failed, trying API...', callbackError);
+      }
+      
+      // METHOD 2: If callback didn't work, try direct API verification
+      if (!paymentVerified) {
+        console.log('🔍 METHOD 2: Trying Hubtel API verification...');
+        try {
+          const verifyResponse = await fetch('/api/payments/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clientReference: clientReference })
+          });
+
+          console.log('🔍 Verify response status:', verifyResponse.status, verifyResponse.statusText);
+          const verificationResult = await verifyResponse.json();
+          console.log('📋 API verification response:', verificationResult);
+          
+          if (verificationResult.success && verificationResult.isPaid) {
+            console.log('✅ Payment verification successful via API!');
+            paymentVerified = true;
+            verificationMethod = 'api';
+          } else {
+            console.warn('⚠️ API verification failed:', verificationResult.error);
+          }
+        } catch (apiError) {
+          console.error('❌ API verification error:', apiError);
         }
       }
       
+      // SECURITY CHECK: Must be verified by at least one method
       if (!paymentVerified) {
-        console.error('❌ SECURITY: Payment not verified - stopping ticket creation');
-        toast.error('Payment could not be verified. Please contact support.');
+        console.error('❌ SECURITY: Payment not verified by any method - stopping ticket creation');
+        console.error('🔍 Reference:', clientReference);
+        toast.error('Payment verification failed. Your payment is safe. Please contact support with reference: ' + clientReference.substring(0, 20));
         return;
       }
       
@@ -474,7 +521,7 @@ export default function TicketsPage() {
         customerName: pendingPayment.customerName,
         customerEmail: pendingPayment.customerEmail,
         paymentReference: clientReference,
-        paymentMethod: HubtelService.getPaymentMethodName(verificationResult.data?.paymentMethod || 'hubtel')
+        paymentMethod: HubtelService.getPaymentMethodName(paymentMethodName || 'hubtel')
       });
       
       // Show success alert immediately - no delay

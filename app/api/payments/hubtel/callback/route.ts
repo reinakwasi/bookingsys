@@ -8,7 +8,10 @@ import { supabase } from '@/lib/supabase'
  */
 export async function POST(request: NextRequest) {
   try {
-    console.log('📞 Hubtel callback received');
+    console.log('🔊 🔊 🔊 HUBTEL CALLBACK ENDPOINT HIT! 🔊 🔊 🔊');
+    console.log('📞 Hubtel callback received at:', new Date().toISOString());
+    console.log('🌍 Request origin:', request.headers.get('origin'));
+    console.log('🌍 Request host:', request.headers.get('host'));
     
     const callbackData = await request.json();
     console.log('📥 Callback data:', JSON.stringify(callbackData, null, 2));
