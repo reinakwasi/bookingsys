@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { HubtelService } from '@/lib/hubtel'
+import { PaystackService } from '@/lib/paystack'
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,58 +15,57 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate Hubtel configuration
-    const configValidation = HubtelService.validateConfiguration();
+    // Validate Paystack configuration
+    const configValidation = PaystackService.validateConfiguration();
     if (!configValidation.isValid) {
-      console.error('❌ Hubtel configuration error:', configValidation.issues);
+      console.error('❌ Paystack configuration error:', configValidation.issues);
       return NextResponse.json(
-        { success: false, error: `Hubtel not configured: ${configValidation.issues.join(', ')}` },
+        { success: false, error: `Paystack not configured: ${configValidation.issues.join(', ')}` },
         { status: 500 }
       )
     }
 
-    // Generate unique client reference (max 32 chars for Hubtel)
-    const clientReference = metadata?.reference || HubtelService.generateClientReference();
+    // Generate unique reference for Paystack
+    const reference = metadata?.reference || PaystackService.generateReference();
 
-    // Initialize payment with Hubtel
+    // Initialize payment with Paystack
     const paymentData = {
-      totalAmount: amount,
-      description: metadata?.description || `Payment for ${metadata?.ticket_title || 'Hotel 734 Service'}`,
-      clientReference: clientReference,
-      payeeName: customerName,
-      payeeMobileNumber: customerPhone,
-      payeeEmail: email,
-      metadata: metadata
+      amount: amount,
+      email: email,
+      reference: reference,
+      metadata: {
+        ...metadata,
+        customer_name: customerName,
+        customer_phone: customerPhone
+      }
     };
 
-    console.log('🚀 Initializing Hubtel payment...');
-    const result = await HubtelService.initializePayment(paymentData);
+    console.log('🚀 Initializing Paystack payment...');
+    const result = await PaystackService.initializePayment(paymentData);
 
     if (!result.success) {
-      console.error('❌ Hubtel initialization failed:', result.error);
+      console.error('❌ Paystack initialization failed:', result.error);
       return NextResponse.json(
         { success: false, error: result.error || 'Payment initialization failed' },
         { status: 400 }
       )
     }
 
-    console.log('✅ Hubtel payment initialized successfully');
+    console.log('✅ Paystack payment initialized successfully');
     
     console.log('📤 Sending response:', {
       success: true,
-      checkoutUrl: result.data?.checkoutUrl,
-      checkoutId: result.data?.checkoutId,
-      clientReference: result.data?.clientReference
+      authorization_url: result.data?.authorization_url,
+      access_code: result.data?.access_code,
+      reference: result.data?.reference
     });
     
     return NextResponse.json({
       success: true,
       data: result.data,
-      authorization_url: result.data?.checkoutUrl, // For compatibility
-      checkoutUrl: result.data?.checkoutUrl, // Redirect URL
-      checkoutDirectUrl: result.data?.checkoutDirectUrl, // Onsite/iframe URL
-      checkoutId: result.data?.checkoutId,
-      reference: result.data?.clientReference
+      authorization_url: result.data?.authorization_url,
+      access_code: result.data?.access_code,
+      reference: result.data?.reference
     })
 
   } catch (error) {

@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calendar, Clock, DollarSign, Users, MapPin, Minus, Plus, CheckCircle, X, Sparkles, CreditCard } from "lucide-react";
 import { toast } from "sonner";
-import { HubtelService } from "@/lib/hubtel";
+import { PaystackService } from "@/lib/paystack";
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -31,13 +31,13 @@ export default function TicketsPage() {
   useEffect(() => {
     loadTickets();
     
-    // Check Hubtel configuration (client-side check only)
-    console.log('💳 Checking Hubtel configuration...');
-    const configValidation = HubtelService.validateClientConfiguration();
+    // Check Paystack configuration (client-side check only)
+    console.log('💳 Checking Paystack configuration...');
+    const configValidation = PaystackService.validateClientConfiguration();
     if (!configValidation.isValid) {
-      console.error('❌ Hubtel configuration issues:', configValidation.issues);
+      console.error('❌ Paystack configuration issues:', configValidation.issues);
     } else {
-      console.log('✅ Hubtel client configuration is properly set');
+      console.log('✅ Paystack client configuration is properly set');
     }
 
     // Listen for messages from popup window
@@ -156,19 +156,18 @@ export default function TicketsPage() {
     setIsProcessingPayment(true);
     
     try {
-      // Validate Hubtel configuration (client-side check)
-      const configValidation = HubtelService.validateClientConfiguration();
+      // Validate Paystack configuration (client-side check)
+      const configValidation = PaystackService.validateClientConfiguration();
       if (!configValidation.isValid) {
         throw new Error(`Payment system not configured: ${configValidation.issues.join(', ')}`);
       }
 
-      // Generate unique reference for this payment attempt (max 32 chars for Hubtel)
-      const shortTicketId = selectedTicket.id.substring(0, 8);
-      const reference = HubtelService.generateClientReference(`TKT${shortTicketId}`);
+      // Generate unique reference for this payment attempt
+      const reference = PaystackService.generateReference(`TKT${selectedTicket.id.substring(0, 8)}`);
       
-      console.log('🚀 Initializing Hubtel payment with reference:', reference);
+      console.log('🚀 Initializing Paystack payment with reference:', reference);
 
-      // Initialize payment with Hubtel via API
+      // Initialize payment with Paystack via API
       const response = await fetch('/api/payments/initialize', {
         method: 'POST',
         headers: {
@@ -213,12 +212,12 @@ export default function TicketsPage() {
         throw new Error('Invalid response from payment API. Please check server logs.');
       }
 
-      if (!initResult.success || !initResult.checkoutUrl) {
+      if (!initResult.success || !initResult.authorization_url) {
         throw new Error(initResult.error || 'Failed to initialize payment');
       }
 
       console.log('✅ Payment initialized successfully');
-      console.log('🔗 Hubtel checkout URL:', initResult.checkoutUrl);
+      console.log('🔗 Paystack authorization URL:', initResult.authorization_url);
 
       // Store payment details for verification later
       sessionStorage.setItem('pendingPayment', JSON.stringify({
@@ -236,252 +235,53 @@ export default function TicketsPage() {
       setIsPurchaseDialogOpen(false);
 
       // Show loading message
-      toast.info('Opening Hubtel payment...');
+      toast.info('Opening Paystack payment...');
 
-      // Open Hubtel Onsite Checkout in iframe/modal
-      console.log('🚀 Opening Hubtel Onsite Checkout');
-      
-      // Use checkoutDirectUrl for onsite (iframe) checkout
-      const checkoutUrl = initResult.checkoutDirectUrl || initResult.checkoutUrl;
-      
-      // Create iframe modal for Hubtel checkout
-      const modal = document.createElement('div');
-      modal.id = 'hubtel-checkout-modal';
-      modal.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.8);
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-      `;
+      // Load Paystack inline script if not already loaded
+      if (!window.PaystackPop) {
+        const script = document.createElement('script');
+        script.src = 'https://js.paystack.co/v1/inline.js';
+        script.onload = () => {
+          openPaystackPopup();
+        };
+        document.head.appendChild(script);
+      } else {
+        openPaystackPopup();
+      }
 
-      const iframe = document.createElement('iframe');
-      iframe.src = checkoutUrl;
-      iframe.style.cssText = `
-        width: 100%;
-        max-width: 500px;
-        height: 90vh;
-        max-height: 700px;
-        border: none;
-        border-radius: 12px;
-        background: white;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-      `;
-
-      // Close button
-      const closeBtn = document.createElement('button');
-      closeBtn.innerHTML = '✕';
-      closeBtn.style.cssText = `
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        width: 40px;
-        height: 40px;
-        border: none;
-        border-radius: 50%;
-        background: white;
-        color: #1a233b;
-        font-size: 24px;
-        cursor: pointer;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        z-index: 10000;
-      `;
-      closeBtn.onclick = async () => {
-        // Before closing, check if payment was completed
-        console.log('🔄 User closing payment modal - checking for completed payment...');
+      function openPaystackPopup() {
+        console.log('🚀 Opening Paystack popup');
         
-        try {
-          // Quick payment verification check
-          const verifyResponse = await fetch('/api/payments/verify', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              reference: reference
-            })
-          });
-
-          let verificationResult;
-          try {
-            verificationResult = await verifyResponse.json();
-          } catch (jsonError) {
-            console.log('⚠️ Failed to parse verification response on close:', jsonError);
-            throw new Error('Invalid verification response');
+        const handler = window.PaystackPop.setup({
+          key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+          email: customerForm.email,
+          amount: Math.round((selectedTicket.price * quantity) * 100), // Convert to pesewas
+          currency: 'GHS', // Ghana Cedis
+          ref: reference,
+          metadata: {
+            ticket_id: selectedTicket.id,
+            ticket_title: selectedTicket.title,
+            quantity: quantity,
+            customer_name: customerForm.name,
+            customer_phone: customerForm.phone,
+            description: `${quantity}x ${selectedTicket.title} - Hotel 734`
+          },
+          callback: function(response: any) {
+            console.log('✅ Paystack payment successful:', response);
+            toast.success('Payment completed successfully!');
+            
+            // Verify payment on server
+            handlePaymentSuccess(response.reference);
+          },
+          onClose: function() {
+            console.log('❌ Paystack popup closed');
+            toast.info('Payment cancelled. Click "Pay Now" to try again.');
+            setIsProcessingPayment(false);
           }
-          
-          if (verificationResult.success && verificationResult.isPaid) {
-            console.log('✅ Payment was completed! Processing...');
-            
-            // Payment was successful, process it
-            document.body.removeChild(modal);
-            handlePaymentSuccess(reference);
-            return;
-          } else {
-            // Log verification failure details
-            console.log('⚠️ Payment verification failed on close:', verificationResult);
-            if (verificationResult.responseCode === 'IP_NOT_WHITELISTED') {
-              console.log('📝 IP whitelisting required for payment verification');
-            }
-          }
-        } catch (error) {
-          console.log('⚠️ Could not verify payment on close:', error);
-        }
-        
-        // Payment not completed or verification failed
-        document.body.removeChild(modal);
-        toast.info('Payment cancelled. Click "Pay Now" to try again.');
-        setIsProcessingPayment(false);
-      };
+        });
 
-      modal.appendChild(closeBtn);
-      modal.appendChild(iframe);
-      document.body.appendChild(modal);
-
-      // Hubtel completion detection - check iframe URL changes and user interaction
-      let paymentCompleted = false;
-      let checkCount = 0;
-      const maxChecks = 300; // 5 minutes max (300 * 1000ms)
-      
-      const checkPaymentCompletion = async () => {
-        checkCount++;
-        
-        if (paymentCompleted || checkCount > maxChecks) {
-          return;
-        }
-        
-        try {
-          // Check if iframe URL contains success indicators
-          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
-          if (iframeDoc) {
-            const currentUrl = iframe.contentWindow?.location?.href || '';
-            const bodyText = iframeDoc.body?.innerText?.toLowerCase() || '';
-            
-            // Look for success indicators in URL or page content
-            const successIndicators = [
-              'success', 'completed', 'approved', 'confirmed',
-              'thank you', 'payment successful', 'transaction successful'
-            ];
-            
-            const hasSuccessIndicator = successIndicators.some(indicator => 
-              currentUrl.toLowerCase().includes(indicator) || 
-              bodyText.includes(indicator)
-            );
-            
-            if (hasSuccessIndicator) {
-              console.log('✅ Payment completion detected via iframe content');
-              paymentCompleted = true;
-              
-              // Remove modal
-              const modalElement = document.getElementById('hubtel-checkout-modal');
-              if (modalElement) {
-                document.body.removeChild(modalElement);
-              }
-              
-              // Verify payment
-              handlePaymentSuccess(reference);
-              return;
-            }
-          }
-        } catch (error) {
-          // Cross-origin restrictions - this is expected
-          console.log('🔒 Cross-origin iframe access (normal for Hubtel)');
-        }
-        
-        // Continue checking
-        setTimeout(checkPaymentCompletion, 1000);
-      };
-      
-      // Start checking after 3 seconds (give time for iframe to load)
-      setTimeout(checkPaymentCompletion, 3000);
-      
-      // Add manual completion button after 30 seconds
-      setTimeout(() => {
-        if (!paymentCompleted) {
-          const manualBtn = document.createElement('button');
-          manualBtn.innerHTML = '✅ I completed payment';
-          manualBtn.style.cssText = `
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 24px;
-            background: #10B981;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            z-index: 10001;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
-          `;
-          manualBtn.onclick = () => {
-            console.log('✅ Manual payment completion triggered');
-            paymentCompleted = true;
-            
-            // Remove modal
-            const modalElement = document.getElementById('hubtel-checkout-modal');
-            if (modalElement) {
-              document.body.removeChild(modalElement);
-            }
-            
-            // Verify payment
-            handlePaymentSuccess(reference);
-          };
-          
-          modal.appendChild(manualBtn);
-          
-          // Show instruction
-          toast.info('Complete your payment in the popup, then click "I completed payment"', {
-            duration: 10000
-          });
-        }
-      }, 30000); // Show after 30 seconds
-      
-      // Listen for any postMessage events (in case Hubtel does send them)
-      const handlePaymentMessage = (event: MessageEvent) => {
-        if (paymentCompleted) return;
-        
-        // Check for various success message formats
-        if (event.data && (
-          event.data.type === 'hubtel-payment-complete' ||
-          event.data.type === 'payment-success' ||
-          event.data.status === 'success' ||
-          event.data.success === true
-        )) {
-          console.log('✅ Payment completed (from postMessage):', event.data);
-          paymentCompleted = true;
-          
-          // Remove modal
-          const modalElement = document.getElementById('hubtel-checkout-modal');
-          if (modalElement) {
-            document.body.removeChild(modalElement);
-          }
-          
-          // Verify payment
-          handlePaymentSuccess(reference);
-          
-          // Remove listener
-          window.removeEventListener('message', handlePaymentMessage);
-        }
-      };
-
-      window.addEventListener('message', handlePaymentMessage);
-      
-      // Cleanup function
-      const cleanup = () => {
-        paymentCompleted = true;
-        window.removeEventListener('message', handlePaymentMessage);
-      };
-      
-      // Auto-cleanup after 10 minutes
-      setTimeout(cleanup, 600000);
+        handler.openIframe();
+      }
 
     } catch (error: any) {
       console.error('❌ Payment initialization error:', error);
@@ -573,7 +373,7 @@ export default function TicketsPage() {
         customerName: pendingPayment.customerName,
         customerEmail: pendingPayment.customerEmail,
         paymentReference: reference,
-        paymentMethod: HubtelService.getPaymentMethodName(verificationResult.data?.paymentMethod || 'hubtel')
+        paymentMethod: PaystackService.getPaymentMethodName(verificationResult.data?.channel || 'paystack')
       });
       
       // Show success alert immediately - no delay

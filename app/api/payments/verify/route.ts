@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { HubtelService } from '@/lib/hubtel'
+import { PaystackService } from '@/lib/paystack'
 
 /**
  * Hubtel Payment Verification Endpoint
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate Hubtel configuration
-    const configValidation = HubtelService.validateConfiguration();
+    const configValidation = PaystackService.validateConfiguration();
     if (!configValidation.isValid) {
       console.error('❌ Hubtel configuration error:', configValidation.issues);
       return NextResponse.json(
@@ -34,45 +34,31 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('🔍 Verifying transaction:', reference);
-    const result = await HubtelService.checkTransactionStatus(reference);
+    const result = await PaystackService.verifyPayment(reference);
     console.log('📋 Hubtel service returned:', JSON.stringify(result, null, 2));
 
-    // Check if this is an IP whitelisting issue
-    if (!result.success && result.responseCode === 'IP_NOT_WHITELISTED') {
-      console.error('❌ IP not whitelisted - payment verification failed');
-      console.error('📝 Contact Hubtel support to whitelist your server IP address');
-      
-      return NextResponse.json({
-        success: false,
-        error: 'Payment verification failed: Server IP not whitelisted with Hubtel',
-        responseCode: 'IP_NOT_WHITELISTED',
-        isPaid: false,
-        note: 'Contact Hubtel support to whitelist your server IP address for payment verification.'
-      }, { status: 400 })
-    }
-
+    // Check if verification failed
     if (!result.success) {
       console.error('❌ Payment verification failed:', result.error);
       
       return NextResponse.json({
         success: false,
         error: result.error || 'Payment verification failed',
-        responseCode: result.responseCode,
         isPaid: false
-      }, { status: 400 })
+      });
     }
 
-    console.log('✅ Payment verified:', {
-      status: result.data?.status,
-      amount: result.data?.amount,
-      paymentMethod: result.data?.paymentMethod
-    });
+    console.log('📝 Payment status:', result.data?.status);
+    console.log('💰 Amount:', result.data?.amount);
+    console.log('💳 Payment channel:', result.data?.channel);
+    
+    const isPaid = result.isPaid || (result.data?.status === 'success');
+    console.log(`${isPaid ? '✅' : '❌'} Payment status: ${isPaid ? 'PAID' : 'NOT PAID'}`);
 
     return NextResponse.json({
-      success: true,
-      data: result.data,
-      status: result.data?.status,
-      isPaid: result.data?.status === 'Paid'
+      success: result.success,
+      isPaid: isPaid,
+      data: result.data
     })
 
   } catch (error) {
@@ -103,14 +89,13 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const result = await HubtelService.checkTransactionStatus(reference);
+    const result = await PaystackService.verifyPayment(reference);
 
     if (!result.success) {
       return NextResponse.json(
         { 
           success: false,
-          error: result.error || 'Verification failed',
-          responseCode: result.responseCode
+          error: result.error || 'Verification failed'
         },
         { status: 400 }
       )
