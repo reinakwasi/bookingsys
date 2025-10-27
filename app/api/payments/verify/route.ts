@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { PaystackService } from '@/lib/paystack'
 
 /**
- * Hubtel Payment Verification Endpoint
+ * Paystack Payment Verification Endpoint
  * Checks the status of a transaction using client reference
  */
 export async function POST(request: NextRequest) {
@@ -18,14 +18,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate Hubtel configuration
+    // Validate Paystack configuration
     const configValidation = PaystackService.validateConfiguration();
     if (!configValidation.isValid) {
-      console.error('❌ Hubtel configuration error:', configValidation.issues);
+      console.error('❌ Paystack configuration error:', configValidation.issues);
       return NextResponse.json(
         { 
           success: false,
-          error: `Hubtel not configured: ${configValidation.issues.join(', ')}`,
+          error: `Paystack not configured: ${configValidation.issues.join(', ')}`,
           isPaid: false,
           responseCode: 'CONFIG_ERROR'
         },
@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     console.log('🔍 Verifying transaction:', reference);
     const result = await PaystackService.verifyPayment(reference);
-    console.log('📋 Hubtel service returned:', JSON.stringify(result, null, 2));
+    console.log('📋 Paystack service returned:', JSON.stringify(result, null, 2));
 
     // Check if verification failed
     if (!result.success) {

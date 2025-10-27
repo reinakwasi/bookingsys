@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
       amount: amount,
       email: email,
       reference: reference,
+      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/payment-success?reference=${reference}`,
       metadata: {
         ...metadata,
         customer_name: customerName,

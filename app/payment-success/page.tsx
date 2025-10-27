@@ -1,62 +1,76 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
+  const [message, setMessage] = useState('Processing your payment...');
 
   useEffect(() => {
-    // Get payment reference from URL or sessionStorage
-    const pendingPaymentStr = sessionStorage.getItem('pendingPayment');
+    const reference = searchParams.get('reference');
     
-    if (pendingPaymentStr) {
-      try {
-        const pendingPayment = JSON.parse(pendingPaymentStr);
-        console.log('✅ Payment successful:', pendingPayment);
+    if (reference) {
+      console.log('🔍 Payment reference found:', reference);
+      setMessage('Payment completed! Your ticket is being processed...');
+      
+      // The webhook will handle the ticket creation automatically
+      // Just wait a moment and redirect to my-tickets
+      setTimeout(() => {
+        setStatus('success');
+        setMessage('Ticket purchase completed successfully!');
         
-        // Clear pending payment
-        sessionStorage.removeItem('pendingPayment');
-        
-        // If this is in a popup, close it and notify parent
-        if (window.opener) {
-          console.log('🔄 Closing popup and notifying parent window');
-          
-          // Try to communicate with parent window
-          try {
-            window.opener.postMessage({
-              type: 'PAYMENT_SUCCESS',
-              data: pendingPayment
-            }, window.location.origin);
-          } catch (e) {
-            console.error('Could not communicate with parent window:', e);
-          }
-          
-          // Close popup after short delay
-          setTimeout(() => {
-            window.close();
-          }, 1000);
-        } else {
-          // Not in popup, redirect to tickets page with success message
-          setTimeout(() => {
-            router.push('/tickets?payment=success');
-          }, 1000);
-        }
-      } catch (error) {
-        console.error('Error processing payment success:', error);
-        if (window.opener) {
-          window.close();
-        } else {
-          router.push('/tickets');
-        }
-      }
+        setTimeout(() => {
+          router.push('/my-tickets?payment=success');
+        }, 2000);
+      }, 3000);
+      
     } else {
-      // No pending payment, redirect to tickets
-      if (window.opener) {
-        window.close();
+      // Check for legacy sessionStorage method
+      const pendingPaymentStr = sessionStorage.getItem('pendingPayment');
+      
+      if (pendingPaymentStr) {
+        try {
+          const pendingPayment = JSON.parse(pendingPaymentStr);
+          console.log('✅ Payment successful (legacy):', pendingPayment);
+          
+          // Clear pending payment
+          sessionStorage.removeItem('pendingPayment');
+          
+          // If this is in a popup, close it and notify parent
+          if (window.opener) {
+            console.log('🔄 Closing popup and notifying parent window');
+            
+            try {
+              window.opener.postMessage({
+                type: 'PAYMENT_SUCCESS',
+                data: pendingPayment
+              }, window.location.origin);
+            } catch (e) {
+              console.error('Could not communicate with parent window:', e);
+            }
+            
+            setTimeout(() => {
+              window.close();
+            }, 1000);
+          } else {
+            setTimeout(() => {
+              router.push('/my-tickets?payment=success');
+            }, 2000);
+          }
+        } catch (error) {
+          console.error('Error processing payment success:', error);
+          setStatus('error');
+          setMessage('Error processing payment. Please contact support.');
+        }
       } else {
-        router.push('/tickets');
+        // No payment reference found
+        console.log('⚠️ No payment reference found, redirecting...');
+        setTimeout(() => {
+          router.push('/tickets');
+        }, 1000);
       }
     }
   }, [router, searchParams]);
@@ -69,8 +83,10 @@ export default function PaymentSuccessPage() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Payment Successful!</h1>
-        <p className="text-gray-600 mb-4">Processing your ticket purchase...</p>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          {status === 'success' ? 'Payment Successful!' : status === 'error' ? 'Payment Error' : 'Processing Payment...'}
+        </h1>
+        <p className="text-gray-600 mb-4">{message}</p>
         <div className="flex items-center justify-center space-x-2">
           <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
           <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse delay-75"></div>
