@@ -8,15 +8,12 @@ import { HubtelService } from '@/lib/hubtel'
 export async function POST(request: NextRequest) {
   try {
     console.log('🔍 Payment verification request received');
-    const { reference, clientReference } = await request.json()
-    
-    // Use clientReference if provided, otherwise use reference
-    const refToCheck = clientReference || reference;
+    const { reference } = await request.json()
 
-    if (!refToCheck) {
+    if (!reference) {
       console.error('❌ Missing reference');
       return NextResponse.json(
-        { error: 'Client reference is required' },
+        { error: 'Payment reference is required' },
         { status: 400 }
       )
     }
@@ -26,20 +23,43 @@ export async function POST(request: NextRequest) {
     if (!configValidation.isValid) {
       console.error('❌ Hubtel configuration error:', configValidation.issues);
       return NextResponse.json(
-        { error: `Hubtel not configured: ${configValidation.issues.join(', ')}` },
+        { 
+          success: false,
+          error: `Hubtel not configured: ${configValidation.issues.join(', ')}`,
+          isPaid: false,
+          responseCode: 'CONFIG_ERROR'
+        },
         { status: 500 }
       )
     }
 
-    console.log('🔍 Checking transaction status for:', refToCheck);
-    const result = await HubtelService.checkTransactionStatus(refToCheck);
+    console.log('🔍 Verifying transaction:', reference);
+    const result = await HubtelService.checkTransactionStatus(reference);
+    console.log('📋 Hubtel service returned:', JSON.stringify(result, null, 2));
+
+    // Check if this is an IP whitelisting issue
+    if (!result.success && result.responseCode === 'IP_NOT_WHITELISTED') {
+      console.error('❌ IP not whitelisted - payment verification failed');
+      console.error('📝 Contact Hubtel support to whitelist your server IP address');
+      
+      return NextResponse.json({
+        success: false,
+        error: 'Payment verification failed: Server IP not whitelisted with Hubtel',
+        responseCode: 'IP_NOT_WHITELISTED',
+        isPaid: false,
+        note: 'Contact Hubtel support to whitelist your server IP address for payment verification.'
+      }, { status: 400 })
+    }
 
     if (!result.success) {
-      console.error('❌ Verification failed:', result.error);
-      return NextResponse.json(
-        { error: result.error || 'Payment verification failed' },
-        { status: 400 }
-      )
+      console.error('❌ Payment verification failed:', result.error);
+      
+      return NextResponse.json({
+        success: false,
+        error: result.error || 'Payment verification failed',
+        responseCode: result.responseCode,
+        isPaid: false
+      }, { status: 400 })
     }
 
     console.log('✅ Payment verified:', {
@@ -62,13 +82,11 @@ export async function POST(request: NextRequest) {
       stack: error instanceof Error ? error.stack : 'No stack trace'
     });
     
-    return NextResponse.json(
-      { 
-        error: 'Internal server error',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Payment verification failed',
+      isPaid: false
+    }, { status: 500 })
   }
 }
 
@@ -76,20 +94,24 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const clientReference = searchParams.get('clientReference') || searchParams.get('reference');
+    const reference = searchParams.get('reference');
 
-    if (!clientReference) {
+    if (!reference) {
       return NextResponse.json(
-        { error: 'Client reference is required' },
+        { error: 'Payment reference is required' },
         { status: 400 }
       )
     }
 
-    const result = await HubtelService.checkTransactionStatus(clientReference);
+    const result = await HubtelService.checkTransactionStatus(reference);
 
     if (!result.success) {
       return NextResponse.json(
-        { error: result.error || 'Status check failed' },
+        { 
+          success: false,
+          error: result.error || 'Verification failed',
+          responseCode: result.responseCode
+        },
         { status: 400 }
       )
     }
@@ -102,9 +124,9 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Status check error:', error);
+    console.error('Verification error:', error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

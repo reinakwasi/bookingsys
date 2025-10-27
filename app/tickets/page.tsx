@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { ticketsAPI, ticketPurchasesAPI } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -9,8 +9,6 @@ import { Label } from "@/components/ui/label";
 import { Calendar, Clock, DollarSign, Users, MapPin, Minus, Plus, CheckCircle, X, Sparkles, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import { HubtelService } from "@/lib/hubtel";
-// @ts-ignore - Hubtel SDK doesn't have TypeScript definitions
-import CheckoutSdk from "@hubteljs/checkout";
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -29,8 +27,6 @@ export default function TicketsPage() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isConfirmingBooking, setIsConfirmingBooking] = useState(false);
   const [loadingTicketId, setLoadingTicketId] = useState<string | null>(null);
-  const [showHubtelModal, setShowHubtelModal] = useState(false);
-  const checkoutSdkRef = useRef<any>(null);
 
   useEffect(() => {
     loadTickets();
@@ -40,7 +36,6 @@ export default function TicketsPage() {
     const configValidation = HubtelService.validateClientConfiguration();
     if (!configValidation.isValid) {
       console.error('❌ Hubtel configuration issues:', configValidation.issues);
-      console.log('⚠️ Note: API key validation happens server-side');
     } else {
       console.log('✅ Hubtel client configuration is properly set');
     }
@@ -167,13 +162,11 @@ export default function TicketsPage() {
         throw new Error(`Payment system not configured: ${configValidation.issues.join(', ')}`);
       }
 
-      // Generate unique client reference for this payment attempt
-      // Use short ticket ID (first 8 chars of UUID) to stay within 32 char limit
+      // Generate unique reference for this payment attempt (max 32 chars for Hubtel)
       const shortTicketId = selectedTicket.id.substring(0, 8);
-      const clientReference = HubtelService.generateClientReference(`TKT${shortTicketId}`);
+      const reference = HubtelService.generateClientReference(`TKT${shortTicketId}`);
       
-      console.log('🚀 Initializing Hubtel payment with reference:', clientReference);
-      console.log('📏 Reference length:', clientReference.length, '/ 32 max');
+      console.log('🚀 Initializing Hubtel payment with reference:', reference);
 
       // Initialize payment with Hubtel via API
       const response = await fetch('/api/payments/initialize', {
@@ -183,15 +176,18 @@ export default function TicketsPage() {
         },
         body: JSON.stringify({
           amount: selectedTicket.price * quantity,
-          description: `${selectedTicket.title} - ${quantity} ticket(s)`,
+          email: customerForm.email,
+          customerName: customerForm.name,
+          customerPhone: customerForm.phone,
           metadata: {
-            clientReference: clientReference,
+            reference: reference,
             ticket_id: selectedTicket.id,
             ticket_title: selectedTicket.title,
             quantity: quantity,
             customer_name: customerForm.name,
             customer_phone: customerForm.phone,
-            customer_email: customerForm.email
+            customer_email: customerForm.email,
+            description: `${quantity}x ${selectedTicket.title} - Hotel 734`
           }
         })
       });
@@ -217,254 +213,275 @@ export default function TicketsPage() {
         throw new Error('Invalid response from payment API. Please check server logs.');
       }
 
-      if (!initResult.success || !initResult.checkoutDirectUrl) {
+      if (!initResult.success || !initResult.checkoutUrl) {
         throw new Error(initResult.error || 'Failed to initialize payment');
       }
 
       console.log('✅ Payment initialized successfully');
-      console.log('📱 Opening Hubtel checkout:', initResult.checkoutDirectUrl);
+      console.log('🔗 Hubtel checkout URL:', initResult.checkoutUrl);
 
-      // Store complete payment details for verification later (SINGLE STORAGE)
-      const pendingPaymentData = {
-        clientReference: clientReference,
+      // Store payment details for verification later
+      sessionStorage.setItem('pendingPayment', JSON.stringify({
+        reference: reference,
         ticketId: selectedTicket.id,
         ticketTitle: selectedTicket.title,
         quantity: quantity,
         totalAmount: selectedTicket.price * quantity,
         customerName: customerForm.name,
         customerEmail: customerForm.email,
-        customerPhone: customerForm.phone,
-        timestamp: Date.now()
-      };
-      
-      sessionStorage.setItem('pendingPayment', JSON.stringify(pendingPaymentData));
-      console.log('💾 Stored payment data:', pendingPaymentData);
+        customerPhone: customerForm.phone
+      }));
 
       // Close the form dialog
       setIsPurchaseDialogOpen(false);
 
-      console.log('🚀 Opening Hubtel checkout using official SDK (Modal Integration)');
-      console.log('📋 Payment reference:', clientReference);
+      // Show loading message
+      toast.info('Opening Hubtel payment...');
 
-      // Initialize Hubtel Checkout SDK
-      if (!checkoutSdkRef.current) {
-        checkoutSdkRef.current = new CheckoutSdk();
-      }
+      // Open Hubtel Onsite Checkout in iframe/modal
+      console.log('🚀 Opening Hubtel Onsite Checkout');
+      
+      // Use checkoutDirectUrl for onsite (iframe) checkout
+      const checkoutUrl = initResult.checkoutDirectUrl || initResult.checkoutUrl;
+      
+      // Create iframe modal for Hubtel checkout
+      const modal = document.createElement('div');
+      modal.id = 'hubtel-checkout-modal';
+      modal.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      `;
 
-      // Use the basicAuth from the API response (already generated server-side)
-      // The API response includes the basicAuth we need
-      const basicAuth = initResult.basicAuth;
-      const merchantAccount = initResult.merchantAccount;
+      const iframe = document.createElement('iframe');
+      iframe.src = checkoutUrl;
+      iframe.style.cssText = `
+        width: 100%;
+        max-width: 500px;
+        height: 90vh;
+        max-height: 700px;
+        border: none;
+        border-radius: 12px;
+        background: white;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      `;
 
-      if (!basicAuth || !merchantAccount) {
-        throw new Error('Payment configuration missing from API response.');
-      }
+      // Close button
+      const closeBtn = document.createElement('button');
+      closeBtn.innerHTML = '✕';
+      closeBtn.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 40px;
+        height: 40px;
+        border: none;
+        border-radius: 50%;
+        background: white;
+        color: #1a233b;
+        font-size: 24px;
+        cursor: pointer;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        z-index: 10000;
+      `;
+      closeBtn.onclick = async () => {
+        // Before closing, check if payment was completed
+        console.log('🔄 User closing payment modal - checking for completed payment...');
+        
+        try {
+          // Quick payment verification check
+          const verifyResponse = await fetch('/api/payments/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              reference: reference
+            })
+          });
 
-      // Purchase information for Hubtel SDK
-      const purchaseInfo = {
-        amount: selectedTicket.price * quantity,
-        purchaseDescription: `${selectedTicket.title} - ${quantity} ticket(s)`,
-        customerPhoneNumber: customerForm.phone.replace(/^0/, '233'), // Convert to international format
-        clientReference: clientReference,
-      };
-
-      // Configuration for Hubtel SDK
-      const config = {
-        branding: "enabled",
-        callbackUrl: `${window.location.origin}/api/payments/hubtel/callback`,
-        merchantAccount: parseInt(merchantAccount),
-        basicAuth: basicAuth,
-      };
-
-      console.log('📤 Opening Hubtel modal with:', { 
-        amount: purchaseInfo.amount,
-        description: purchaseInfo.purchaseDescription,
-        phone: purchaseInfo.customerPhoneNumber,
-        reference: purchaseInfo.clientReference
-      });
-
-      // Open Hubtel checkout modal using official SDK
-      checkoutSdkRef.current.openModal({
-        purchaseInfo,
-        config,
-        callBacks: {
-          onInit: () => {
-            console.log('✅ Hubtel checkout initialized');
-            toast.info('Loading payment options...', { duration: 2000 });
-          },
-          onPaymentSuccess: (data: any) => {
-            console.log('✅ Payment succeeded:', data);
-            console.log('🔍 HUBTEL SUCCESS CALLBACK TRIGGERED!');
-            console.log('🔍 Client Reference:', clientReference);
-            console.log('🔍 Payment Data:', data);
+          let verificationResult;
+          try {
+            verificationResult = await verifyResponse.json();
+          } catch (jsonError) {
+            console.log('⚠️ Failed to parse verification response on close:', jsonError);
+            throw new Error('Invalid verification response');
+          }
+          
+          if (verificationResult.success && verificationResult.isPaid) {
+            console.log('✅ Payment was completed! Processing...');
             
-            toast.success('Payment successful! Processing your ticket...');
-            
-            // Close the modal
-            checkoutSdkRef.current?.closePopUp();
-            
-            // Handle successful payment with detailed logging
-            console.log('🔍 About to call handlePaymentSuccess with reference:', clientReference);
-            handlePaymentSuccess(clientReference);
-          },
-          onPaymentFailure: (data: any) => {
-            console.error('❌ Payment failed:', data);
-            toast.error('Payment failed. Please try again.');
-            
-            // Clear pending payment
-            sessionStorage.removeItem('pendingPayment');
-            
-            // Reopen purchase dialog
-            setIsPurchaseDialogOpen(true);
-          },
-          onLoad: () => {
-            console.log('✅ Hubtel checkout loaded');
-            toast.success('Payment page loaded. Select your payment method.', { duration: 3000 });
-            
-            // Start polling for payment status - check callback confirmation first
-            console.log('🔍 Starting payment status polling...');
-            const pollInterval = setInterval(async () => {
-              try {
-                console.log('🔍 Polling payment status for:', clientReference);
-                
-                // Check callback confirmation first (more reliable)
-                const callbackResponse = await fetch('/api/payments/verify-callback', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ clientReference: clientReference })
-                });
-                
-                const callbackResult = await callbackResponse.json();
-                
-                if (callbackResult.success && callbackResult.confirmed) {
-                  console.log('✅ Payment detected via callback polling!');
-                  clearInterval(pollInterval);
-                  
-                  // Close modal and trigger success handler
-                  checkoutSdkRef.current?.closePopUp();
-                  toast.success('Payment successful! Processing your ticket...');
-                  handlePaymentSuccess(clientReference);
-                  return;
-                }
-                
-                // Fallback: Check API (will likely fail due to IP whitelisting, but try anyway)
-                const statusResponse = await fetch('/api/payments/verify', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ clientReference: clientReference })
-                });
-                
-                if (statusResponse.ok) {
-                  const statusResult = await statusResponse.json();
-                  
-                  if (statusResult.success && statusResult.isPaid) {
-                    console.log('✅ Payment detected via API polling!');
-                    clearInterval(pollInterval);
-                    
-                    // Close modal and trigger success handler
-                    checkoutSdkRef.current?.closePopUp();
-                    toast.success('Payment successful! Processing your ticket...');
-                    handlePaymentSuccess(clientReference);
-                  }
-                }
-                // Silently ignore 400 errors from API verification (expected due to IP whitelisting)
-              } catch (pollError) {
-                // Silently ignore polling errors (expected when API verification fails)
-                console.log('🔍 Polling check complete (callback not found yet)');
-              }
-            }, 3000); // Poll every 3 seconds
-            
-            // Store interval ID to clear later
-            (window as any).hubtelPollInterval = pollInterval;
-          },
-          onFeesChanged: (fees: any) => {
-            console.log('💰 Fees changed:', fees);
-          },
-          onResize: (size: any) => {
-            console.log('📐 Modal resized:', size?.height);
-          },
-          onClose: () => {
-            console.log('❌ Modal closed by user');
-            
-            // Clear polling interval
-            if ((window as any).hubtelPollInterval) {
-              clearInterval((window as any).hubtelPollInterval);
-              console.log('🔍 Stopped payment status polling');
+            // Payment was successful, process it
+            document.body.removeChild(modal);
+            handlePaymentSuccess(reference);
+            return;
+          } else {
+            // Log verification failure details
+            console.log('⚠️ Payment verification failed on close:', verificationResult);
+            if (verificationResult.responseCode === 'IP_NOT_WHITELISTED') {
+              console.log('📝 IP whitelisting required for payment verification');
             }
+          }
+        } catch (error) {
+          console.log('⚠️ Could not verify payment on close:', error);
+        }
+        
+        // Payment not completed or verification failed
+        document.body.removeChild(modal);
+        toast.info('Payment cancelled. Click "Pay Now" to try again.');
+        setIsProcessingPayment(false);
+      };
+
+      modal.appendChild(closeBtn);
+      modal.appendChild(iframe);
+      document.body.appendChild(modal);
+
+      // Hubtel completion detection - check iframe URL changes and user interaction
+      let paymentCompleted = false;
+      let checkCount = 0;
+      const maxChecks = 300; // 5 minutes max (300 * 1000ms)
+      
+      const checkPaymentCompletion = async () => {
+        checkCount++;
+        
+        if (paymentCompleted || checkCount > maxChecks) {
+          return;
+        }
+        
+        try {
+          // Check if iframe URL contains success indicators
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+          if (iframeDoc) {
+            const currentUrl = iframe.contentWindow?.location?.href || '';
+            const bodyText = iframeDoc.body?.innerText?.toLowerCase() || '';
             
-            // Check if payment was completed
-            const pendingPaymentStr = sessionStorage.getItem('pendingPayment');
-            if (pendingPaymentStr) {
-              // Do one final check before cancelling - check BOTH callback AND API
-              console.log('🔍 ========== MODAL CLOSED - FINAL CHECK ==========');
-              console.log('🔍 Doing final status check before cancelling...');
-              console.log('🔍 Client Reference:', clientReference);
-              console.log('🔍 Checking callback confirmation first...');
+            // Look for success indicators in URL or page content
+            const successIndicators = [
+              'success', 'completed', 'approved', 'confirmed',
+              'thank you', 'payment successful', 'transaction successful'
+            ];
+            
+            const hasSuccessIndicator = successIndicators.some(indicator => 
+              currentUrl.toLowerCase().includes(indicator) || 
+              bodyText.includes(indicator)
+            );
+            
+            if (hasSuccessIndicator) {
+              console.log('✅ Payment completion detected via iframe content');
+              paymentCompleted = true;
               
-              // First check callback confirmation (more reliable)
-              fetch('/api/payments/verify-callback', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ clientReference: clientReference })
-              })
-              .then(res => {
-                console.log('🔍 Callback verify response status:', res.status);
-                return res.json();
-              })
-              .then(callbackResult => {
-                console.log('🔍 Callback verify result:', callbackResult);
-                
-                if (callbackResult.success && callbackResult.confirmed) {
-                  console.log('✅ Payment detected via callback in final check!');
-                  console.log('🔍 About to call handlePaymentSuccess...');
-                  toast.success('Payment successful! Processing your ticket...');
-                  handlePaymentSuccess(clientReference);
-                } else {
-                  console.log('⚠️ No callback confirmation found');
-                  console.log('🔍 Callback result details:', JSON.stringify(callbackResult));
-                  console.log('🔍 Trying API verification as fallback...');
-                  
-                  // Fallback to API verification
-                  return fetch('/api/payments/verify', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ clientReference: clientReference })
-                  })
-                  .then(res => {
-                    console.log('🔍 API verify response status:', res.status);
-                    return res.json();
-                  })
-                  .then(result => {
-                    console.log('🔍 API verify result:', result);
-                    
-                    if (result.success && result.isPaid) {
-                      console.log('✅ Payment detected via API in final check!');
-                      toast.success('Payment successful! Processing your ticket...');
-                      handlePaymentSuccess(clientReference);
-                    } else {
-                      console.log('❌ No payment found in final check');
-                      console.log('🔍 API result details:', JSON.stringify(result));
-                      toast.info('Payment cancelled. Click "Pay Now" to try again.');
-                      sessionStorage.removeItem('pendingPayment');
-                    }
-                  });
-                }
-              })
-              .catch(err => {
-                console.error('❌ Final check error:', err);
-                console.error('🔍 Error details:', err.message, err.stack);
-                toast.info('Payment cancelled. Click "Pay Now" to try again.');
-                sessionStorage.removeItem('pendingPayment');
-              });
-            } else {
-              console.log('🔍 No pending payment in session storage');
+              // Remove modal
+              const modalElement = document.getElementById('hubtel-checkout-modal');
+              if (modalElement) {
+                document.body.removeChild(modalElement);
+              }
+              
+              // Verify payment
+              handlePaymentSuccess(reference);
+              return;
             }
-          },
-        },
-      });
+          }
+        } catch (error) {
+          // Cross-origin restrictions - this is expected
+          console.log('🔒 Cross-origin iframe access (normal for Hubtel)');
+        }
+        
+        // Continue checking
+        setTimeout(checkPaymentCompletion, 1000);
+      };
+      
+      // Start checking after 3 seconds (give time for iframe to load)
+      setTimeout(checkPaymentCompletion, 3000);
+      
+      // Add manual completion button after 30 seconds
+      setTimeout(() => {
+        if (!paymentCompleted) {
+          const manualBtn = document.createElement('button');
+          manualBtn.innerHTML = '✅ I completed payment';
+          manualBtn.style.cssText = `
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 24px;
+            background: #10B981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            z-index: 10001;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+          `;
+          manualBtn.onclick = () => {
+            console.log('✅ Manual payment completion triggered');
+            paymentCompleted = true;
+            
+            // Remove modal
+            const modalElement = document.getElementById('hubtel-checkout-modal');
+            if (modalElement) {
+              document.body.removeChild(modalElement);
+            }
+            
+            // Verify payment
+            handlePaymentSuccess(reference);
+          };
+          
+          modal.appendChild(manualBtn);
+          
+          // Show instruction
+          toast.info('Complete your payment in the popup, then click "I completed payment"', {
+            duration: 10000
+          });
+        }
+      }, 30000); // Show after 30 seconds
+      
+      // Listen for any postMessage events (in case Hubtel does send them)
+      const handlePaymentMessage = (event: MessageEvent) => {
+        if (paymentCompleted) return;
+        
+        // Check for various success message formats
+        if (event.data && (
+          event.data.type === 'hubtel-payment-complete' ||
+          event.data.type === 'payment-success' ||
+          event.data.status === 'success' ||
+          event.data.success === true
+        )) {
+          console.log('✅ Payment completed (from postMessage):', event.data);
+          paymentCompleted = true;
+          
+          // Remove modal
+          const modalElement = document.getElementById('hubtel-checkout-modal');
+          if (modalElement) {
+            document.body.removeChild(modalElement);
+          }
+          
+          // Verify payment
+          handlePaymentSuccess(reference);
+          
+          // Remove listener
+          window.removeEventListener('message', handlePaymentMessage);
+        }
+      };
 
-      console.log('✅ Hubtel modal opened successfully');
-
+      window.addEventListener('message', handlePaymentMessage);
+      
+      // Cleanup function
+      const cleanup = () => {
+        paymentCompleted = true;
+        window.removeEventListener('message', handlePaymentMessage);
+      };
+      
+      // Auto-cleanup after 10 minutes
+      setTimeout(cleanup, 600000);
 
     } catch (error: any) {
       console.error('❌ Payment initialization error:', error);
@@ -475,92 +492,65 @@ export default function TicketsPage() {
     }
   };
 
-  const handlePaymentSuccess = async (clientReference: string) => {
+  const handlePaymentSuccess = async (reference: string) => {
     try {
-      console.log('🔍 ========== PAYMENT SUCCESS HANDLER STARTED ==========');
-      console.log('✅ Starting payment success handling for reference:', clientReference);
-      console.log('🔍 Current timestamp:', new Date().toISOString());
+      console.log('✅ Starting payment success handling for reference:', reference);
       
       // Get pending payment details from session storage
-      console.log('🔍 Checking session storage for pending payment...');
       const pendingPaymentStr = sessionStorage.getItem('pendingPayment');
-      console.log('🔍 Session storage raw data:', pendingPaymentStr);
-      
       const pendingPayment = pendingPaymentStr ? JSON.parse(pendingPaymentStr) : null;
-      console.log('🔍 Parsed pending payment:', pendingPayment);
 
       if (!pendingPayment) {
         console.error('❌ No pending payment found in session');
-        console.error('🔍 SESSION STORAGE IS EMPTY - This is why notifications fail!');
         toast.error('Payment details not found. Please contact support.');
         return;
       }
 
-      // SECURITY: Proper payment verification with multiple methods
-      console.log('🔍 Starting payment verification...');
-      let paymentVerified = false;
-      let verificationMethod = 'none';
-      let paymentMethodName = 'Hubtel';
-      
-      // METHOD 1: Try callback verification first (faster and works without IP whitelisting)
-      console.log('🔍 METHOD 1: Checking callback confirmation...');
-      try {
-        const callbackVerifyResponse = await fetch('/api/payments/verify-callback', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ clientReference: clientReference })
-        });
-        
-        const callbackResult = await callbackVerifyResponse.json();
-        console.log('🔍 Callback verification result:', callbackResult);
-        
-        if (callbackResult.success && callbackResult.confirmed) {
-          console.log('✅ Payment verified via Hubtel callback confirmation!');
-          paymentVerified = true;
-          verificationMethod = 'callback';
-        } else {
-          console.log('🔍 No callback confirmation yet, trying API...');
-        }
-      } catch (callbackError) {
-        console.log('🔍 Callback check failed, trying API...', callbackError);
-      }
-      
-      // METHOD 2: If callback didn't work, try direct API verification
-      if (!paymentVerified) {
-        console.log('🔍 METHOD 2: Trying Hubtel API verification...');
-        try {
-          const verifyResponse = await fetch('/api/payments/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ clientReference: clientReference })
-          });
+      // Verify payment with backend
+      const verifyResponse = await fetch('/api/payments/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reference: reference
+        })
+      });
 
-          console.log('🔍 Verify response status:', verifyResponse.status, verifyResponse.statusText);
-          const verificationResult = await verifyResponse.json();
-          console.log('📋 API verification response:', verificationResult);
-          
-          if (verificationResult.success && verificationResult.isPaid) {
-            console.log('✅ Payment verification successful via API!');
-            paymentVerified = true;
-            verificationMethod = 'api';
-          } else {
-            console.warn('⚠️ API verification failed:', verificationResult.error);
-          }
-        } catch (apiError) {
-          console.error('❌ API verification error:', apiError);
-        }
-      }
+      console.log('🔍 Verification response status:', verifyResponse.status, verifyResponse.statusText);
       
-      // SECURITY CHECK: Must be verified by at least one method
-      if (!paymentVerified) {
-        console.error('❌ SECURITY: Payment not verified by any method - stopping ticket creation');
-        console.error('🔍 Reference:', clientReference);
-        toast.error('Payment verification failed. Your payment is safe. Please contact support with reference: ' + clientReference.substring(0, 20));
+      let verificationResult;
+      try {
+        verificationResult = await verifyResponse.json();
+        console.log('📋 Payment verification response:', verificationResult);
+      } catch (jsonError) {
+        console.error('❌ Failed to parse verification response as JSON:', jsonError);
+        const responseText = await verifyResponse.text();
+        console.error('❌ Raw verification response:', responseText);
+        toast.error('Payment verification failed: Invalid response from server');
         return;
       }
       
-      console.log('✅ Payment successfully verified via:', verificationMethod);
-      console.log('✅ Proceeding with secure ticket creation...');
+      // Handle non-200 status codes
+      if (!verifyResponse.ok) {
+        console.error('❌ Verification API returned error status:', verifyResponse.status);
+        const errorMessage = verificationResult?.error || `Server error: ${verifyResponse.status} ${verifyResponse.statusText}`;
+        toast.error(`Payment verification failed: ${errorMessage}`);
+        return;
+      }
+      
+      if (!verificationResult.success || !verificationResult.isPaid) {
+        console.error('❌ Payment verification failed:', verificationResult);
+        
+        // Provide specific error messages based on the failure reason
+        if (verificationResult.responseCode === 'IP_NOT_WHITELISTED') {
+          toast.error('Payment verification failed: Server IP not whitelisted with Hubtel. Please contact support.');
+          console.error('📝 Contact Hubtel support to whitelist server IP for payment verification');
+        } else {
+          toast.error(verificationResult.error || 'Payment verification failed. Please contact support if payment was completed.');
+        }
+        return;
+      }
 
       // Create ticket purchase record
       const purchaseData = {
@@ -571,7 +561,7 @@ export default function TicketsPage() {
         quantity: pendingPayment.quantity,
         total_amount: pendingPayment.totalAmount,
         payment_status: 'completed',
-        payment_reference: clientReference,
+        payment_reference: reference,
         payment_method: 'hubtel'
       };
       
@@ -582,29 +572,13 @@ export default function TicketsPage() {
         total: pendingPayment.totalAmount.toFixed(2),
         customerName: pendingPayment.customerName,
         customerEmail: pendingPayment.customerEmail,
-        paymentReference: clientReference,
-        paymentMethod: HubtelService.getPaymentMethodName(paymentMethodName || 'hubtel')
+        paymentReference: reference,
+        paymentMethod: HubtelService.getPaymentMethodName(verificationResult.data?.paymentMethod || 'hubtel')
       });
       
       // Show success alert immediately - no delay
-      console.log('🔍 Setting success alert state...');
       setShowSuccessAlert(true);
       toast.success(`Payment successful! Tickets purchased.`);
-      
-      console.log('🎉 SUCCESS ALERT TRIGGERED - Alert should be visible now!');
-      console.log('🔍 showSuccessAlert state should now be TRUE');
-      console.log('📋 Purchase Details Set:', {
-        ticketTitle: pendingPayment.ticketTitle,
-        quantity: pendingPayment.quantity,
-        total: pendingPayment.totalAmount.toFixed(2),
-        customerName: pendingPayment.customerName,
-        customerEmail: pendingPayment.customerEmail,
-        paymentReference: clientReference
-      });
-      
-      // Force a small delay to ensure state is set
-      await new Promise(resolve => setTimeout(resolve, 100));
-      console.log('🔍 State setting delay completed');
       
       // Clear session storage
       sessionStorage.removeItem('pendingPayment');
@@ -614,42 +588,21 @@ export default function TicketsPage() {
       setQuantity(1);
       setCustomerForm({ name: '', email: '', phone: '' });
       
-      // Create ticket purchase record and handle notifications properly
-      console.log('🔍 ========== STARTING TICKET CREATION ==========');
-      console.log('📧 Starting ticket creation and notification process...');
-      console.log('🔍 Purchase data:', purchaseData);
-      
-      try {
-        console.log('🔍 Calling ticketPurchasesAPI.create...');
-        const purchase = await ticketPurchasesAPI.create(purchaseData);
-        console.log('✅ Ticket purchase created successfully:', purchase);
-        console.log('📧 Email and SMS notifications should have been sent during ticket creation');
-        console.log('🔍 Purchase ID:', purchase.id);
-        console.log('🔍 Access Token:', purchase.access_token);
+      // Create ticket purchase record in background (don't wait for it)
+      // NOTE: Email and SMS notifications are automatically sent by ticketPurchasesAPI.create()
+      // in database.ts - no need to send them here to avoid duplicates
+      ticketPurchasesAPI.create(purchaseData).then(purchase => {
+        console.log('✅ Ticket purchase created:', purchase);
+        console.log('📧 Email and SMS notifications sent automatically by ticketPurchasesAPI');
         
-        // Refresh tickets after successful creation
+        // Refresh tickets after background creation
         loadTickets();
-        
-        // Show additional success message for notifications
-        setTimeout(() => {
-          toast.success('📧 Confirmation email and SMS sent!');
-        }, 2000);
-        
-      } catch (error) {
-        console.error('❌ Ticket creation error:', error);
-        // Show error but don't fail the payment success
-        toast.error('Payment successful but notification sending failed. Please contact support.');
-        
-        // Still refresh tickets in case the purchase was created
-        loadTickets();
-      }
+      }).catch(error => {
+        console.error('❌ Background ticket creation error:', error);
+        // Don't show error to user since payment was successful
+      });
     } catch (error) {
-      console.error('🔍 ========== PAYMENT SUCCESS HANDLER ERROR ==========');
       console.error('❌ Purchase completion error:', error);
-      console.error('🔍 Error type:', typeof error);
-      console.error('🔍 Error message:', error instanceof Error ? error.message : 'Unknown error');
-      console.error('🔍 Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-      
       if (error instanceof Error) {
         toast.error(`Payment successful but ticket creation failed: ${error.message}`);
       } else {

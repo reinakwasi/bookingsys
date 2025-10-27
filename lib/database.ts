@@ -352,8 +352,6 @@ export const individualTicketsAPI = {
 // Ticket Purchases API
 export const ticketPurchasesAPI = {
   async create(purchase: Omit<TicketPurchase, 'id' | 'purchase_date' | 'created_at' | 'access_token'>): Promise<TicketPurchase> {
-    console.log('🔍 ========== TICKET PURCHASE CREATION STARTED ==========');
-    console.log('🔍 Input purchase data:', purchase);
     // Generate simple access token
     const accessToken = `TKT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
@@ -392,62 +390,56 @@ export const ticketPurchasesAPI = {
     console.log('🔗 Generated ticket URL:', ticketUrl);
     
     // Send email notification
-    console.log('🔍 ========== STARTING EMAIL NOTIFICATION ==========');
-    console.log('📧 Attempting to send email notification...');
-    console.log('🔍 Email recipient:', data.customer_email);
-    console.log('🔍 Customer name:', data.customer_name);
-    console.log('🔍 Purchase ID:', data.id);
-    console.log('🔍 Access token:', data.access_token);
-    
     try {
-      const emailPayload = {
-        purchase_id: data.id,
-        access_token: data.access_token,
-        customer_email: data.customer_email,
-        customer_name: data.customer_name
-      };
+      const eventDate = ticketData?.event_date ? new Date(ticketData.event_date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      }) : 'TBA';
       
-      console.log('🔍 Email API payload:', emailPayload);
+      const purchaseDate = new Date().toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      // Use absolute URL for server-side fetch
+      const apiUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+      console.log('📧 Sending email to:', data.customer_email, 'via', `${apiUrl}/api/send-ticket-email`);
       
-      const emailResponse = await fetch('/api/send-ticket-email', {
+      const emailResponse = await fetch(`${apiUrl}/api/send-ticket-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(emailPayload)
+        body: JSON.stringify({
+          purchase_id: data.id,
+          access_token: data.access_token,
+          customer_email: data.customer_email,
+          customer_name: data.customer_name,
+          ticket_title: ticketData?.title || 'Event',
+          quantity: purchase.quantity,
+          total_amount: purchase.total_amount,
+          payment_reference: purchase.payment_reference,
+          event_date: eventDate,
+          purchase_date: purchaseDate
+        })
       });
       
-      console.log('🔍 Email API response status:', emailResponse.status, emailResponse.statusText);
-      
-      if (!emailResponse.ok) {
-        const errorText = await emailResponse.text();
-        console.error('🔍 Email API returned error status:', errorText);
-        throw new Error(`Email API error: ${emailResponse.status} - ${errorText}`);
-      }
-      
       const emailResult = await emailResponse.json();
-      console.log('🔍 Email API response:', emailResult);
-      
       if (emailResult.success) {
-        console.log('✅ Email sent successfully:', emailResult);
+        console.log('✅ Email sent successfully to:', data.customer_email);
       } else {
-        console.error('❌ Email sending failed:', emailResult);
-        throw new Error(emailResult.error || 'Email sending failed');
+        console.error('❌ Email sending failed:', emailResult.error);
       }
     } catch (emailError) {
-      console.error('🔍 ========== EMAIL NOTIFICATION ERROR ==========');
-      console.error('❌ Failed to send ticket email:', emailError);
-      console.error('🔍 Email error type:', typeof emailError);
-      console.error('🔍 Email error message:', emailError instanceof Error ? emailError.message : 'Unknown error');
-      console.error('🔍 Email error stack:', emailError instanceof Error ? emailError.stack : 'No stack trace');
-      // Don't fail the purchase if email fails, but log the error
-      console.error('📧 EMAIL NOTIFICATION FAILED - Check environment variables GMAIL_USER and GMAIL_PASS');
+      console.error('❌ Failed to send ticket email:', emailError)
+      // Don't fail the purchase if email fails
     }
     
     // Send SMS notification if phone number is provided
-    console.log('🔍 ========== STARTING SMS NOTIFICATION ==========');
-    console.log('🔍 Customer phone:', purchase.customer_phone);
-    
     if (purchase.customer_phone && purchase.customer_phone.trim()) {
-      console.log('🔍 Phone number provided, proceeding with SMS...');
       try {
         // Create SMS message with ticket details and access link
         const eventDate = new Date(ticketData?.event_date || '').toLocaleDateString('en-GB', {
@@ -481,62 +473,33 @@ Email: info@hotel734.com
 
         console.log('📱 Sending SMS notification to:', purchase.customer_phone.substring(0, 6) + '***');
         
-        const smsPayload = {
-          to: purchase.customer_phone,
-          message: smsMessage
-        };
+        // Use absolute URL for server-side fetch
+        const apiUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+        console.log('📱 SMS API URL:', `${apiUrl}/api/send-sms`);
         
-        console.log('🔍 SMS API payload:', {
-          to: purchase.customer_phone?.substring(0, 6) + '***',
-          messageLength: smsMessage.length
-        });
-        
-        const smsResponse = await fetch('/api/send-sms', {
+        const smsResponse = await fetch(`${apiUrl}/api/send-sms`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(smsPayload)
+          body: JSON.stringify({
+            to: purchase.customer_phone,
+            message: smsMessage
+          })
         });
         
-        console.log('🔍 SMS API response status:', smsResponse.status, smsResponse.statusText);
-        
-        if (!smsResponse.ok) {
-          const errorText = await smsResponse.text();
-          console.error('🔍 SMS API returned error status:', errorText);
-          throw new Error(`SMS API error: ${smsResponse.status} - ${errorText}`);
-        }
-        
         const smsResult = await smsResponse.json();
-        console.log('🔍 SMS API response:', smsResult);
         
         if (smsResult.success) {
-          console.log('✅ SMS sent successfully:', {
-            messageId: smsResult.messageId,
-            provider: smsResult.provider,
-            to: smsResult.to?.substring(0, 6) + '***'
-          });
-          
-          if (smsResult.provider?.includes('Fallback')) {
-            console.warn('⚠️ SMS sent via fallback - Check BULKSMS_API_KEY environment variable for real SMS delivery');
-          }
+          console.log('✅ SMS sent successfully:', smsResult.messageId);
         } else {
           console.error('❌ SMS sending failed:', smsResult.error);
-          throw new Error(smsResult.error || 'SMS sending failed');
         }
       } catch (smsError) {
-        console.error('🔍 ========== SMS NOTIFICATION ERROR ==========');
         console.error('❌ Failed to send SMS:', smsError);
-        console.error('🔍 SMS error type:', typeof smsError);
-        console.error('🔍 SMS error message:', smsError instanceof Error ? smsError.message : 'Unknown error');
-        console.error('🔍 SMS error stack:', smsError instanceof Error ? smsError.stack : 'No stack trace');
-        console.error('📱 SMS NOTIFICATION FAILED - Check environment variable BULKSMS_API_KEY');
         // Don't fail the purchase if SMS fails
       }
     } else {
       console.log('📱 No phone number provided, skipping SMS notification');
     }
-    
-    console.log('🔍 ========== TICKET PURCHASE CREATION COMPLETED ==========');
-    console.log('🔍 Returning purchase data:', data);
     
     return data
   },

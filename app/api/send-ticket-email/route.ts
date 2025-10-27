@@ -3,9 +3,29 @@ import nodemailer from 'nodemailer'
 
 export async function POST(request: NextRequest) {
   try {
-    const { purchase_id, access_token, customer_email, customer_name, my_tickets_link } = await request.json()
+    const { 
+      purchase_id, 
+      access_token, 
+      customer_email, 
+      customer_name, 
+      ticket_title,
+      quantity,
+      total_amount,
+      payment_reference,
+      event_date,
+      purchase_date,
+      my_tickets_link 
+    } = await request.json()
 
-    console.log('📧 Email request data:', { purchase_id, access_token, customer_email, customer_name, my_tickets_link });
+    console.log('📧 Email request data:', { 
+      purchase_id, 
+      access_token, 
+      customer_email, 
+      customer_name,
+      ticket_title,
+      quantity,
+      total_amount
+    });
 
     // Validate required parameters
     if (!access_token) {
@@ -65,49 +85,85 @@ export async function POST(request: NextRequest) {
     })
 
     const emailContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: linear-gradient(135deg, #10b981, #0d9488); padding: 30px; text-align: center; color: white;">
-          <h1 style="margin: 0; font-size: 28px;">Hotel 734</h1>
-          <p style="margin: 10px 0 0 0; opacity: 0.9;">Your Event Tickets</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+        <div style="background: linear-gradient(135deg, #C49B66, #FFD700); padding: 30px; text-align: center;">
+          <h1 style="color: #1a233b; margin: 0; font-size: 28px; font-weight: bold;">Hotel 734</h1>
+          <p style="color: #1a233b; margin: 10px 0 0 0; font-size: 16px;">🎉 Ticket Purchase Confirmation</p>
         </div>
         
-        <div style="padding: 30px; background: #f9fafb;">
-          <h2 style="color: #1f2937; margin-bottom: 20px;">Hello ${customer_name}!</h2>
-          
-          <p style="color: #4b5563; line-height: 1.6; margin-bottom: 20px;">
-            Thank you for purchasing tickets from Hotel 734! Your tickets are ready and waiting for you.
+        <div style="padding: 30px;">
+          <h2 style="color: #1a233b; margin-bottom: 20px;">Dear ${customer_name},</h2>
+          <p style="color: #333; line-height: 1.6; margin-bottom: 20px;">
+            Thank you for purchasing tickets for <strong>${ticket_title || 'our event'}</strong>! Your payment has been confirmed and your tickets are ready.
           </p>
           
-          <div style="background: white; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin: 20px 0;">
-            <h3 style="color: #1f2937; margin-top: 0;">Access Your Tickets</h3>
-            <p style="color: #4b5563; margin-bottom: 15px;">
-              Click the button below to view, download, and share your individual tickets:
+          <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #C49B66;">
+            <h3 style="color: #1a233b; margin: 0 0 15px 0; font-size: 18px;">🎫 Ticket Details</h3>
+            <div style="display: grid; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="font-weight: bold; color: #666;">Event:</span>
+                <span style="color: #1a233b; font-weight: bold;">${ticket_title || 'Event'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="font-weight: bold; color: #666;">Event Date:</span>
+                <span style="color: #1a233b;">${event_date || 'TBA'}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="font-weight: bold; color: #666;">Quantity:</span>
+                <span style="color: #1a233b; font-weight: bold;">${quantity || 1} ticket${quantity > 1 ? 's' : ''}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="font-weight: bold; color: #666;">Total Amount:</span>
+                <span style="color: #C49B66; font-weight: bold; font-size: 18px;">GHS ${total_amount ? total_amount.toFixed(2) : '0.00'}</span>
+              </div>
+              ${payment_reference ? `
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="font-weight: bold; color: #666;">Payment Reference:</span>
+                <span style="color: #1a233b; font-family: monospace; font-size: 12px;">${payment_reference}</span>
+              </div>
+              ` : ''}
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span style="font-weight: bold; color: #666;">Purchase Date:</span>
+                <span style="color: #1a233b;">${purchase_date || new Date().toLocaleDateString()}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4CAF50;">
+            <h4 style="color: #2E7D32; margin: 0 0 10px 0;">✅ Payment Successful!</h4>
+            <p style="margin: 0; color: #333; line-height: 1.6;">
+              Your payment has been processed successfully. Click the button below to view and download your tickets.
             </p>
+          </div>
+          
+          <div style="text-align: center; margin: 30px 0;">
             <a href="${ticketUrl}" 
-               style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; 
-                      text-decoration: none; border-radius: 6px; font-weight: bold;">
-              View My Tickets
+               style="display: inline-block; background: linear-gradient(135deg, #C49B66, #FFD700); color: #1a233b; padding: 15px 40px; 
+                      text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+              🎫 View My Tickets
             </a>
           </div>
           
-          <div style="background: #fef3c7; padding: 15px; border-radius: 6px; margin: 20px 0;">
-            <h4 style="color: #92400e; margin-top: 0;">Important Information:</h4>
-            <ul style="color: #92400e; margin: 0; padding-left: 20px;">
-              <li>Each ticket has a unique QR code for individual entry</li>
-              <li>You can share individual tickets with different people</li>
-              <li>Present the QR code at the venue for entry</li>
-              <li>Keep this email safe - it contains your ticket access link</li>
+          <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+            <h4 style="color: #856404; margin: 0 0 10px 0;">📱 What's Next?</h4>
+            <ul style="margin: 0; padding-left: 20px; color: #333;">
+              <li>Visit the "My Tickets" page to view your tickets</li>
+              <li>Download or screenshot your tickets with QR codes</li>
+              <li>Present your QR code at the event entrance</li>
+              <li>Arrive early to ensure smooth entry</li>
             </ul>
           </div>
-          
-          <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
-            If you have any questions, please contact Hotel 734 support.<br>
-            This link will remain active until after your event.
-          </p>
         </div>
         
-        <div style="background: #1f2937; padding: 20px; text-align: center; color: #9ca3af; font-size: 12px;">
-          <p style="margin: 0;">© 2024 Hotel 734. All rights reserved.</p>
+        <div style="background: #1a233b; padding: 30px; text-align: center;">
+          <h3 style="color: #C49B66; margin: 0 0 15px 0;">Contact Information</h3>
+          <p style="color: #ffffff; margin: 5px 0; font-size: 14px;">📍 New Edubiase, Ashanti Region, Ghana</p>
+          <p style="color: #ffffff; margin: 5px 0; font-size: 14px;">📞 0244093821</p>
+          <p style="color: #ffffff; margin: 5px 0; font-size: 14px;">✉️ info@hotel734@gmail.com</p>
+          <div style="margin-top: 20px;">
+            <p style="color: #C49B66; margin: 0; font-size: 16px; font-weight: bold;">Hotel 734 Team</p>
+            <p style="color: #ffffff; margin: 5px 0 0 0; font-size: 12px;">Creating unforgettable experiences</p>
+          </div>
         </div>
       </div>
     `
@@ -116,7 +172,7 @@ export async function POST(request: NextRequest) {
     const mailOptions = {
       from: `"Hotel 734" <${emailUser}>`,
       to: customer_email,
-      subject: 'Your Hotel 734 Event Tickets',
+      subject: '🎉 Hotel 734 - Ticket Purchase Confirmation',
       html: emailContent
     }
 

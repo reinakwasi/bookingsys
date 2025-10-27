@@ -165,6 +165,132 @@ Hotel 734 Team
 Creating unforgettable experiences
     `
   }),
+  // Ticket purchase confirmation template
+  ticketConfirmation: ({
+    customerName,
+    ticketTitle,
+    quantity,
+    totalAmount,
+    paymentReference,
+    purchaseDate,
+    eventDate
+  }: {
+    customerName: string;
+    ticketTitle: string;
+    quantity: number;
+    totalAmount: number;
+    paymentReference: string;
+    purchaseDate: string;
+    eventDate: string;
+  }) => ({
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">
+        <div style="background: linear-gradient(135deg, #C49B66, #FFD700); padding: 30px; text-align: center;">
+          <h1 style="color: #1a233b; margin: 0; font-size: 28px; font-weight: bold;">Hotel 734</h1>
+          <p style="color: #1a233b; margin: 10px 0 0 0; font-size: 16px;">🎉 Ticket Purchase Confirmation</p>
+        </div>
+        
+        <div style="padding: 30px;">
+          <h2 style="color: #1a233b; margin-bottom: 20px;">Dear ${customerName},</h2>
+          <p style="color: #333; line-height: 1.6; margin-bottom: 20px;">
+            Thank you for purchasing tickets for <strong>${ticketTitle}</strong>! Your payment has been confirmed and your tickets are ready.
+          </p>
+          
+          <div style="background: #f8f9fa; padding: 25px; border-radius: 12px; margin: 25px 0; border-left: 4px solid #C49B66;">
+            <h3 style="color: #1a233b; margin: 0 0 15px 0; font-size: 18px;">🎫 Ticket Details</h3>
+            <div style="display: grid; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="font-weight: bold; color: #666;">Event:</span>
+                <span style="color: #1a233b; font-weight: bold;">${ticketTitle}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="font-weight: bold; color: #666;">Event Date:</span>
+                <span style="color: #1a233b;">${eventDate}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="font-weight: bold; color: #666;">Quantity:</span>
+                <span style="color: #1a233b; font-weight: bold;">${quantity} ticket${quantity > 1 ? 's' : ''}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="font-weight: bold; color: #666;">Total Amount:</span>
+                <span style="color: #C49B66; font-weight: bold; font-size: 18px;">GHS ${totalAmount.toFixed(2)}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                <span style="font-weight: bold; color: #666;">Payment Reference:</span>
+                <span style="color: #1a233b; font-family: monospace; font-size: 12px;">${paymentReference}</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                <span style="font-weight: bold; color: #666;">Purchase Date:</span>
+                <span style="color: #1a233b;">${purchaseDate}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #4CAF50;">
+            <h4 style="color: #2E7D32; margin: 0 0 10px 0;">✅ Payment Successful!</h4>
+            <p style="margin: 0; color: #333; line-height: 1.6;">
+              Your payment has been processed successfully. You can view and download your tickets from the "My Tickets" section on our website.
+            </p>
+          </div>
+          
+          <div style="background: #fff3cd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ffc107;">
+            <h4 style="color: #856404; margin: 0 0 10px 0;">📱 What's Next?</h4>
+            <ul style="margin: 0; padding-left: 20px; color: #333;">
+              <li>Visit the "My Tickets" page to view your tickets</li>
+              <li>Download or screenshot your tickets with QR codes</li>
+              <li>Present your QR code at the event entrance</li>
+              <li>Arrive early to ensure smooth entry</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div style="background: #1a233b; padding: 30px; text-align: center;">
+          <h3 style="color: #C49B66; margin: 0 0 15px 0;">Contact Information</h3>
+          <p style="color: #ffffff; margin: 5px 0; font-size: 14px;">📍 New Edubiase, Ashanti Region, Ghana</p>
+          <p style="color: #ffffff; margin: 5px 0; font-size: 14px;">📞 0244093821</p>
+          <p style="color: #ffffff; margin: 5px 0; font-size: 14px;">✉️ info@hotel734@gmail.com</p>
+          <div style="margin-top: 20px;">
+            <p style="color: #C49B66; margin: 0; font-size: 16px; font-weight: bold;">Hotel 734 Team</p>
+            <p style="color: #ffffff; margin: 5px 0 0 0; font-size: 12px;">Creating unforgettable experiences</p>
+          </div>
+        </div>
+      </div>
+    `,
+    text: `
+Hotel 734 - Ticket Purchase Confirmation
+
+Dear ${customerName},
+
+Thank you for purchasing tickets for ${ticketTitle}! Your payment has been confirmed and your tickets are ready.
+
+🎫 Ticket Details:
+- Event: ${ticketTitle}
+- Event Date: ${eventDate}
+- Quantity: ${quantity} ticket${quantity > 1 ? 's' : ''}
+- Total Amount: GHS ${totalAmount.toFixed(2)}
+- Payment Reference: ${paymentReference}
+- Purchase Date: ${purchaseDate}
+
+✅ Payment Successful!
+Your payment has been processed successfully. You can view and download your tickets from the "My Tickets" section on our website.
+
+📱 What's Next?
+- Visit the "My Tickets" page to view your tickets
+- Download or screenshot your tickets with QR codes
+- Present your QR code at the event entrance
+- Arrive early to ensure smooth entry
+
+Contact Information:
+Address: New Edubiase, Ashanti Region, Ghana
+Phone: 0244093821
+Email: info@hotel734@gmail.com
+
+Best regards,
+Hotel 734 Team
+Creating unforgettable experiences
+    `
+  }),
+
   replyTemplate: (replyContent: string, originalMessage?: string) => ({
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff;">

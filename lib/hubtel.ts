@@ -158,16 +158,8 @@ export class HubtelService {
       }
 
       const merchantAccountNumber = process.env.NEXT_PUBLIC_HUBTEL_MERCHANT_ACCOUNT;
-      const siteUrl = process.env.NEXT_PUBLIC_APP_URL || 
-                      process.env.NEXT_PUBLIC_SITE_URL || 
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 
                       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
-
-      console.log('🌍 Site URL being used:', siteUrl);
-      console.log('🔍 Environment check:', {
-        NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL ? 'SET' : 'NOT SET',
-        NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL ? 'SET' : 'NOT SET',
-        VERCEL_URL: process.env.VERCEL_URL ? 'SET' : 'NOT SET'
-      });
 
       const payload = {
         totalAmount: paymentData.totalAmount,

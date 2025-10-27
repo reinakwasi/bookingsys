@@ -27,49 +27,78 @@ export async function POST(request: NextRequest) {
       html: html ? '[HTML CONTENT PRESENT]' : '[NO HTML CONTENT]'
     });
 
-    // Use explicit SMTP settings instead of 'service: gmail' for better reliability
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASS
+    // Try multiple SMTP configurations for better reliability
+    const smtpConfigs = [
+      {
+        name: 'Port 465 (SSL)',
+        config: {
+          host: 'smtp.gmail.com',
+          port: 465,
+          secure: true,
+          auth: { user: SMTP_USER, pass: SMTP_PASS },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 20000,
+          tls: { rejectUnauthorized: false }
+        }
       },
-      connectionTimeout: 15000, // 15 seconds
-      greetingTimeout: 15000,   // 15 seconds
-      socketTimeout: 45000,     // 45 seconds
-      requireTLS: true,
-      tls: {
-        ciphers: 'SSLv3',
-        rejectUnauthorized: false
+      {
+        name: 'Port 587 (TLS)',
+        config: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: { user: SMTP_USER, pass: SMTP_PASS },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 20000,
+          requireTLS: true,
+          tls: { rejectUnauthorized: false }
+        }
       }
-    });
+    ];
 
-    // Skip verification to avoid blocking - let sendMail handle connection
-    console.log('📧 Attempting to send email directly...');
+    let lastError: any = null;
+    
+    // Try each SMTP configuration
+    for (const { name, config } of smtpConfigs) {
+      try {
+        console.log(`📧 Attempting to send email via ${name}...`);
+        
+        const transporter = nodemailer.createTransport(config);
+        
+        const info = await Promise.race([
+          transporter.sendMail({
+            from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+            to,
+            subject,
+            text,
+            html
+          }),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`Email sending timeout after 20 seconds (${name})`)), 20000)
+          )
+        ]) as any;
+        
+        console.log(`✅ Email sent successfully via ${name}:`, info);
+        
+        return NextResponse.json({
+          success: true,
+          messageId: info?.messageId || 'unknown',
+          provider: `gmail-smtp-${name}`,
+          debug: info
+        });
+        
+      } catch (error: any) {
+        console.error(`❌ Failed to send via ${name}:`, error.message);
+        lastError = error;
+        // Continue to next configuration
+      }
+    }
+    
+    // If all configurations failed, throw the last error
+    throw lastError || new Error('All SMTP configurations failed');
 
-    const info = await Promise.race([
-      transporter.sendMail({
-        from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
-        to,
-        subject,
-        text,
-        html
-      }),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Email sending timeout after 30 seconds')), 30000)
-      )
-    ]) as any;
-
-    console.log('📧 Nodemailer sendMail result:', info);
-
-    return NextResponse.json({
-      success: true,
-      messageId: info?.messageId || 'unknown',
-      provider: 'gmail-smtp',
-      debug: info
-    });
   } catch (error: any) {
     console.error('❌ Email API error:', error);
     
@@ -78,26 +107,42 @@ export async function POST(request: NextRequest) {
     let troubleshooting: string[] = [];
     
     if (error.code === 'ETIMEDOUT' || error.message?.includes('timeout')) {
-      errorMessage = 'Gmail SMTP connection timeout';
+      errorMessage = 'Gmail SMTP connection timeout - tried both port 465 and 587';
       troubleshooting = [
-        'Check if Gmail App Password is correctly configured',
-        'Verify 2-Factor Authentication is enabled on Gmail account',
-        'Ensure network allows SMTP connections on port 587',
-        'Try using port 465 with secure: true instead'
+        '🔑 CRITICAL: Verify Gmail App Password is correctly set in .env.local',
+        '🔐 Ensure 2-Factor Authentication is ENABLED on Gmail account',
+        '🌐 Check if your network/firewall blocks SMTP connections',
+        '📧 Verify SMTP_USER email matches the Gmail account',
+        '🔄 Try regenerating a new Gmail App Password',
+        '💡 Test with a simple email client to verify credentials work'
       ];
-    } else if (error.code === 'EAUTH' || error.message?.includes('authentication')) {
-      errorMessage = 'Gmail authentication failed';
+    } else if (error.code === 'EAUTH' || error.message?.includes('authentication') || error.message?.includes('Invalid login')) {
+      errorMessage = 'Gmail authentication failed - credentials rejected';
       troubleshooting = [
-        'Verify Gmail App Password is correct (not regular password)',
-        'Ensure 2-Factor Authentication is enabled',
-        'Check if account has "Less secure app access" disabled (recommended)'
+        '🔑 VERIFY: You must use Gmail App Password, NOT your regular Gmail password',
+        '🔐 REQUIRED: 2-Factor Authentication must be enabled on Gmail',
+        '📝 Steps: Google Account → Security → 2-Step Verification → App Passwords',
+        '🔄 Generate new 16-character app password for "Mail"',
+        '✅ Copy the app password to SMTP_PASS in .env.local (no spaces)',
+        '⚠️ Regular Gmail password will NOT work - must be App Password'
       ];
     } else if (error.code === 'ECONNREFUSED') {
       errorMessage = 'Gmail SMTP server connection refused';
       troubleshooting = [
-        'Check network connectivity',
-        'Verify firewall allows outbound SMTP connections',
-        'Try using different SMTP settings'
+        '🌐 Check your internet connection',
+        '🔥 Verify firewall allows outbound connections to smtp.gmail.com',
+        '🚫 Check if antivirus is blocking SMTP connections',
+        '🔌 Try disabling VPN if you are using one',
+        '📡 Verify DNS can resolve smtp.gmail.com'
+      ];
+    } else if (error.message?.includes('SMTP')) {
+      errorMessage = 'SMTP configuration error';
+      troubleshooting = [
+        '📧 Verify SMTP_USER is set to your Gmail address',
+        '🔑 Verify SMTP_PASS is set to your Gmail App Password',
+        '✉️ Verify FROM_EMAIL matches your Gmail address',
+        '🔄 Restart your development server after changing .env.local',
+        '📝 Check .env.local file exists and has correct format'
       ];
     }
     

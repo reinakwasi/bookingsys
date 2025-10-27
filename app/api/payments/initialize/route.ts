@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { HubtelService } from '@/lib/hubtel'
-import { supabase } from '@/lib/supabase'
 
 export async function POST(request: NextRequest) {
   try {
     console.log('💳 Payment initialization request received');
-    const { amount, description, metadata } = await request.json()
-    console.log('📋 Request data:', { amount, description, metadata });
+    const { amount, email, metadata, customerName, customerPhone } = await request.json()
+    console.log('📋 Request data:', { amount, email, customerName, customerPhone, metadata });
 
-    if (!amount || !description) {
-      console.error('❌ Missing required fields:', { amount: !!amount, description: !!description });
+    if (!amount) {
+      console.error('❌ Missing required field: amount');
       return NextResponse.json(
-        { success: false, error: 'Amount and description are required' },
+        { success: false, error: 'Amount is required' },
         { status: 400 }
       )
     }
@@ -26,45 +25,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Generate unique client reference
-    const clientReference = metadata?.clientReference || HubtelService.generateClientReference();
-
-    // Store pending payment in database so callback can access it
-    console.log('🔍 Storing pending payment in database...');
-    try {
-      const { data: pendingPayment, error: pendingError } = await supabase
-        .from('pending_payments')
-        .insert({
-          client_reference: clientReference,
-          ticket_id: metadata?.ticket_id,
-          ticket_title: metadata?.ticket_title,
-          quantity: metadata?.quantity,
-          total_amount: amount,
-          customer_name: metadata?.customer_name,
-          customer_email: metadata?.customer_email,
-          customer_phone: metadata?.customer_phone,
-          status: 'pending'
-        })
-        .select()
-        .single();
-      
-      if (pendingError) {
-        console.error('❌ Failed to store pending payment:', pendingError);
-      } else {
-        console.log('✅ Pending payment stored:', pendingPayment.id);
-      }
-    } catch (dbError) {
-      console.error('❌ Database error storing pending payment:', dbError);
-    }
+    // Generate unique client reference (max 32 chars for Hubtel)
+    const clientReference = metadata?.reference || HubtelService.generateClientReference();
 
     // Initialize payment with Hubtel
     const paymentData = {
       totalAmount: amount,
-      description: description,
+      description: metadata?.description || `Payment for ${metadata?.ticket_title || 'Hotel 734 Service'}`,
       clientReference: clientReference,
-      payeeName: metadata?.customer_name,
-      payeeMobileNumber: metadata?.customer_phone,
-      payeeEmail: metadata?.customer_email,
+      payeeName: customerName,
+      payeeMobileNumber: customerPhone,
+      payeeEmail: email,
       metadata: metadata
     };
 
@@ -81,33 +52,21 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Hubtel payment initialized successfully');
     
-    // Get credentials for SDK (safe to send since it's over HTTPS)
-    const apiId = process.env.NEXT_PUBLIC_HUBTEL_API_ID;
-    const apiKey = process.env.HUBTEL_API_KEY;
-    const merchantAccount = process.env.NEXT_PUBLIC_HUBTEL_MERCHANT_ACCOUNT;
-    
-    // Create Basic Auth for SDK
-    const basicAuth = Buffer.from(`${apiId}:${apiKey}`).toString('base64');
-    
     console.log('📤 Sending response:', {
       success: true,
       checkoutUrl: result.data?.checkoutUrl,
-      checkoutDirectUrl: result.data?.checkoutDirectUrl,
       checkoutId: result.data?.checkoutId,
-      clientReference: result.data?.clientReference,
-      merchantAccount: merchantAccount,
-      hasBasicAuth: !!basicAuth
+      clientReference: result.data?.clientReference
     });
     
     return NextResponse.json({
       success: true,
       data: result.data,
-      checkoutUrl: result.data?.checkoutUrl,
-      checkoutDirectUrl: result.data?.checkoutDirectUrl,
+      authorization_url: result.data?.checkoutUrl, // For compatibility
+      checkoutUrl: result.data?.checkoutUrl, // Redirect URL
+      checkoutDirectUrl: result.data?.checkoutDirectUrl, // Onsite/iframe URL
       checkoutId: result.data?.checkoutId,
-      clientReference: result.data?.clientReference,
-      basicAuth: basicAuth, // For SDK usage
-      merchantAccount: parseInt(merchantAccount || '0') // For SDK usage
+      reference: result.data?.clientReference
     })
 
   } catch (error) {
