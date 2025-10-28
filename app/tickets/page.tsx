@@ -27,7 +27,6 @@ export default function TicketsPage() {
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isConfirmingBooking, setIsConfirmingBooking] = useState(false);
   const [loadingTicketId, setLoadingTicketId] = useState<string | null>(null);
-  const [isCreatingTicket, setIsCreatingTicket] = useState(false);
 
   useEffect(() => {
     loadTickets();
@@ -294,14 +293,7 @@ export default function TicketsPage() {
   };
 
   const handlePaymentSuccess = async (reference: string) => {
-    // Prevent multiple simultaneous ticket creation calls
-    if (isCreatingTicket) {
-      console.log('⚠️ Ticket creation already in progress, ignoring duplicate call');
-      return;
-    }
-
     try {
-      setIsCreatingTicket(true);
       console.log('✅ Starting payment success handling for reference:', reference);
       
       // Get pending payment details from session storage
@@ -416,8 +408,6 @@ export default function TicketsPage() {
       } else {
         toast.error('Payment successful but ticket creation failed. Please contact support.');
       }
-    } finally {
-      setIsCreatingTicket(false);
     }
   };
 

@@ -352,30 +352,6 @@ export const individualTicketsAPI = {
 // Ticket Purchases API
 export const ticketPurchasesAPI = {
   async create(purchase: Omit<TicketPurchase, 'id' | 'purchase_date' | 'created_at' | 'access_token'>): Promise<TicketPurchase> {
-    // DUPLICATE PREVENTION: Check if ticket already exists for this payment reference
-    if (purchase.payment_reference) {
-      console.log('🔍 Checking for existing ticket with payment reference:', purchase.payment_reference);
-      
-      const { data: existingPurchase, error: checkError } = await supabase
-        .from('ticket_purchases')
-        .select('*')
-        .eq('payment_reference', purchase.payment_reference)
-        .single();
-      
-      if (existingPurchase && !checkError) {
-        console.log('⚠️ Duplicate ticket creation prevented! Existing purchase found:', existingPurchase.id);
-        console.log('📧 Returning existing ticket instead of creating duplicate');
-        return existingPurchase;
-      }
-      
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.log('❌ Error checking for existing purchase:', checkError);
-        // Continue with creation if it's not a "not found" error
-      } else {
-        console.log('✅ No existing purchase found, proceeding with creation');
-      }
-    }
-    
     // Generate simple access token
     const accessToken = `TKT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
@@ -385,8 +361,6 @@ export const ticketPurchasesAPI = {
       .select('*')
       .eq('id', purchase.ticket_id)
       .single();
-    
-    console.log('🎫 Creating new ticket purchase for payment reference:', purchase.payment_reference);
     
     const { data, error } = await supabase
       .from('ticket_purchases')
@@ -399,10 +373,7 @@ export const ticketPurchasesAPI = {
       .select()
       .single()
     
-    if (error) {
-      console.error('❌ Failed to create ticket purchase:', error);
-      throw error;
-    }
+    if (error) throw error
     
     console.log('✅ Ticket purchase created:', data.id);
     

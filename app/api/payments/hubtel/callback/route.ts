@@ -37,11 +37,11 @@ export async function POST(request: NextRequest) {
     if (parsedData.ResponseCode === '0000' && parsedData.Data.Status === 'Success') {
       console.log('✅ Payment successful:', parsedData.Data.ClientReference);
       
-      // NOTE: Ticket creation is handled by the frontend payment success flow
-      // This callback is just for logging and webhook acknowledgment
-      // Actual ticket creation happens in the frontend to avoid duplicates
-      
-      console.log('📝 Hubtel callback acknowledged - ticket creation handled by frontend');
+      // Here you can add logic to:
+      // 1. Update ticket purchase record in database
+      // 2. Send confirmation email/SMS
+      // 3. Generate QR codes
+      // 4. Update inventory
       
       return NextResponse.json({
         success: true,
