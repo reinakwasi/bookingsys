@@ -156,6 +156,28 @@ export default function TicketsPage() {
     setIsProcessingPayment(true);
     
     try {
+      // CRITICAL: Check availability before processing payment
+      console.log('🔍 Validating ticket availability before payment...');
+      const availabilityCheck = await ticketsAPI.checkAvailability(selectedTicket.id, quantity);
+      
+      if (!availabilityCheck.available) {
+        toast.error(availabilityCheck.message);
+        setIsProcessingPayment(false);
+        
+        // Refresh tickets to show updated availability
+        await loadTickets();
+        return;
+      }
+      
+      console.log('✅ Availability confirmed:', availabilityCheck.message);
+    } catch (availabilityError) {
+      console.error('❌ Availability check failed:', availabilityError);
+      toast.error('Failed to verify ticket availability. Please try again.');
+      setIsProcessingPayment(false);
+      return;
+    }
+    
+    try {
       // Validate Paystack configuration (client-side check)
       const configValidation = PaystackService.validateClientConfiguration();
       if (!configValidation.isValid) {
@@ -343,12 +365,7 @@ export default function TicketsPage() {
         console.error('❌ Payment verification failed:', verificationResult);
         
         // Provide specific error messages based on the failure reason
-        if (verificationResult.responseCode === 'IP_NOT_WHITELISTED') {
-          toast.error('Payment verification failed: Server IP not whitelisted with Hubtel. Please contact support.');
-          console.error('📝 Contact Hubtel support to whitelist server IP for payment verification');
-        } else {
-          toast.error(verificationResult.error || 'Payment verification failed. Please contact support if payment was completed.');
-        }
+        toast.error(verificationResult.error || 'Payment verification failed. Please contact support if payment was completed.');
         return;
       }
 
@@ -362,7 +379,7 @@ export default function TicketsPage() {
         total_amount: pendingPayment.totalAmount,
         payment_status: 'completed',
         payment_reference: reference,
-        payment_method: 'hubtel'
+        payment_method: 'paystack'
       };
       
       // Show success alert immediately after payment verification
@@ -388,19 +405,13 @@ export default function TicketsPage() {
       setQuantity(1);
       setCustomerForm({ name: '', email: '', phone: '' });
       
-      // Create ticket purchase record in background (don't wait for it)
-      // NOTE: Email and SMS notifications are automatically sent by ticketPurchasesAPI.create()
-      // in database.ts - no need to send them here to avoid duplicates
-      ticketPurchasesAPI.create(purchaseData).then(purchase => {
-        console.log('✅ Ticket purchase created:', purchase);
-        console.log('📧 Email and SMS notifications sent automatically by ticketPurchasesAPI');
-        
-        // Refresh tickets after background creation
-        loadTickets();
-      }).catch(error => {
-        console.error('❌ Background ticket creation error:', error);
-        // Don't show error to user since payment was successful
-      });
+      // NOTE: Ticket creation is handled by Paystack webhook automatically
+      // No need to create ticket here to avoid duplicates
+      console.log('✅ Payment successful - ticket will be created by webhook');
+      console.log('📧 Email and SMS notifications will be sent by webhook');
+      
+      // Refresh tickets to show updated availability
+      loadTickets();
     } catch (error) {
       console.error('❌ Purchase completion error:', error);
       if (error instanceof Error) {

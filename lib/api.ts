@@ -816,6 +816,10 @@ export const ticketsAPI = {
         return { id, deleted: true, note: 'Deletion status unknown but continuing' };
       }
     }
+  },
+
+  async checkAvailability(id: string, requestedQuantity: number) {
+    return await supabaseTicketsAPI.checkAvailability(id, requestedQuantity);
   }
 };
 

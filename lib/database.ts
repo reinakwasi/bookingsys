@@ -293,6 +293,65 @@ export const ticketsAPI = {
       .eq('id', id)
     
     if (error) throw error
+  },
+
+  async checkAvailability(id: string, requestedQuantity: number): Promise<{
+    available: boolean;
+    availableQuantity: number;
+    message: string;
+    ticket?: any;
+  }> {
+    console.log(`🔍 Checking availability for ticket ${id}, requested: ${requestedQuantity}`);
+    
+    const { data: result, error } = await supabase
+      .rpc('check_ticket_availability', { p_ticket_id: id });
+    
+    if (error) {
+      console.error('❌ Availability check error:', error);
+      throw new Error(`Failed to check availability: ${error.message}`);
+    }
+    
+    if (!result?.success) {
+      return {
+        available: false,
+        availableQuantity: 0,
+        message: result?.error || 'Ticket not found',
+        ticket: null
+      };
+    }
+    
+    const ticket = result.ticket;
+    const availableQuantity = ticket.available_quantity;
+    const isAvailable = ticket.is_available && availableQuantity >= requestedQuantity;
+    
+    let message = '';
+    if (!ticket.is_available) {
+      if (ticket.status !== 'active') {
+        message = `Ticket is ${ticket.status}`;
+      } else if (new Date(ticket.event_date) < new Date()) {
+        message = 'Event has expired';
+      } else {
+        message = 'Ticket not available';
+      }
+    } else if (availableQuantity < requestedQuantity) {
+      message = `Only ${availableQuantity} tickets available, but ${requestedQuantity} requested`;
+    } else {
+      message = `${availableQuantity} tickets available`;
+    }
+    
+    console.log(`📊 Availability result:`, {
+      available: isAvailable,
+      availableQuantity,
+      message,
+      ticketStatus: ticket.status
+    });
+    
+    return {
+      available: isAvailable,
+      availableQuantity,
+      message,
+      ticket
+    };
   }
 }
 
@@ -352,28 +411,92 @@ export const individualTicketsAPI = {
 // Ticket Purchases API
 export const ticketPurchasesAPI = {
   async create(purchase: Omit<TicketPurchase, 'id' | 'purchase_date' | 'created_at' | 'access_token'>): Promise<TicketPurchase> {
-    // Generate simple access token
-    const accessToken = `TKT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    console.log('🎫 Creating ticket purchase with atomic validation...');
+    console.log('📊 Purchase details:', {
+      ticket_id: purchase.ticket_id,
+      quantity: purchase.quantity,
+      customer_email: purchase.customer_email
+    });
     
-    // Get ticket details for SMS message
+    // Use atomic function to prevent overselling
+    const { data: atomicResult, error: atomicError } = await supabase
+      .rpc('create_ticket_purchase_atomic', {
+        p_ticket_id: purchase.ticket_id,
+        p_quantity: purchase.quantity,
+        p_customer_name: purchase.customer_name,
+        p_customer_email: purchase.customer_email,
+        p_customer_phone: purchase.customer_phone || null,
+        p_total_amount: purchase.total_amount,
+        p_payment_status: purchase.payment_status || 'completed',
+        p_payment_reference: purchase.payment_reference || null,
+        p_payment_method: purchase.payment_method || 'paystack'
+      });
+    
+    if (atomicError) {
+      console.error('❌ Atomic purchase function error:', atomicError);
+      throw new Error(`Database error: ${atomicError.message}`);
+    }
+    
+    if (!atomicResult?.success) {
+      console.error('❌ Ticket purchase validation failed:', atomicResult);
+      
+      // Log the failed attempt for audit
+      try {
+        await supabase.rpc('log_purchase_attempt', {
+          p_ticket_id: purchase.ticket_id,
+          p_customer_email: purchase.customer_email,
+          p_requested_quantity: purchase.quantity,
+          p_available_quantity: atomicResult.available || 0,
+          p_success: false,
+          p_error_message: atomicResult.error || 'Unknown error'
+        });
+      } catch (logError) {
+        console.warn('⚠️ Failed to log purchase attempt:', logError);
+      }
+      
+      // Throw specific error based on error code
+      switch (atomicResult.error_code) {
+        case 'INSUFFICIENT_QUANTITY':
+          throw new Error(`Only ${atomicResult.available} tickets available, but ${atomicResult.requested} requested for "${atomicResult.ticket_title}"`);
+        case 'TICKET_NOT_FOUND':
+          throw new Error('Ticket not found');
+        case 'TICKET_INACTIVE':
+          throw new Error(`Ticket is ${atomicResult.status} and not available for purchase`);
+        case 'EVENT_EXPIRED':
+          throw new Error('Event date has passed');
+        case 'INVALID_QUANTITY':
+          throw new Error('Invalid quantity specified');
+        default:
+          throw new Error(atomicResult.error || 'Ticket purchase failed');
+      }
+    }
+    
+    console.log('✅ Atomic purchase successful:', {
+      purchase_id: atomicResult.purchase_id,
+      quantity_purchased: atomicResult.quantity_purchased,
+      remaining_quantity: atomicResult.remaining_quantity
+    });
+    
+    // Get the created purchase record
+    const { data: purchaseRecord, error: fetchError } = await supabase
+      .from('ticket_purchases')
+      .select('*')
+      .eq('id', atomicResult.purchase_id)
+      .single();
+    
+    if (fetchError || !purchaseRecord) {
+      console.error('❌ Failed to fetch created purchase:', fetchError);
+      throw new Error('Purchase created but failed to retrieve details');
+    }
+    
+    // Get ticket details for notifications
     const { data: ticketData } = await supabase
       .from('tickets')
       .select('*')
       .eq('id', purchase.ticket_id)
       .single();
     
-    const { data, error } = await supabase
-      .from('ticket_purchases')
-      .insert({
-        ...purchase,
-        purchase_date: new Date().toISOString(),
-        access_token: accessToken,
-        qr_code: `QR-${accessToken.toUpperCase()}`
-      })
-      .select()
-      .single()
-    
-    if (error) throw error
+    const data = purchaseRecord;
     
     console.log('✅ Ticket purchase created:', data.id);
     
