@@ -102,10 +102,16 @@ export default function RootLayout({
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://js.paystack.co" />
         
         {/* DNS prefetch for performance */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+        <link rel="dns-prefetch" href="//js.paystack.co" />
+        
+        {/* Preload Paystack script for faster payment processing */}
+        <link rel="preload" href="https://js.paystack.co/v1/inline.js" as="script" />
+        <script src="https://js.paystack.co/v1/inline.js" async></script>
       </head>
       <body className={inter.className}>
         <StructuredData type="hotel" />

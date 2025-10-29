@@ -29,16 +29,16 @@ export default function TicketsPage() {
   const [loadingTicketId, setLoadingTicketId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadTickets();
+    // Only load tickets once on mount
+    let isMounted = true;
     
-    // Check Paystack configuration (client-side check only)
-    console.log('💳 Checking Paystack configuration...');
-    const configValidation = PaystackService.validateClientConfiguration();
-    if (!configValidation.isValid) {
-      console.error('❌ Paystack configuration issues:', configValidation.issues);
-    } else {
-      console.log('✅ Paystack client configuration is properly set');
-    }
+    const init = async () => {
+      if (isMounted) {
+        await loadTickets();
+      }
+    };
+    
+    init();
 
     // Listen for messages from popup window
     const handleMessage = (event: MessageEvent) => {
@@ -48,29 +48,19 @@ export default function TicketsPage() {
       }
 
       if (event.data.type === 'PAYMENT_SUCCESS') {
-        console.log('✅ Payment successful (from popup):', event.data.data);
         toast.success('Payment completed successfully!');
-        
-        // Show success message
         setPurchaseDetails(event.data.data);
         setShowSuccessAlert(true);
-        
-        // Clear pending payment
         sessionStorage.removeItem('pendingPayment');
         
-        // Remove overlay if exists
         const overlay = document.getElementById('payment-overlay');
         if (overlay && document.body.contains(overlay)) {
           document.body.removeChild(overlay);
         }
       } else if (event.data.type === 'PAYMENT_CANCELLED') {
-        console.log('❌ Payment cancelled (from popup)');
         toast.error('Payment was cancelled');
-        
-        // Clear pending payment
         sessionStorage.removeItem('pendingPayment');
         
-        // Remove overlay if exists
         const overlay = document.getElementById('payment-overlay');
         if (overlay && document.body.contains(overlay)) {
           document.body.removeChild(overlay);
@@ -82,9 +72,10 @@ export default function TicketsPage() {
 
     // Cleanup
     return () => {
+      isMounted = false;
       window.removeEventListener('message', handleMessage);
     };
-  }, []);
+  }, []); // Empty deps - only run once on mount
 
   const loadTickets = async () => {
     try {
@@ -302,8 +293,6 @@ export default function TicketsPage() {
       }
 
       function openPaystackPopup() {
-        console.log('🚀 Opening Paystack popup');
-        
         // Use the same email logic as the API call
         const emailForPaystack = customerForm.email.trim() || `customer${customerForm.phone.replace(/\D/g, '').slice(-8) || Date.now().toString().slice(-8)}@hotel734.com`;
         
@@ -320,12 +309,6 @@ export default function TicketsPage() {
         } else {
           formattedPhone = digitsOnly;
         }
-        
-        console.log('📧 Using email for Paystack popup:', emailForPaystack);
-        console.log('📱 Customer phone for SMS receipts:', {
-          original: customerForm.phone.trim(),
-          formatted: formattedPhone
-        });
         
         const handler = window.PaystackPop.setup({
           key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
@@ -352,14 +335,10 @@ export default function TicketsPage() {
             description: `${quantity}x ${selectedTicket.title} - Hotel 734`
           },
           callback: function(response: any) {
-            console.log('✅ Paystack payment successful:', response);
             toast.success('Payment completed successfully!');
-            
-            // Verify payment on server
             handlePaymentSuccess(response.reference);
           },
           onClose: function() {
-            console.log('❌ Paystack popup closed');
             toast.info('Payment cancelled. Click "Pay Now" to try again.');
             setIsProcessingPayment(false);
           }
