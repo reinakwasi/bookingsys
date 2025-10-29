@@ -7,23 +7,39 @@ export async function POST(request: NextRequest) {
     const { amount, email, metadata, customerName, customerPhone } = await request.json()
     console.log('📋 Request data:', { amount, email, customerName, customerPhone, metadata });
 
-    if (!amount || !customerPhone) {
-      console.error('❌ Missing required fields:', { amount: !!amount, customerPhone: !!customerPhone });
+    // More flexible validation - email is optional, phone is preferred but not strictly required
+    if (!amount) {
+      console.error('❌ Missing required field: amount');
       return NextResponse.json(
-        { success: false, error: 'Amount and customer phone are required' },
+        { success: false, error: 'Amount is required' },
         { status: 400 }
       )
     }
 
+    // Log detailed validation info
+    console.log('🔍 Validation check:', {
+      hasAmount: !!amount,
+      hasEmail: !!email,
+      hasCustomerName: !!customerName,
+      hasCustomerPhone: !!customerPhone,
+      emailValue: email,
+      phoneValue: customerPhone
+    });
+
     // Validate Paystack configuration
+    console.log('🔧 Checking Paystack configuration...');
     const configValidation = PaystackService.validateConfiguration();
+    console.log('📋 Config validation result:', configValidation);
+    
     if (!configValidation.isValid) {
       console.error('❌ Paystack configuration error:', configValidation.issues);
       return NextResponse.json(
         { success: false, error: `Paystack not configured: ${configValidation.issues.join(', ')}` },
-        { status: 500 }
+        { status: 400 }
       )
     }
+    
+    console.log('✅ Paystack configuration valid');
 
     // Generate unique reference for Paystack
     const reference = metadata?.reference || PaystackService.generateReference();
@@ -42,7 +58,10 @@ export async function POST(request: NextRequest) {
     };
 
     console.log('🚀 Initializing Paystack payment...');
+    console.log('📤 Payment data being sent to Paystack:', paymentData);
+    
     const result = await PaystackService.initializePayment(paymentData);
+    console.log('📥 Paystack service result:', result);
 
     if (!result.success) {
       console.error('❌ Paystack initialization failed:', result.error);
