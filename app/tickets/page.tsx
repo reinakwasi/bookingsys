@@ -142,18 +142,32 @@ export default function TicketsPage() {
   };
 
   const handlePurchase = async () => {
+    console.log('🎫 Starting purchase process...');
+    console.log('📝 Form data:', {
+      selectedTicket: !!selectedTicket,
+      name: customerForm.name.trim(),
+      email: customerForm.email.trim() || 'EMPTY',
+      phone: customerForm.phone.trim()
+    });
+
     // Validate required fields: name and phone are mandatory, email is optional
     if (!selectedTicket || !customerForm.name.trim() || !customerForm.phone.trim()) {
+      console.log('❌ Validation failed - missing required fields');
       toast.error('Please fill in all required fields (Name and Phone Number)');
       return;
     }
+    
+    console.log('✅ Basic validation passed');
 
     // Validate phone number format (basic validation)
-    const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+    const phoneRegex = /^[\+]?[0-9\s\-\(\)]{8,}$/;
     if (!phoneRegex.test(customerForm.phone.trim())) {
-      toast.error('Please enter a valid phone number');
+      console.log('❌ Phone validation failed for:', customerForm.phone.trim());
+      toast.error('Please enter a valid phone number (at least 8 digits)');
       return;
     }
+    
+    console.log('✅ Phone validation passed for:', customerForm.phone.trim());
 
     // Validate email format if provided (optional)
     if (customerForm.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerForm.email.trim())) {
@@ -202,6 +216,12 @@ export default function TicketsPage() {
       const reference = PaystackService.generateReference(`TKT${selectedTicket.id.substring(0, 8)}`);
       
       console.log('🚀 Initializing Paystack payment with reference:', reference);
+      console.log('📋 Customer form data:', {
+        name: customerForm.name.trim(),
+        email: customerForm.email.trim() || 'NONE PROVIDED',
+        phone: customerForm.phone.trim(),
+        tempEmail: customerForm.email.trim() || `customer${customerForm.phone.replace(/\D/g, '').slice(-8)}@hotel734.temp`
+      });
 
       // Initialize payment with Paystack via API
       const response = await fetch('/api/payments/initialize', {
@@ -211,7 +231,7 @@ export default function TicketsPage() {
         },
         body: JSON.stringify({
           amount: selectedTicket.price * quantity,
-          email: customerForm.email.trim() || `${customerForm.phone.replace(/\D/g, '')}@hotel734.temp`, // Use temp email if none provided
+          email: customerForm.email.trim() || `customer${customerForm.phone.replace(/\D/g, '').slice(-8)}@hotel734.temp`, // Use temp email if none provided
           customerName: customerForm.name.trim(),
           customerPhone: customerForm.phone.trim(),
           metadata: {
@@ -289,18 +309,32 @@ export default function TicketsPage() {
       function openPaystackPopup() {
         console.log('🚀 Opening Paystack popup');
         
+        // Use the same email logic as the API call
+        const emailForPaystack = customerForm.email.trim() || `customer${customerForm.phone.replace(/\D/g, '').slice(-8)}@hotel734.temp`;
+        
+        console.log('📧 Using email for Paystack popup:', emailForPaystack);
+        console.log('📱 Customer phone for SMS receipts:', customerForm.phone.trim());
+        
         const handler = window.PaystackPop.setup({
           key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-          email: customerForm.email,
+          email: emailForPaystack,
           amount: Math.round((selectedTicket.price * quantity) * 100), // Convert to pesewas
           currency: 'GHS', // Ghana Cedis
           ref: reference,
+          customer: {
+            email: emailForPaystack,
+            phone: customerForm.phone.trim(),
+            first_name: customerForm.name.trim().split(' ')[0] || 'Customer',
+            last_name: customerForm.name.trim().split(' ').slice(1).join(' ') || ''
+          },
           metadata: {
             ticket_id: selectedTicket.id,
             ticket_title: selectedTicket.title,
             quantity: quantity,
-            customer_name: customerForm.name,
-            customer_phone: customerForm.phone,
+            customer_name: customerForm.name.trim(),
+            customer_phone: customerForm.phone.trim(),
+            customer_email: customerForm.email.trim(),
+            has_email: !!customerForm.email.trim(),
             description: `${quantity}x ${selectedTicket.title} - Hotel 734`
           },
           callback: function(response: any) {

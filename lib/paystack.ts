@@ -108,24 +108,35 @@ export class PaystackService {
       // Convert amount to pesewas (Paystack uses smallest currency unit - pesewas for GHS)
       const amountInPesewas = Math.round(paymentData.amount * 100);
 
-      const requestBody = {
+      // Always include customer object for SMS receipts
+      const customerPhone = paymentData.metadata?.customer_phone;
+      const customerName = paymentData.metadata?.customer_name || 'Customer';
+      
+      const requestBody: any = {
         email: paymentData.email,
         amount: amountInPesewas,
         currency: 'GHS', // Ghana Cedis
         reference: reference,
         callback_url: paymentData.callback_url,
         metadata: paymentData.metadata,
-        channels: paymentData.channels || ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
-        // Include customer phone for SMS receipts
-        ...(paymentData.metadata?.customer_phone && {
-          customer: {
-            email: paymentData.email,
-            phone: paymentData.metadata.customer_phone,
-            first_name: paymentData.metadata?.customer_name?.split(' ')[0] || 'Customer',
-            last_name: paymentData.metadata?.customer_name?.split(' ').slice(1).join(' ') || ''
-          }
-        })
+        channels: paymentData.channels || ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']
       };
+
+      // Always include customer object if we have phone number for SMS receipts
+      if (customerPhone) {
+        requestBody.customer = {
+          email: paymentData.email,
+          phone: customerPhone,
+          first_name: customerName.split(' ')[0] || 'Customer',
+          last_name: customerName.split(' ').slice(1).join(' ') || ''
+        };
+        
+        console.log('📱 Customer object for SMS receipts:', {
+          phone: customerPhone,
+          email: paymentData.email,
+          name: customerName
+        });
+      }
 
       console.log('🚀 Initializing Paystack payment:', {
         email: requestBody.email,

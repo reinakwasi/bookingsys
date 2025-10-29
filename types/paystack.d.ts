@@ -11,6 +11,12 @@ interface PaystackOptions {
   ref: string;
   metadata?: Record<string, any>;
   channels?: string[];
+  customer?: {
+    email: string;
+    phone: string;
+    first_name: string;
+    last_name: string;
+  };
   onClose?: () => void;
   callback?: (response: PaystackResponse) => void;
 }
