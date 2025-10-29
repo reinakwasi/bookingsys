@@ -95,12 +95,12 @@ export default function TicketsPage() {
       console.log('🎫 Fetched tickets:', allTickets?.length || 0);
       console.log('🎫 All tickets data:', allTickets);
       
-      // Filter for active tickets with future dates (hide only expired tickets from users)
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      
+      // Filter for active tickets (show all tickets until admin deletes them)
+      // Tickets remain visible regardless of date - important for event validation
       const activeTickets = allTickets.filter((ticket: any) => {
         const eventDate = new Date(ticket.event_date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         eventDate.setHours(0, 0, 0, 0);
         const isExpired = eventDate < today;
         const isSoldOut = ticket.available_quantity <= 0;
@@ -111,12 +111,13 @@ export default function TicketsPage() {
           isSoldOut,
           available_quantity: ticket.available_quantity,
           status: ticket.status,
-          willShow: !isExpired && (ticket.status === 'active' || ticket.status === 'sold_out')
+          willShow: (ticket.status === 'active' || ticket.status === 'sold_out')
         });
         
-        // Show tickets that are active OR sold_out AND have future dates
-        // Sold out tickets should still be visible with SOLD OUT tag
-        return eventDate >= today && (ticket.status === 'active' || ticket.status === 'sold_out');
+        // Show all tickets that are active OR sold_out regardless of date
+        // Tickets remain visible until admin manually deletes them
+        // This is crucial for event validation after event time has passed
+        return (ticket.status === 'active' || ticket.status === 'sold_out');
       });
       
       console.log('🎫 Active tickets:', activeTickets?.length || 0);
