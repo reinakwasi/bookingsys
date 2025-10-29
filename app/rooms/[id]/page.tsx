@@ -188,8 +188,8 @@ export default function RoomPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-slate-50">
-      <div className="container px-4 py-16 min-h-[80vh]">
+    <main className="bg-gradient-to-b from-white to-slate-50" style={{ minHeight: 'calc(100vh - 200px)' }}>
+      <div className="container px-4 py-16" style={{ minHeight: 'calc(100vh - 300px)' }}>
         <div className="mb-8">
           <Link href="/rooms">
             <Button variant="ghost" className="mb-4 hover:bg-slate-100">

@@ -70,7 +70,7 @@ const rooms = [
 
 export default function RoomsPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
+    <main className="bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)' }}>
       {/* Floating background elements */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-[#C49B66]/20 to-[#F4E4BC]/20 rounded-full blur-3xl animate-float-slow"></div>

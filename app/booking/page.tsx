@@ -228,14 +228,14 @@ export default function BookingPage() {
 
   if (isSubmitted) {
     return (
-      <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
+      <main className="bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)' }}>
         {/* Floating background elements */}
         <div className="fixed inset-0 pointer-events-none">
           <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-[#C49B66]/20 to-[#F4E4BC]/20 rounded-full blur-3xl animate-float"></div>
           <div className="absolute top-40 right-20 w-96 h-96 bg-gradient-to-r from-green-200/30 to-emerald-200/30 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
         </div>
         
-        <div className="container-responsive py-12 sm:py-16 lg:py-24 max-w-2xl mx-auto relative z-10">
+        <div className="container-responsive py-12 sm:py-16 lg:py-24 max-w-2xl mx-auto relative z-10" style={{ minHeight: 'calc(100vh - 300px)' }}>
           <div className="text-center mb-8 sm:mb-12 animate-fade-in-up">
             <div className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 rounded-full glass-morphism text-green-600 mb-6 sm:mb-8 animate-glow">
               <CheckCircle2 className="h-5 w-5 sm:h-6 sm:w-6 animate-pulse" />
@@ -275,7 +275,7 @@ export default function BookingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
+    <main className="bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)' }}>
       {/* Floating background elements */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-gradient-to-r from-[#C49B66]/20 to-[#F4E4BC]/20 rounded-full blur-3xl animate-float"></div>
@@ -283,7 +283,7 @@ export default function BookingPage() {
         <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-[#C49B66]/10 to-amber-200/20 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
       </div>
       
-      <div className="container-responsive py-12 sm:py-16 lg:py-24 relative z-10">
+      <div className="container-responsive py-12 sm:py-16 lg:py-24 relative z-10" style={{ minHeight: 'calc(100vh - 300px)' }}>
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12 sm:mb-16 lg:mb-20 animate-fade-in-up">
             <div className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 rounded-full glass-morphism text-[#C49B66] mb-6 sm:mb-8 animate-glow">
