@@ -74,9 +74,6 @@ export default function RoomBookingForm({
       console.log('🔄 Setting loading state to true');
       setIsLoading(true);
       
-      // Add a delay to make loading state visible
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
       // Check room availability before booking - use roomType instead of roomId
       const availability = await bookingsAPI.checkRoomAvailability(roomType, data.checkIn, data.checkOut);
       
@@ -202,14 +199,14 @@ export default function RoomBookingForm({
 
   return (
     <>
-      <div className="glass-morphism rounded-3xl shadow-luxury overflow-hidden">
+      <div className="glass-morphism rounded-3xl shadow-luxury overflow-hidden" style={{ minHeight: '600px' }}>
         <div className="p-8">
           <div className="text-center mb-8">
             <h3 className="text-3xl font-display font-bold mb-3 text-slate-800">Book {roomType}</h3>
             <p className="text-slate-600">Complete your luxury reservation</p>
           </div>
           
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" style={{ minHeight: '500px' }}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-3 group">
                 <Label htmlFor="guestName" className="text-slate-700 font-semibold flex items-center gap-2">

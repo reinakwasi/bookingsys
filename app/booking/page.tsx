@@ -283,8 +283,8 @@ export default function BookingPage() {
         <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-gradient-to-r from-[#C49B66]/10 to-amber-200/20 rounded-full blur-3xl animate-float" style={{animationDelay: '4s'}}></div>
       </div>
       
-      <div className="container-responsive py-12 sm:py-16 lg:py-24 relative z-10" style={{ minHeight: 'calc(100vh - 300px)' }}>
-        <div className="max-w-4xl mx-auto">
+      <div className="container-responsive py-12 sm:py-16 lg:py-24 relative z-10" style={{ minHeight: 'calc(100vh - 300px)', position: 'relative' }}>
+        <div className="max-w-4xl mx-auto" style={{ minHeight: 'calc(100vh - 400px)' }}>
           <div className="text-center mb-12 sm:mb-16 lg:mb-20 animate-fade-in-up">
             <div className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 rounded-full glass-morphism text-[#C49B66] mb-6 sm:mb-8 animate-glow">
               <CalendarIcon className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
@@ -306,7 +306,7 @@ export default function BookingPage() {
                 </p>
               </div>
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8" style={{ minHeight: '600px' }}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
                     <FormField
                       control={form.control}
