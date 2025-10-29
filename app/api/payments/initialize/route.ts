@@ -7,10 +7,10 @@ export async function POST(request: NextRequest) {
     const { amount, email, metadata, customerName, customerPhone } = await request.json()
     console.log('📋 Request data:', { amount, email, customerName, customerPhone, metadata });
 
-    if (!amount) {
-      console.error('❌ Missing required field: amount');
+    if (!amount || !customerPhone) {
+      console.error('❌ Missing required fields:', { amount: !!amount, customerPhone: !!customerPhone });
       return NextResponse.json(
-        { success: false, error: 'Amount is required' },
+        { success: false, error: 'Amount and customer phone are required' },
         { status: 400 }
       )
     }

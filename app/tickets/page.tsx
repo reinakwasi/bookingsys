@@ -142,8 +142,22 @@ export default function TicketsPage() {
   };
 
   const handlePurchase = async () => {
-    if (!selectedTicket || !customerForm.name || !customerForm.email) {
-      toast.error('Please fill in all required fields');
+    // Validate required fields: name and phone are mandatory, email is optional
+    if (!selectedTicket || !customerForm.name.trim() || !customerForm.phone.trim()) {
+      toast.error('Please fill in all required fields (Name and Phone Number)');
+      return;
+    }
+
+    // Validate phone number format (basic validation)
+    const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+    if (!phoneRegex.test(customerForm.phone.trim())) {
+      toast.error('Please enter a valid phone number');
+      return;
+    }
+
+    // Validate email format if provided (optional)
+    if (customerForm.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customerForm.email.trim())) {
+      toast.error('Please enter a valid email address or leave it empty');
       return;
     }
 
@@ -197,17 +211,18 @@ export default function TicketsPage() {
         },
         body: JSON.stringify({
           amount: selectedTicket.price * quantity,
-          email: customerForm.email,
-          customerName: customerForm.name,
-          customerPhone: customerForm.phone,
+          email: customerForm.email.trim() || `${customerForm.phone.replace(/\D/g, '')}@hotel734.temp`, // Use temp email if none provided
+          customerName: customerForm.name.trim(),
+          customerPhone: customerForm.phone.trim(),
           metadata: {
             reference: reference,
             ticket_id: selectedTicket.id,
             ticket_title: selectedTicket.title,
             quantity: quantity,
-            customer_name: customerForm.name,
-            customer_phone: customerForm.phone,
-            customer_email: customerForm.email,
+            customer_name: customerForm.name.trim(),
+            customer_phone: customerForm.phone.trim(),
+            customer_email: customerForm.email.trim(),
+            has_email: !!customerForm.email.trim(),
             description: `${quantity}x ${selectedTicket.title} - Hotel 734`
           }
         })
@@ -693,26 +708,28 @@ export default function TicketsPage() {
               </div>
 
               <div>
-                <Label htmlFor="email" className="text-sm sm:text-base font-medium">Email Address *</Label>
+                <Label htmlFor="phone" className="text-sm sm:text-base font-medium">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  value={customerForm.phone}
+                  onChange={(e) => setCustomerForm(prev => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Enter your phone number (required for SMS receipts)"
+                  className="h-11 text-base mt-1"
+                />
+                <p className="text-xs text-gray-600 mt-1">Required for payment receipts and ticket notifications</p>
+              </div>
+
+              <div>
+                <Label htmlFor="email" className="text-sm sm:text-base font-medium">Email Address (Optional)</Label>
                 <Input
                   id="email"
                   type="email"
                   value={customerForm.email}
                   onChange={(e) => setCustomerForm(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Enter your email"
+                  placeholder="Enter your email (optional)"
                   className="h-11 text-base mt-1"
                 />
-              </div>
-
-              <div>
-                <Label htmlFor="phone" className="text-sm sm:text-base font-medium">Phone Number</Label>
-                <Input
-                  id="phone"
-                  value={customerForm.phone}
-                  onChange={(e) => setCustomerForm(prev => ({ ...prev, phone: e.target.value }))}
-                  placeholder="Enter your phone number"
-                  className="h-11 text-base mt-1"
-                />
+                <p className="text-xs text-gray-600 mt-1">If provided, you'll receive notifications via both email and SMS</p>
               </div>
 
               <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-3 sm:p-4 rounded-lg border border-amber-200">

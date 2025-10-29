@@ -91,9 +91,10 @@ export async function POST(request: NextRequest) {
         const purchase = await ticketPurchasesAPI.create(purchaseData)
         console.log('✅ Ticket purchase created:', purchase.id);
 
-        // Send email notification
-        if (customerEmail) {
-          console.log('📧 Sending email notification...');
+        // Send email notification (only if customer provided a real email)
+        const hasRealEmail = metadata.has_email && customerEmail && !customerEmail.includes('@hotel734.temp');
+        if (hasRealEmail) {
+          console.log('📧 Sending email notification to real email address...');
           try {
             const emailResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/send-ticket-email`, {
               method: 'POST',
@@ -111,13 +112,15 @@ export async function POST(request: NextRequest) {
             })
 
             if (emailResponse.ok) {
-              console.log('✅ Email sent successfully');
+              console.log('✅ Email sent successfully to:', customerEmail);
             } else {
               console.error('❌ Email sending failed:', await emailResponse.text());
             }
           } catch (emailError) {
             console.error('❌ Email sending error:', emailError);
           }
+        } else {
+          console.log('ℹ️ Skipping email notification - no real email provided');
         }
 
         // Send SMS notification

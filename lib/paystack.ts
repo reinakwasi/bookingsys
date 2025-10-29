@@ -115,7 +115,16 @@ export class PaystackService {
         reference: reference,
         callback_url: paymentData.callback_url,
         metadata: paymentData.metadata,
-        channels: paymentData.channels || ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer']
+        channels: paymentData.channels || ['card', 'bank', 'ussd', 'qr', 'mobile_money', 'bank_transfer'],
+        // Include customer phone for SMS receipts
+        ...(paymentData.metadata?.customer_phone && {
+          customer: {
+            email: paymentData.email,
+            phone: paymentData.metadata.customer_phone,
+            first_name: paymentData.metadata?.customer_name?.split(' ')[0] || 'Customer',
+            last_name: paymentData.metadata?.customer_name?.split(' ').slice(1).join(' ') || ''
+          }
+        })
       };
 
       console.log('🚀 Initializing Paystack payment:', {
