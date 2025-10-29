@@ -33,6 +33,16 @@ body {
     text-wrap: balance;
   }
   
+  /* Z-Index Hierarchy for Hotel 734 */
+  .z-base { z-index: 10; }           /* Main content */
+  .z-navbar { z-index: 40; }         /* Navigation */  
+  .z-footer { z-index: 30; }         /* Footer */
+  .z-dropdown { z-index: 50; }       /* Dropdowns, selects, popovers */
+  .z-sheet { z-index: 9996; }        /* Sheets, drawers */
+  .z-dialog { z-index: 9997; }       /* Dialogs, modals */
+  .z-toast { z-index: 9998; }        /* Toast notifications */
+  .z-alert { z-index: 9999; }        /* Critical alerts */
+  
   .font-display {
     font-family: 'Playfair Display', serif;
   }

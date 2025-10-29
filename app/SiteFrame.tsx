@@ -8,17 +8,19 @@ export default function SiteFrame({ children }: { children: React.ReactNode }) {
   const isAdminRoute = pathname.startsWith('/admin');
   
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="min-h-screen flex flex-col">
       {!isAdminRoute && (
-        <header className="flex-shrink-0">
+        <header className="flex-shrink-0 relative z-40">
           <Navbar />
         </header>
       )}
-      <main className="flex-1 flex flex-col">
-        {children}
+      <main className="flex-1 relative z-10">
+        <div className="min-h-[60vh]">
+          {children}
+        </div>
       </main>
       {!isAdminRoute && (
-        <footer className="flex-shrink-0 mt-auto">
+        <footer className="flex-shrink-0 relative z-30">
           <Footer />
         </footer>
       )}
