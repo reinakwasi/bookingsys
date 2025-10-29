@@ -88,6 +88,9 @@ export default function RoomBookingForm({
         toast.error(`${roomTypeName} is fully booked for these dates. Please try different dates.`);
         
         // Show styled alert for booking denial
+        // Scroll to top FIRST to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        
         showError(
           'Room Unavailable',
           `We apologize, but no ${roomTypeName} rooms are available for your selected dates (${data.checkIn} to ${data.checkOut}).`,
@@ -97,9 +100,6 @@ export default function RoomBookingForm({
             'Our team is happy to help you find alternative accommodations.'
           ]
         );
-        
-        // Scroll to top to ensure alert is visible
-        window.scrollTo({ top: 0, behavior: 'smooth' });
         
         return;
       }
@@ -124,6 +124,9 @@ export default function RoomBookingForm({
       // Show success message immediately
       toast.success('Booking confirmed successfully!');
       
+      // Scroll to top FIRST to ensure alert is visible
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      
       // Show styled success alert immediately
       showSuccess(
         'BOOKING CONFIRMED!',
@@ -135,9 +138,6 @@ export default function RoomBookingForm({
           data.email ? 'Confirmation email will be sent shortly!' : 'Confirmation details saved!'
         ]
       );
-      
-      // Scroll to top to ensure alert is visible
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       
       onSuccess?.();
       
@@ -164,6 +164,9 @@ export default function RoomBookingForm({
       
       // Handle specific availability errors from atomic validation
       if (error.message && error.message.includes('rooms available')) {
+        // Scroll to top FIRST to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        
         showError(
           'Room Unavailable',
           'The room became unavailable while processing your request.',
@@ -173,11 +176,11 @@ export default function RoomBookingForm({
             'We apologize for any inconvenience.'
           ]
         );
-        
-        // Scroll to top to ensure alert is visible
-        window.scrollTo({ top: 0, behavior: 'smooth' });
         toast.error('Room became unavailable. Please try different dates.');
       } else {
+        // Scroll to top FIRST to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        
         showError(
           'Booking Failed',
           'We encountered an issue processing your booking request.',
@@ -187,9 +190,6 @@ export default function RoomBookingForm({
             'We apologize for the inconvenience.'
           ]
         );
-        
-        // Scroll to top to ensure alert is visible
-        window.scrollTo({ top: 0, behavior: 'smooth' });
         toast.error('Booking failed. Please try again.');
       }
     } finally {

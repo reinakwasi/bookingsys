@@ -110,6 +110,9 @@ export default function BookingPage() {
                            values.roomType === 'superior_room' ? 'Superior Room' : 
                            values.roomType === 'classic_room' ? 'Classic Room' : values.roomType;
         
+        // Scroll to top FIRST to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        
         showError(
           'Room Unavailable',
           `We apologize, but no ${roomTypeName} rooms are available for your selected dates (${startDate} to ${endDate}).`,
@@ -119,9 +122,6 @@ export default function BookingPage() {
             'Our team is happy to help you find alternative accommodations.'
           ]
         );
-        
-        // Scroll to top to ensure alert is visible
-        window.scrollTo({ top: 0, behavior: 'smooth' });
         return; // Stop booking process
       }
       
@@ -148,11 +148,11 @@ export default function BookingPage() {
       
       console.log('🎉 Booking saved successfully!')
       
+      // Scroll to top FIRST to ensure success message is visible
+      window.scrollTo({ top: 0, behavior: 'instant' })
+      
       // Show success immediately
       setIsSubmitted(true)
-      
-      // Scroll to top to ensure success message is visible
-      window.scrollTo({ top: 0, behavior: 'smooth' })
       
       // Send notifications asynchronously (don't block UI)
       const { notificationService } = await import('@/lib/notificationService')
@@ -182,6 +182,9 @@ export default function BookingPage() {
       
       // Handle specific availability errors from atomic validation
       if (error.message && error.message.includes('rooms available')) {
+        // Scroll to top FIRST to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        
         showError(
           'Room Unavailable',
           'The room became unavailable while processing your request.',
@@ -191,10 +194,10 @@ export default function BookingPage() {
             'We apologize for any inconvenience.'
           ]
         );
-        
-        // Scroll to top to ensure alert is visible
-        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
+        // Scroll to top FIRST to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        
         showError(
           'Booking Failed',
           'We encountered an issue processing your booking request.',
@@ -204,9 +207,6 @@ export default function BookingPage() {
             'We apologize for the inconvenience.'
           ]
         );
-        
-        // Scroll to top to ensure alert is visible
-        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } finally {
       setIsLoading(false);
@@ -228,6 +228,7 @@ export default function BookingPage() {
 
   if (isSubmitted) {
     return (
+      <>
       <main className="bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)' }}>
         {/* Floating background elements */}
         <div className="fixed inset-0 pointer-events-none">
@@ -271,10 +272,13 @@ export default function BookingPage() {
           </div>
         </div>
       </main>
+      <CustomAlert />
+      </>
     )
   }
 
   return (
+    <>
     <main className="bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden" style={{ minHeight: 'calc(100vh - 200px)' }}>
       {/* Floating background elements */}
       <div className="fixed inset-0 pointer-events-none">
@@ -605,9 +609,10 @@ export default function BookingPage() {
           </div>
         </div>
       </div>
-      
-      {/* Custom Alert Component */}
-      <CustomAlert />
     </main>
+    
+    {/* Custom Alert Component - Rendered outside main for true fixed positioning */}
+    <CustomAlert />
+    </>
   )
 }
