@@ -124,15 +124,41 @@ export class PaystackService {
 
       // Always include customer object if we have phone number for SMS receipts
       if (customerPhone) {
+        // Format phone number for international use (Ghana)
+        let formattedPhone = customerPhone.trim();
+        
+        // Remove any non-digit characters except +
+        const digitsOnly = formattedPhone.replace(/[^\d+]/g, '');
+        
+        // Convert to international format for Ghana
+        if (digitsOnly.startsWith('0')) {
+          formattedPhone = '+233' + digitsOnly.substring(1);
+        } else if (digitsOnly.startsWith('233')) {
+          formattedPhone = '+' + digitsOnly;
+        } else if (!digitsOnly.startsWith('+233')) {
+          formattedPhone = '+233' + digitsOnly;
+        } else {
+          formattedPhone = digitsOnly;
+        }
+        
         requestBody.customer = {
           email: paymentData.email,
-          phone: customerPhone,
+          phone: formattedPhone,
           first_name: customerName.split(' ')[0] || 'Customer',
           last_name: customerName.split(' ').slice(1).join(' ') || ''
         };
         
+        // Also add phone to metadata for additional SMS receipt configuration
+        requestBody.metadata = {
+          ...requestBody.metadata,
+          customer_phone: formattedPhone,
+          sms_receipt: true,
+          receipt_phone: formattedPhone
+        };
+        
         console.log('📱 Customer object for SMS receipts:', {
-          phone: customerPhone,
+          originalPhone: customerPhone,
+          formattedPhone: formattedPhone,
           email: paymentData.email,
           name: customerName
         });

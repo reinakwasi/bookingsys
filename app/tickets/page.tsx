@@ -327,8 +327,25 @@ export default function TicketsPage() {
         // Use the same email logic as the API call
         const emailForPaystack = customerForm.email.trim() || `customer${customerForm.phone.replace(/\D/g, '').slice(-8) || Date.now().toString().slice(-8)}@hotel734.com`;
         
+        // Format phone number for international SMS receipts (Ghana)
+        let formattedPhone = customerForm.phone.trim();
+        const digitsOnly = formattedPhone.replace(/[^\d+]/g, '');
+        
+        if (digitsOnly.startsWith('0')) {
+          formattedPhone = '+233' + digitsOnly.substring(1);
+        } else if (digitsOnly.startsWith('233')) {
+          formattedPhone = '+' + digitsOnly;
+        } else if (!digitsOnly.startsWith('+233')) {
+          formattedPhone = '+233' + digitsOnly;
+        } else {
+          formattedPhone = digitsOnly;
+        }
+        
         console.log('📧 Using email for Paystack popup:', emailForPaystack);
-        console.log('📱 Customer phone for SMS receipts:', customerForm.phone.trim());
+        console.log('📱 Customer phone for SMS receipts:', {
+          original: customerForm.phone.trim(),
+          formatted: formattedPhone
+        });
         
         const handler = window.PaystackPop.setup({
           key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
@@ -338,7 +355,7 @@ export default function TicketsPage() {
           ref: reference,
           customer: {
             email: emailForPaystack,
-            phone: customerForm.phone.trim(),
+            phone: formattedPhone,
             first_name: customerForm.name.trim().split(' ')[0] || 'Customer',
             last_name: customerForm.name.trim().split(' ').slice(1).join(' ') || ''
           },
@@ -347,9 +364,11 @@ export default function TicketsPage() {
             ticket_title: selectedTicket.title,
             quantity: quantity,
             customer_name: customerForm.name.trim(),
-            customer_phone: customerForm.phone.trim(),
+            customer_phone: formattedPhone,
             customer_email: customerForm.email.trim(),
             has_email: !!customerForm.email.trim(),
+            sms_receipt: true,
+            receipt_phone: formattedPhone,
             description: `${quantity}x ${selectedTicket.title} - Hotel 734`
           },
           callback: function(response: any) {
