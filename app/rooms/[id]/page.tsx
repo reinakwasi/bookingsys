@@ -189,7 +189,7 @@ export default function RoomPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-white to-slate-50">
-      <div className="container px-4 py-16">
+      <div className="container px-4 py-16 min-h-[80vh]">
         <div className="mb-8">
           <Link href="/rooms">
             <Button variant="ghost" className="mb-4 hover:bg-slate-100">
@@ -318,7 +318,10 @@ export default function RoomPage() {
                   <div className="bg-white rounded-3xl p-0 border-2 border-[#C49B66]/30 shadow-2xl">
                     <Calendar 
                       selected={checkIn} 
-                      onSelect={setCheckIn} 
+                      onSelect={(date) => {
+                        setCheckIn(date);
+                        // Auto-close is handled by the modal itself
+                      }} 
                       mode="single" 
                       className="w-full rounded-3xl"
                     />
@@ -329,7 +332,10 @@ export default function RoomPage() {
                   <div className="bg-white rounded-3xl p-0 border-2 border-[#C49B66]/30 shadow-2xl">
                     <Calendar 
                       selected={checkOut} 
-                      onSelect={setCheckOut} 
+                      onSelect={(date) => {
+                        setCheckOut(date);
+                        // Auto-close is handled by the modal itself
+                      }} 
                       mode="single" 
                       className="w-full rounded-3xl"
                       disabled={(date) => {

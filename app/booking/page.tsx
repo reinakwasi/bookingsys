@@ -51,6 +51,8 @@ const formSchema = z
 export default function BookingPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [checkInOpen, setCheckInOpen] = useState(false)
+  const [checkOutOpen, setCheckOutOpen] = useState(false)
   const { showError, showSuccess, CustomAlert } = useCustomAlert()
   const searchParams = useSearchParams()
   
@@ -117,6 +119,9 @@ export default function BookingPage() {
             'Our team is happy to help you find alternative accommodations.'
           ]
         );
+        
+        // Scroll to top to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return; // Stop booking process
       }
       
@@ -145,6 +150,9 @@ export default function BookingPage() {
       
       // Show success immediately
       setIsSubmitted(true)
+      
+      // Scroll to top to ensure success message is visible
+      window.scrollTo({ top: 0, behavior: 'smooth' })
       
       // Send notifications asynchronously (don't block UI)
       const { notificationService } = await import('@/lib/notificationService')
@@ -183,6 +191,9 @@ export default function BookingPage() {
             'We apologize for any inconvenience.'
           ]
         );
+        
+        // Scroll to top to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         showError(
           'Booking Failed',
@@ -193,6 +204,9 @@ export default function BookingPage() {
             'We apologize for the inconvenience.'
           ]
         );
+        
+        // Scroll to top to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } finally {
       setIsLoading(false);
@@ -384,7 +398,7 @@ export default function BookingPage() {
                             <CalendarIcon className="h-4 w-4 text-[#C49B66]" />
                             Check-in Date
                           </FormLabel>
-                          <Popover>
+                          <Popover open={checkInOpen} onOpenChange={setCheckInOpen}>
                             <PopoverTrigger asChild>
                               <FormControl>
                                 <Button
@@ -400,7 +414,10 @@ export default function BookingPage() {
                               <Calendar
                                 mode="single"
                                 selected={field.value}
-                                onSelect={field.onChange}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  setCheckInOpen(false);
+                                }}
                                 className="rounded-3xl"
                               />
                             </PopoverContent>
@@ -418,7 +435,7 @@ export default function BookingPage() {
                             <CalendarIcon className="h-4 w-4 text-[#C49B66]" />
                             Check-out Date
                           </FormLabel>
-                          <Popover>
+                          <Popover open={checkOutOpen} onOpenChange={setCheckOutOpen}>
                             <PopoverTrigger asChild>
                               <FormControl>
                                 <Button
@@ -434,7 +451,10 @@ export default function BookingPage() {
                               <Calendar
                                 mode="single"
                                 selected={field.value}
-                                onSelect={field.onChange}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  setCheckOutOpen(false);
+                                }}
                                 disabled={(date) => {
                                   const checkIn = form.getValues("checkIn")
                                   if (!checkIn) return false

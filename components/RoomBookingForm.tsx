@@ -75,7 +75,7 @@ export default function RoomBookingForm({
       setIsLoading(true);
       
       // Add a delay to make loading state visible
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Check room availability before booking - use roomType instead of roomId
       const availability = await bookingsAPI.checkRoomAvailability(roomType, data.checkIn, data.checkOut);
@@ -100,6 +100,9 @@ export default function RoomBookingForm({
             'Our team is happy to help you find alternative accommodations.'
           ]
         );
+        
+        // Scroll to top to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         
         return;
       }
@@ -136,6 +139,9 @@ export default function RoomBookingForm({
         ]
       );
       
+      // Scroll to top to ensure alert is visible
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
       onSuccess?.();
       
       // Send notifications asynchronously (don't block UI)
@@ -170,6 +176,9 @@ export default function RoomBookingForm({
             'We apologize for any inconvenience.'
           ]
         );
+        
+        // Scroll to top to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         toast.error('Room became unavailable. Please try different dates.');
       } else {
         showError(
@@ -181,6 +190,9 @@ export default function RoomBookingForm({
             'We apologize for the inconvenience.'
           ]
         );
+        
+        // Scroll to top to ensure alert is visible
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         toast.error('Booking failed. Please try again.');
       }
     } finally {
