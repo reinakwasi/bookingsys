@@ -4,14 +4,45 @@ import { PaystackService } from '@/lib/paystack'
 export async function POST(request: NextRequest) {
   try {
     console.log('💳 Payment initialization request received');
-    const { amount, email, metadata, customerName, customerPhone } = await request.json()
+    
+    // Parse request body with error handling
+    let requestData;
+    try {
+      requestData = await request.json();
+    } catch (parseError) {
+      console.error('❌ Failed to parse request JSON:', parseError);
+      return NextResponse.json(
+        { success: false, error: 'Invalid JSON in request body' },
+        { status: 400 }
+      );
+    }
+    
+    const { amount, email, metadata, customerName, customerPhone } = requestData;
     console.log('📋 Request data:', { amount, email, customerName, customerPhone, metadata });
+    
+    // Detailed validation of each field
+    console.log('🔍 Detailed field analysis:', {
+      amount: { value: amount, type: typeof amount, valid: !!amount },
+      email: { value: email, type: typeof email, length: email?.length, valid: !!email },
+      customerName: { value: customerName, type: typeof customerName, length: customerName?.length, valid: !!customerName },
+      customerPhone: { value: customerPhone, type: typeof customerPhone, length: customerPhone?.length, valid: !!customerPhone },
+      metadata: { present: !!metadata, type: typeof metadata }
+    });
 
     // More flexible validation - email is optional, phone is preferred but not strictly required
     if (!amount) {
       console.error('❌ Missing required field: amount');
       return NextResponse.json(
         { success: false, error: 'Amount is required' },
+        { status: 400 }
+      )
+    }
+    
+    // Validate email format if provided
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      console.error('❌ Invalid email format:', email);
+      return NextResponse.json(
+        { success: false, error: 'Invalid email format provided' },
         { status: 400 }
       )
     }

@@ -220,7 +220,7 @@ export default function TicketsPage() {
         name: customerForm.name.trim(),
         email: customerForm.email.trim() || 'NONE PROVIDED',
         phone: customerForm.phone.trim(),
-        tempEmail: customerForm.email.trim() || `customer${customerForm.phone.replace(/\D/g, '').slice(-8)}@hotel734.temp`
+        tempEmail: customerForm.email.trim() || `customer${customerForm.phone.replace(/\D/g, '').slice(-8) || Date.now().toString().slice(-8)}@hotel734.com`
       });
 
       // Initialize payment with Paystack via API
@@ -231,7 +231,7 @@ export default function TicketsPage() {
         },
         body: JSON.stringify({
           amount: selectedTicket.price * quantity,
-          email: customerForm.email.trim() || `customer${customerForm.phone.replace(/\D/g, '').slice(-8)}@hotel734.temp`, // Use temp email if none provided
+          email: customerForm.email.trim() || `customer${customerForm.phone.replace(/\D/g, '').slice(-8) || Date.now().toString().slice(-8)}@hotel734.com`, // Use temp email if none provided
           customerName: customerForm.name.trim(),
           customerPhone: customerForm.phone.trim(),
           metadata: {
@@ -252,9 +252,24 @@ export default function TicketsPage() {
 
       // Check if response is OK before parsing JSON
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ API Error Response:', errorText);
-        throw new Error(`Payment initialization failed: ${response.status} ${response.statusText}`);
+        let errorDetails;
+        try {
+          const errorJson = await response.json();
+          errorDetails = errorJson.error || errorJson.message || 'Unknown error';
+          console.error('❌ API Error Response (JSON):', errorJson);
+        } catch {
+          errorDetails = await response.text();
+          console.error('❌ API Error Response (Text):', errorDetails);
+        }
+        
+        console.error('❌ Payment initialization failed:', {
+          status: response.status,
+          statusText: response.statusText,
+          error: errorDetails
+        });
+        
+        toast.error(`Payment failed: ${errorDetails}`);
+        throw new Error(`Payment initialization failed: ${errorDetails}`);
       }
 
       // Parse JSON response
@@ -310,7 +325,7 @@ export default function TicketsPage() {
         console.log('🚀 Opening Paystack popup');
         
         // Use the same email logic as the API call
-        const emailForPaystack = customerForm.email.trim() || `customer${customerForm.phone.replace(/\D/g, '').slice(-8)}@hotel734.temp`;
+        const emailForPaystack = customerForm.email.trim() || `customer${customerForm.phone.replace(/\D/g, '').slice(-8) || Date.now().toString().slice(-8)}@hotel734.com`;
         
         console.log('📧 Using email for Paystack popup:', emailForPaystack);
         console.log('📱 Customer phone for SMS receipts:', customerForm.phone.trim());

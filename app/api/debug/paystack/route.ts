@@ -58,22 +58,38 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🧪 Debug: Testing payment initialization...');
     
-    const testData = {
-      amount: 10,
-      email: 'customer12345678@hotel734.temp',
-      customerName: 'Test User',
-      customerPhone: '0244093821',
-      metadata: {
-        reference: 'TEST_' + Date.now(),
-        ticket_id: 'test-ticket',
-        customer_name: 'Test User',
-        customer_phone: '0244093821',
-        customer_email: '',
-        has_email: false
-      }
-    };
+    // Get test data from request or use defaults
+    let testData;
+    try {
+      testData = await request.json();
+    } catch {
+      testData = {
+        amount: 10,
+        email: 'customer12345678@hotel734.com',
+        customerName: 'Test User',
+        customerPhone: '0244093821',
+        metadata: {
+          reference: 'TEST_' + Date.now(),
+          ticket_id: 'test-ticket',
+          customer_name: 'Test User',
+          customer_phone: '0244093821',
+          customer_email: '',
+          has_email: false
+        }
+      };
+    }
     
     console.log('📤 Testing with data:', testData);
+    
+    // Test email validation
+    if (testData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testData.email)) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid email format',
+        email: testData.email,
+        timestamp: new Date().toISOString()
+      }, { status: 400 });
+    }
     
     // Test the same logic as the real endpoint
     const configValidation = PaystackService.validateConfiguration();
@@ -81,19 +97,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         error: 'Paystack not configured',
-        issues: configValidation.issues
+        issues: configValidation.issues,
+        timestamp: new Date().toISOString()
       }, { status: 400 });
     }
     
     const paymentData = {
       amount: testData.amount,
       email: testData.email,
-      reference: testData.metadata.reference,
-      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/payment-success?reference=${testData.metadata.reference}`,
+      reference: testData.metadata?.reference || 'TEST_' + Date.now(),
+      callback_url: `${process.env.NEXT_PUBLIC_SITE_URL}/payment-success?reference=${testData.metadata?.reference || 'TEST'}`,
       metadata: testData.metadata
     };
     
+    console.log('🚀 Calling PaystackService.initializePayment...');
     const result = await PaystackService.initializePayment(paymentData);
+    console.log('📥 PaystackService result:', result);
     
     return NextResponse.json({
       success: true,
@@ -108,6 +127,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
       timestamp: new Date().toISOString()
     }, { status: 500 });
   }

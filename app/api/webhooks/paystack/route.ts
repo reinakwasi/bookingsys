@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
         console.log('✅ Ticket purchase created:', purchase.id);
 
         // Send email notification (only if customer provided a real email)
-        const hasRealEmail = metadata.has_email && customerEmail && !customerEmail.includes('@hotel734.temp');
+        const hasRealEmail = metadata.has_email && customerEmail && !customerEmail.includes('@hotel734.com') && !customerEmail.includes('@hotel734.temp');
         if (hasRealEmail) {
           console.log('📧 Sending email notification to real email address...');
           try {
