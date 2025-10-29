@@ -555,30 +555,24 @@ export const bookingsAPI = {
 export const ticketsAPI = {
   async getAll() {
     try {
-      console.log('🎫 Fetching all tickets via API...');
-      
-      const response = await fetch(`/api/tickets?_t=${Date.now()}`, {
+      const response = await fetch(`/api/tickets`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
         },
+        cache: 'no-store'
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('❌ Get tickets API error:', errorData);
+        console.error('❌ Get tickets API error');
         return [];
       }
 
       const data = await response.json();
-      console.log('✅ Successfully fetched tickets:', data.length, 'records');
       return data;
       
     } catch (error: any) {
-      console.error('❌ Unexpected error in getAll():', error);
+      console.error('❌ Unexpected error fetching tickets:', error);
       return [];
     }
   },

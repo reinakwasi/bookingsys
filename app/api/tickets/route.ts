@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+// Disable caching for dynamic data
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   try {
-    console.log('🎫 Fetching all tickets');
-
     // Get query parameters to check if we should include inactive tickets
     const { searchParams } = new URL(request.url);
     const includeInactive = searchParams.get('include_inactive') === 'true';
@@ -17,9 +19,6 @@ export async function GET(request: NextRequest) {
     // Only include inactive if explicitly requested
     if (!includeInactive) {
       query = query.neq('status', 'inactive');
-      console.log('🎫 Excluding inactive tickets from results');
-    } else {
-      console.log('🎫 Including inactive tickets in results');
     }
 
     const { data, error } = await query.order('created_at', { ascending: false });
@@ -31,8 +30,6 @@ export async function GET(request: NextRequest) {
         details: error.message
       }, { status: 500 });
     }
-
-    console.log(`✅ Fetched ${data?.length || 0} tickets (includeInactive: ${includeInactive})`);
 
     return NextResponse.json(data || []);
 
