@@ -28,6 +28,20 @@ export default function TicketsPage() {
   const [isConfirmingBooking, setIsConfirmingBooking] = useState(false);
   const [loadingTicketId, setLoadingTicketId] = useState<string | null>(null);
 
+  // Lock body scroll when success alert is shown
+  useEffect(() => {
+    if (showSuccessAlert) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [showSuccessAlert]);
+
   useEffect(() => {
     // Only load tickets once on mount
     let isMounted = true;
@@ -492,6 +506,7 @@ export default function TicketsPage() {
   // Loading removed for faster navigation experience
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black relative overflow-hidden">
       {/* Dynamic background pattern */}
       <div className="fixed inset-0 pointer-events-none">
@@ -805,114 +820,92 @@ export default function TicketsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Beautiful Custom Success Alert */}
-      {showSuccessAlert && purchaseDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
-          <div className="relative w-[95vw] max-w-sm sm:max-w-md max-h-[90vh] overflow-y-auto">
-            {/* Glowing background effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 rounded-2xl blur-xl opacity-60 animate-glow"></div>
-            
-            <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-amber-400/30 shadow-2xl">
-              {/* Close button */}
-              <button
-                onClick={() => setShowSuccessAlert(false)}
-                className="absolute top-4 right-4 text-amber-200 hover:text-white transition-colors duration-200"
-              >
-                <X className="h-5 w-5" />
-              </button>
+    </div>
+    
+    {/* Beautiful Custom Success Alert - Rendered outside main container */}
+    {showSuccessAlert && purchaseDetails && (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+        <div className="relative w-[95vw] max-w-sm sm:max-w-md my-auto">
+          {/* Glowing background effect */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 rounded-2xl blur-xl opacity-60 animate-glow"></div>
+          
+          <div className="relative bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-amber-400/30 shadow-2xl">
+            {/* Close button */}
+            <button
+              onClick={() => setShowSuccessAlert(false)}
+              className="absolute top-4 right-4 text-amber-200 hover:text-white transition-colors duration-200"
+            >
+              <X className="h-5 w-5" />
+            </button>
 
-              {/* Success icon with animation */}
-              <div className="flex justify-center mb-4">
-                <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full blur-lg opacity-60 animate-pulse"></div>
-                  <div className="relative bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-3 border border-green-300/30 shadow-xl">
-                    <CheckCircle className="h-8 w-8 text-white" />
-                  </div>
+            {/* Success icon with animation */}
+            <div className="flex justify-center mb-4">
+              <div className="relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full blur-lg opacity-60 animate-pulse"></div>
+                <div className="relative bg-gradient-to-r from-green-500 to-emerald-500 rounded-full p-3 border border-green-300/30 shadow-xl">
+                  <CheckCircle className="h-8 w-8 text-white" />
                 </div>
               </div>
-
-              {/* Success message */}
-              <div className="text-center mb-4 sm:mb-6">
-                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2 flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
-                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-amber-400 animate-pulse" />
-                  <span>Purchase Successful!</span>
-                  <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-amber-400 animate-pulse" />
-                </h3>
-                <p className="text-amber-200/80 text-sm sm:text-base">Your tickets have been confirmed</p>
-              </div>
-
-              {/* Purchase details */}
-              <div className="space-y-3 mb-4 sm:mb-6">
-                <div className="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-lg p-4 border border-amber-400/20">
-                  <h4 className="font-semibold text-amber-100 mb-3 text-sm sm:text-base leading-tight">{purchaseDetails.ticketTitle}</h4>
-                  
-                  <div className="space-y-2 text-xs sm:text-sm">
-                    <div className="flex justify-between items-center gap-2">
-                      <span className="text-amber-200/80 flex-shrink-0">Customer:</span>
-                      <span className="text-white font-medium text-right break-words">{purchaseDetails.customerName}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center gap-2">
-                      <span className="text-amber-200/80 flex-shrink-0">Email:</span>
-                      <span className="text-white font-medium text-right break-all text-xs sm:text-sm">{purchaseDetails.customerEmail}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-amber-200/80">Quantity:</span>
-                      <span className="text-white font-medium">{purchaseDetails.quantity} ticket{purchaseDetails.quantity > 1 ? 's' : ''}</span>
-                    </div>
-                    
-                    <div className="border-t border-amber-400/20 pt-2 mt-2">
-                      <div className="flex justify-between items-center">
-                        <span className="text-amber-200 font-semibold text-sm sm:text-base">Total Amount:</span>
-                        <span className="text-amber-400 font-bold text-base sm:text-lg">GHC {purchaseDetails.total}</span>
-                      </div>
-                      
-                      {purchaseDetails.paymentReference && (
-                        <div className="flex justify-between items-center mt-2 gap-2">
-                          <span className="text-amber-200/80 text-xs flex-shrink-0">Payment Ref:</span>
-                          <span className="text-amber-300 text-xs font-mono break-all text-right">{purchaseDetails.paymentReference}</span>
-                        </div>
-                      )}
-                      
-                      {purchaseDetails.paymentMethod && (
-                        <div className="flex justify-between items-center mt-1">
-                          <span className="text-amber-200/80 text-xs">Payment Method:</span>
-                          <span className="text-amber-300 text-xs capitalize">{purchaseDetails.paymentMethod}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Next steps */}
-                <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg p-4 border border-blue-400/20">
-                  <h5 className="font-semibold text-blue-200 mb-2 flex items-center gap-2 text-sm sm:text-base">
-                    <Calendar className="h-4 w-4" />
-                    What's Next?
-                  </h5>
-                  <ul className="text-xs sm:text-sm text-blue-200/80 space-y-1">
-                    <li>• Check your email for Hotel 734 ticket confirmation with QR codes</li>
-                    <li>• Individual QR codes for each ticket will be in your email</li>
-                    <li>• You can download and share individual tickets</li>
-                    <li>• Present QR codes at the event entrance</li>
-                    <li>• Arrive 15 minutes before event time</li>
-                  </ul>
-                </div>
-              </div>
-
-              {/* Action button */}
-              <Button
-                onClick={() => setShowSuccessAlert(false)}
-                className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-white font-semibold py-3 h-12 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-amber-500/30 text-base"
-              >
-                Perfect! Got it
-              </Button>
             </div>
+
+            {/* Success message */}
+            <div className="text-center mb-4 sm:mb-6">
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2 flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
+                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-amber-400 animate-pulse" />
+                <span>Purchase Successful!</span>
+                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-amber-400 animate-pulse" />
+              </h3>
+              <p className="text-amber-200/80 text-sm sm:text-base">Your tickets have been confirmed</p>
+            </div>
+
+            {/* Purchase details */}
+            <div className="space-y-3 mb-4 sm:mb-6">
+              <div className="bg-gradient-to-r from-amber-500/10 to-yellow-500/10 rounded-lg p-4 border border-amber-400/20">
+                <h4 className="font-semibold text-amber-100 mb-3 text-sm sm:text-base leading-tight">{purchaseDetails.ticketTitle}</h4>
+                
+                <div className="space-y-2 text-xs sm:text-sm">
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-amber-200/80 flex-shrink-0">Customer:</span>
+                    <span className="text-white font-medium text-right break-words">{purchaseDetails.customerName}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-amber-200/80">Quantity:</span>
+                    <span className="text-white font-medium">{purchaseDetails.quantity} ticket{purchaseDetails.quantity > 1 ? 's' : ''}</span>
+                  </div>
+                  
+                  <div className="border-t border-amber-400/20 pt-2 mt-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-amber-200 font-semibold text-sm sm:text-base">Total Paid:</span>
+                      <span className="text-amber-400 font-bold text-base sm:text-lg">GHC {purchaseDetails.total}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Simple next step */}
+              <div className="bg-gradient-to-r from-blue-500/10 to-cyan-500/10 rounded-lg p-3 border border-blue-400/20">
+                <p className="text-xs sm:text-sm text-blue-200 text-center">
+                  {purchaseDetails.customerEmail && purchaseDetails.customerPhone 
+                    ? '📧 📱 Check your email and SMS for ticket confirmation with QR codes'
+                    : purchaseDetails.customerEmail 
+                    ? '📧 Check your email for ticket confirmation with QR codes'
+                    : '📱 Check your SMS for ticket confirmation with QR codes'}
+                </p>
+              </div>
+            </div>
+
+            {/* Action button */}
+            <Button
+              onClick={() => setShowSuccessAlert(false)}
+              className="w-full bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-white font-semibold py-3 h-12 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-amber-500/30 text-base"
+            >
+              Perfect! Got it
+            </Button>
           </div>
         </div>
-      )}
-
-    </div>
+      </div>
+    )}
+    </>
   );
 }
