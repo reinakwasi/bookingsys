@@ -743,7 +743,6 @@ export default function TicketsPage() {
                   placeholder="Enter your phone number (required for SMS receipts)"
                   className="h-11 text-base mt-1"
                 />
-                <p className="text-xs text-gray-600 mt-1">Required for payment receipts and ticket notifications</p>
               </div>
 
               <div>
@@ -756,7 +755,6 @@ export default function TicketsPage() {
                   placeholder="Enter your email (optional)"
                   className="h-11 text-base mt-1"
                 />
-                <p className="text-xs text-gray-600 mt-1">If provided, you'll receive notifications via both email and SMS</p>
               </div>
 
               <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-3 sm:p-4 rounded-lg border border-amber-200">

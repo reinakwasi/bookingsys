@@ -55,20 +55,40 @@ export const smsTemplates = {
     totalPrice: number;
     bookingId: string;
   }) => {
-    const itemLabel = bookingType === 'room' ? 'Room' : 'Event';
-    const dateLabel = bookingType === 'room' ? 'Check-in' : 'Start';
-    
-    return `🏨 Hotel 734 Booking Confirmed!
+    if (bookingType === 'room') {
+      return `HOTEL 734 - BOOKING CONFIRMED
 
-Dear ${guestName},
+Hello ${guestName},
 
-${itemLabel}: ${itemName}
-${dateLabel}: ${startDate}
+Your room reservation is confirmed!
+
+Room Type: ${itemName}
+Check-in: ${startDate}
+Check-out: ${endDate}
 Total: GHC ${totalPrice}
-ID: ${bookingId}
+Booking ID: ${bookingId}
 
-Present this SMS or booking ID on arrival. Contact us: 0244093821
+Please present this booking ID upon arrival.
 
-Hotel 734 Team`;
+Questions? Call: 0244093821
+
+Thank you for choosing Hotel 734!`;
+    } else {
+      return `HOTEL 734 - EVENT BOOKING CONFIRMED
+
+Hello ${guestName},
+
+Your event space is reserved!
+
+Event Space: ${itemName}
+Date: ${startDate}
+Booking ID: ${bookingId}
+
+Our team will contact you shortly to discuss event details.
+
+Questions? Call: 0244093821
+
+Thank you for choosing Hotel 734!`;
+    }
   }
 };

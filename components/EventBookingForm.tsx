@@ -132,7 +132,7 @@ export default function EventBookingForm({
       const alertModal = document.createElement('div');
       alertModal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm';
       alertModal.innerHTML = `
-        <div class="bg-gradient-to-br from-emerald-50 to-green-50 rounded-3xl p-8 max-w-md mx-4 shadow-2xl border-2 border-emerald-200 animate-fade-in-up">
+        <div class="bg-gradient-to-br from-emerald-50 to-green-50 rounded-3xl p-8 max-w-lg mx-4 shadow-2xl border-2 border-emerald-200 animate-fade-in-up">
           <div class="text-center">
             <div class="w-16 h-16 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
               <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -140,22 +140,31 @@ export default function EventBookingForm({
               </svg>
             </div>
             <h3 class="text-2xl font-bold text-slate-800 mb-4">Event Request Submitted!</h3>
-            <div class="space-y-3 text-left bg-white/50 rounded-2xl p-4 mb-6">
-              <div class="flex justify-between">
-                <span class="text-slate-600 font-medium">Event Type:</span>
-                <span class="text-slate-800 font-bold">${data.eventType}</span>
+            <div class="space-y-3 text-left bg-white/50 rounded-2xl p-5 mb-6">
+              <div class="space-y-2">
+                <span class="text-slate-600 font-medium text-sm">Event Type</span>
+                <div class="text-slate-800 font-bold text-lg">${data.eventType}</div>
               </div>
-              <div class="flex justify-between">
-                <span class="text-slate-600 font-medium">Guest:</span>
-                <span class="text-slate-800 font-bold">${data.guestName}</span>
+              <div class="border-t border-slate-200 pt-3 space-y-2">
+                <span class="text-slate-600 font-medium text-sm">Guest Name</span>
+                <div class="text-slate-800 font-bold text-lg">${data.guestName}</div>
               </div>
-              <div class="flex justify-between">
-                <span class="text-slate-600 font-medium">Dates:</span>
-                <span class="text-slate-800 font-bold">${data.startDate} to ${data.endDate}</span>
+              <div class="border-t border-slate-200 pt-3 space-y-2">
+                <span class="text-slate-600 font-medium text-sm">Event Dates</span>
+                <div class="grid grid-cols-2 gap-3">
+                  <div class="bg-white rounded-xl p-3 border border-emerald-200">
+                    <div class="text-xs text-slate-500 mb-1">Start Date</div>
+                    <div class="text-slate-800 font-bold">${new Date(data.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                  </div>
+                  <div class="bg-white rounded-xl p-3 border border-emerald-200">
+                    <div class="text-xs text-slate-500 mb-1">End Date</div>
+                    <div class="text-slate-800 font-bold">${new Date(data.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                  </div>
+                </div>
               </div>
-              <div class="border-t border-slate-200 pt-3 mt-3">
-                <div class="text-center">
-                  <p class="text-slate-700 font-semibold text-sm">📞 Our team will contact you soon</p>
+              <div class="border-t border-slate-200 pt-4 mt-4">
+                <div class="text-center bg-emerald-100 rounded-xl p-3">
+                  <p class="text-emerald-700 font-semibold text-sm">📞 Our team will contact you soon</p>
                 </div>
               </div>
             </div>

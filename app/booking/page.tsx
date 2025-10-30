@@ -24,9 +24,10 @@ const formSchema = z
     name: z.string().min(2, {
       message: "Name must be at least 2 characters.",
     }),
-    email: z.string().email({
-      message: "Please enter a valid email address.",
-    }),
+    email: z.union([
+      z.string().email('Invalid email address'),
+      z.string().length(0)
+    ]).optional(),
     phone: z.string().min(10, {
       message: "Phone number must be at least 10 digits.",
     }),
@@ -339,11 +340,11 @@ export default function BookingPage() {
                         <FormItem className="group">
                           <FormLabel className="text-slate-700 font-semibold flex items-center gap-2">
                             <Mail className="h-4 w-4 text-[#C49B66]" />
-                            Email
+                            Email <span className="text-slate-500 font-normal text-sm">(Optional)</span>
                           </FormLabel>
                           <FormControl>
                             <Input 
-                              placeholder="john.doe@example.com" 
+                              placeholder="john.doe@example.com (optional)" 
                               {...field} 
                               className="h-12 sm:h-14 rounded-xl sm:rounded-2xl border-2 border-slate-200 focus:border-[#C49B66] focus:ring-[#C49B66]/20 transition-all duration-300 text-base sm:text-lg px-4 sm:px-6 group-hover:border-[#C49B66]/50"
                             />

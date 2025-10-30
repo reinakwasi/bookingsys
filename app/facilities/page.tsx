@@ -33,7 +33,7 @@ const facilities = [
   {
     id: 3,
     name: "Bar",
-    description: "Sophisticated bar offering premium cocktails, fine wines, and spirits in an elegant atmosphere with live entertainment.",
+    description: "Sophisticated bar offering quality cocktails, fine wines, and spirits in an elegant atmosphere with live entertainment.",
     icon: Wine,
     images: [
       { src: "/backimg2.jpg", alt: "Main Bar Area" },
@@ -232,7 +232,7 @@ export default function FacilitiesPage() {
                   <div className="absolute top-4 left-4 sm:top-8 sm:left-8">
                     <div className="flex items-center gap-2 sm:gap-3 bg-white/95 backdrop-blur-md rounded-full px-3 sm:px-6 py-2 sm:py-3 shadow-xl border border-white/40">
                       <facility.icon className="h-4 w-4 sm:h-6 sm:w-6 text-amber-600" />
-                      <span className="text-slate-900 font-semibold text-xs sm:text-sm">Premium Facility</span>
+                      <span className="text-slate-900 font-semibold text-xs sm:text-sm">Featured Amenity</span>
                     </div>
                   </div>
 
@@ -250,7 +250,7 @@ export default function FacilitiesPage() {
                               <h2 className="text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-1 sm:mb-3 font-serif leading-tight">{facility.name}</h2>
                               <div className="flex flex-wrap items-center gap-1 sm:gap-3">
                                 <span className="px-2 sm:px-4 lg:px-5 py-1 sm:py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs sm:text-sm font-semibold rounded-full shadow-xl">
-                                  Premium Experience
+                                  Exceptional Service
                                 </span>
                                 {facility.name === "Parking" && (
                                   <span className="px-2 sm:px-4 py-1 sm:py-2 bg-white/20 backdrop-blur-sm text-white text-xs sm:text-sm font-medium rounded-full border border-white/30">
