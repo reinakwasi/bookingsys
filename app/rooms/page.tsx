@@ -12,58 +12,55 @@ const rooms = [
   {
     id: 1,
     name: "Royal Suite",
-    description: "Experience the pinnacle of luxury with panoramic views, premium amenities, and exclusive services designed for the most discerning guests.",
+    description: "Comfortable room with modern amenities and extra-large bed size for maximum sleeping comfort.",
     image: "/three.jpg",
     type: "expensive",
     rating: 5.0,
     price: 352,
     maxGuests: 4,
     features: [
-      "Free Swimming Pool",
       "Satellite TV Channels", 
       "Air Conditioned Room",
-      "Free Wifi",
+      "Mini Fridge",
+      "Table and Chairs",
       "Daily Laundry / Dry Cleaning",
-      "24h Room Service",
-      "Max 4 people"
+      "24h Room Service"
     ]
   },
   {
     id: 2,
     name: "Superior Room",
-    description: "Sophisticated accommodations with separate living area, premium services, and stunning city views for business and leisure travelers.",
+    description: "Comfortable room with modern amenities and larger bed size for enhanced sleeping space.",
     image: "/two.jpg",
     type: "standard",
     rating: 4.8,
     price: 300,
     maxGuests: 3,
     features: [
-      "Free Swimming Pool",
       "Satellite TV Channels",
-      "Air Conditioned Room", 
-      "Free Wifi",
+      "Air Conditioned Room",
+      "Mini Fridge",
+      "Table and Chairs",
       "Daily Laundry / Dry Cleaning",
-      "24h Room Service",
-      "Max 3 people"
+      "24h Room Service"
     ]
   },
   {
     id: 3,
     name: "Classic Room",
-    description: "Spacious and comfortable accommodations with modern amenities, elegant furnishings, and beautiful garden or city views.",
+    description: "Comfortable room with modern amenities and standard bed size.",
     image: "/one.jpg",
     type: "regular",
     rating: 4.5,
     price: 250,
     maxGuests: 2,
     features: [
-      "Free Swimming Pool",
       "Satellite TV Channels",
       "Air Conditioned Room",
-      "Free Wifi", 
+      "Mini Fridge",
+      "Table and Chairs",
       "Daily Laundry / Dry Cleaning",
-      "24h Room Service",
-      "Max 2 people"
+      "24h Room Service"
     ]
   },
 ]
@@ -82,12 +79,12 @@ export default function RoomsPage() {
         <div className="text-center mb-12 sm:mb-16 lg:mb-20 animate-fade-in-up">
           <div className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 rounded-full glass-morphism text-[#C49B66] mb-6 sm:mb-8 animate-glow">
             <Bed className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
-            <span className="font-medium text-sm sm:text-base">Luxury Accommodations</span>
+            <span className="font-medium text-sm sm:text-base">Quality Accommodations</span>
             <Star className="h-4 w-4 sm:h-5 sm:w-5 animate-spin-slow" />
           </div>
           <h1 className="text-responsive-4xl font-display font-bold mb-6 sm:mb-8 text-gradient">Our Exquisite Rooms</h1>
           <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
-            Choose from our selection of luxurious rooms and suites, each designed to provide the perfect blend of comfort, style, and unparalleled service.
+            Choose from our selection of quality rooms, each designed to provide the perfect blend of comfort and excellent service.
           </p>
         </div>
 
@@ -106,15 +103,6 @@ export default function RoomsPage() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                   <div className="absolute inset-0 bg-gradient-to-br from-[#C49B66]/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 hover-transition" />
                   
-                  {/* Rating Badge */}
-                  <div className="absolute top-3 right-3 sm:top-6 sm:right-6 z-10">
-                    <div className="glass-morphism rounded-xl sm:rounded-2xl px-3 py-1.5 sm:px-4 sm:py-2 border border-white/20">
-                      <div className="flex items-center gap-1 sm:gap-2 text-white">
-                        <Star className="h-3 w-3 sm:h-5 sm:w-5 text-[#C49B66] fill-[#C49B66]" />
-                        <span className="font-bold text-sm sm:text-base">{room.rating}</span>
-                      </div>
-                    </div>
-                  </div>
                   
                   {/* Price Badge */}
                   <div className="absolute bottom-3 left-3 sm:bottom-6 sm:left-6">

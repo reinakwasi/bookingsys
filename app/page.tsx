@@ -16,7 +16,7 @@ const featuredRooms = [
   {
     id: 1,
     name: "Classic Room",
-    description: "Spacious room with modern amenities and city views",
+    description: "Comfortable room with modern amenities and standard bed size",
     price: 250,
     image: "/one.jpg",
     link: "/rooms/1"
@@ -24,7 +24,7 @@ const featuredRooms = [
   {
     id: 2,
     name: "Superior Room",
-    description: "Luxurious suite with separate living area and premium services",
+    description: "Comfortable room with modern amenities and larger bed size",
     price: 300,
     image: "/two.jpg",
     link: "/rooms/2"
@@ -32,7 +32,7 @@ const featuredRooms = [
   {
     id: 3,
     name: "Royal Suite",
-    description: "Ultimate luxury with panoramic views and exclusive amenities",
+    description: "Comfortable room with modern amenities and extra-large bed size",
     price: 350,
     image: "/three.jpg",
     link: "/rooms/3"
@@ -153,7 +153,7 @@ export default function Home() {
                 
                 <h3 className="text-xl sm:text-2xl lg:text-3xl font-display font-bold text-white mb-2 sm:mb-3 animate-fade-in-up drop-shadow-lg">
                   <span className="bg-gradient-to-r from-[#FFD700] via-white to-[#C49B66] bg-clip-text text-transparent animate-glow">
-                    Premium Experiences Await You!
+                    Exceptional Experiences Await You!
                   </span>
                 </h3>
                 
@@ -388,10 +388,10 @@ export default function Home() {
           <div className="text-center mb-12 sm:mb-16 lg:mb-20 animate-fade-in-up">
             <div className="inline-flex items-center gap-2 sm:gap-3 px-4 sm:px-6 py-2 sm:py-3 rounded-full glass-morphism text-[#C49B66] mb-6 sm:mb-8 animate-glow">
               <Star className="h-4 w-4 sm:h-5 sm:w-5 animate-spin-slow" />
-              <span className="text-sm sm:text-base font-medium">Luxury Accommodations</span>
+              <span className="text-sm sm:text-base font-medium">Quality Accommodations</span>
               <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 animate-pulse" />
             </div>
-            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Experience Unparalleled Comfort</h2>
+            <h2 className="text-responsive-3xl font-display font-bold mb-6 sm:mb-8 text-dark-gold">Experience Exceptional Comfort</h2>
             <p className="text-responsive-base text-slate-600 max-w-3xl mx-auto leading-relaxed">
               Discover our carefully curated selection of rooms and suites, each designed to provide the perfect blend of comfort and quality.
             </p>
@@ -418,12 +418,12 @@ export default function Home() {
                       </div>
                     </div>
                     
-                    {/* Luxury badge */}
+                    {/* Room type badge */}
                     <div className="absolute bottom-6 left-6 flex items-center gap-3">
                       <div className="glass-morphism rounded-full p-3 shadow-lg">
                         <Star className="h-6 w-6 text-[#C49B66] animate-spin-slow" />
                       </div>
-                      <span className="text-white font-bold text-lg drop-shadow-lg">Luxury</span>
+                      <span className="text-white font-bold text-lg drop-shadow-lg">Featured</span>
                     </div>
                     
                     {/* Hover overlay with enhanced button */}
@@ -443,13 +443,12 @@ export default function Home() {
                       {room.name}
                     </h3>
                     <p className="text-slate-600 leading-relaxed mb-4">{room.description}</p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-center">
                       <div className="flex gap-2">
                         {[1,2,3,4,5].map((star) => (
                           <Star key={star} className="h-4 w-4 text-[#C49B66] fill-[#C49B66]" />
                         ))}
                       </div>
-                      <span className="text-sm text-slate-500 font-medium">Premium Suite</span>
                     </div>
                   </div>
                 </div>
@@ -625,7 +624,7 @@ export default function Home() {
                       <div className="glass-morphism rounded-full p-3 shadow-lg">
                         <Calendar className="h-6 w-6 text-[#C49B66] animate-spin-slow" />
                       </div>
-                      <span className="text-white font-bold text-lg drop-shadow-lg">Premium Event</span>
+                      <span className="text-white font-bold text-lg drop-shadow-lg">Event Space</span>
                     </div>
                   </div>
                   
@@ -669,22 +668,20 @@ export default function Home() {
             {[
               {
                 icon: Star,
-                title: "Premium Experience",
-                description: "Indulge in premium amenities and world-class service that exceeds expectations.",
+                title: "Exceptional Service",
+                description: "Indulge in quality amenities and world-class service that exceeds expectations.",
                 features: [
-                  "Premium bedding and linens",
+                  "Quality bedding and linens",
                   "High-end toiletries and amenities",
                   "24/7 room service",
                   "Personal concierge",
-                  "In-room dining",
                   "Turn-down service",
-                  "Laundry and dry cleaning",
-                  "Complimentary Wi-Fi"
+                  "Laundry and dry cleaning"
                 ]
               },
               {
                 icon: Waves,
-                title: "Premium Facilities",
+                title: "Modern Facilities",
                 description: "Enjoy our state-of-the-art facilities and recreational areas designed for your comfort.",
                 features: [
                   "Infinity swimming pool",
@@ -703,7 +700,7 @@ export default function Home() {
                 features: [
                   "CCTV surveillance system",
                   "Professional security personnel",
-                  "Secure underground parking",
+                  "Secure parking",
                   "In-room safe deposit",
                   "Fire safety systems",
                   "Emergency response team",
@@ -756,7 +753,7 @@ export default function Home() {
               <Link href="/booking" className="flex-1 sm:w-auto">
                 <Button size="lg" className="w-full gradient-gold hover:shadow-glow text-white font-bold px-4 sm:px-12 py-3 sm:py-4 rounded-xl sm:rounded-2xl transition-all duration-300 transform hover:scale-105 text-sm sm:text-base">
                   <Calendar className="mr-1 sm:mr-2 h-4 w-4 sm:h-6 sm:w-6" />
-                  <span className="hidden xs:inline">Book Your </span>Stay
+                  Book Your Stay
                   <ArrowRight className="ml-1 sm:ml-2 h-4 w-4 sm:h-6 sm:w-6" />
                 </Button>
               </Link>

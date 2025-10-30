@@ -4,7 +4,7 @@ import { useParams } from "next/navigation"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Bed, Wifi, Coffee, Bath, Tv, Users } from "lucide-react"
+import { Bed, Wifi, Coffee, Bath, Tv, Users, Refrigerator, Armchair } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -17,7 +17,7 @@ const rooms = {
   1: {
     name: "Royal Suite",
     type: "royal_suite",
-    description: "Luxurious room with ocean view and premium amenities",
+    description: "Comfortable room with modern amenities and extra-large bed size",
     price: 350,
     images: [
       { src: "/room1.jpg", alt: "Expensive Room Main" },
@@ -25,16 +25,15 @@ const rooms = {
       { src: "/poolview1.jpg", alt: "Expensive Room Pool View" },
     ],
     features: [
-      { icon: Bed, text: "King Size Bed" },
-      { icon: Wifi, text: "High-Speed WiFi" },
-      { icon: Coffee, text: "Coffee Maker" },
-      { icon: Bath, text: "Jacuzzi Bath" },
-      { icon: Tv, text: "55\" Smart TV" },
-      { icon: Users, text: "Up to 4 Guests" },
+      { icon: Bed, text: "Extra-Large Bed" },
+      { icon: Bath, text: "Modern Bathroom" },
+      { icon: Tv, text: "Smart TV" },
+      { icon: Refrigerator, text: "Mini Fridge" },
+      { icon: Armchair, text: "Table & Chairs" },
     ],
-    longDescription: `Experience unparalleled luxury in our Royal Suite. This spacious room features a king-size bed, 
-    premium amenities, and breathtaking ocean views. Enjoy the comfort of a private balcony, a luxurious bathroom with 
-    a jacuzzi, and 24/7 room service. Perfect for those seeking the ultimate luxury experience.`,
+    longDescription: `Experience exceptional comfort in our Royal Suite. This spacious room features an extra-large bed, 
+    modern amenities, and beautiful views. Enjoy the comfort of a private balcony, a well-appointed bathroom, 
+    and 24/7 room service. Perfect for those seeking maximum sleeping comfort.`,
   },
   2: {
     name: "Superior Room",
@@ -47,16 +46,15 @@ const rooms = {
       { src: "/two.jpg", alt: "Standard Room Alt 2" },
     ],
     features: [
-      { icon: Bed, text: "Queen Size Bed" },
-      { icon: Wifi, text: "High-Speed WiFi" },
-      { icon: Coffee, text: "Coffee Maker" },
+      { icon: Bed, text: "Large Bed" },
       { icon: Bath, text: "Modern Bathroom" },
-      { icon: Tv, text: "43\" Smart TV" },
-      { icon: Users, text: "Up to 3 Guests" },
+      { icon: Tv, text: "Smart TV" },
+      { icon: Refrigerator, text: "Mini Fridge" },
+      { icon: Armchair, text: "Table & Chairs" },
     ],
-    longDescription: `Our Standard Room offers the perfect balance of comfort and value. Featuring a queen-size bed, 
-    modern amenities, and a city view, this room is ideal for both business and leisure travelers. Enjoy the convenience 
-    of high-speed WiFi, a smart TV, and a well-appointed bathroom.`,
+    longDescription: `Our Superior Room offers the perfect balance of comfort and value. Featuring a large bed, 
+    modern amenities, and a pleasant view, this room is ideal for both business and leisure travelers. Enjoy the convenience 
+    of a smart TV and a well-appointed bathroom.`,
   },
   3: {
     name: "Classic Room",
@@ -69,16 +67,15 @@ const rooms = {
       { src: "/four.jpg", alt: "Regular Room Alt 2" },
     ],
     features: [
-      { icon: Bed, text: "Double Bed" },
-      { icon: Wifi, text: "Free WiFi" },
-      { icon: Coffee, text: "Tea/Coffee" },
+      { icon: Bed, text: "Standard Bed" },
       { icon: Bath, text: "Private Bathroom" },
-      { icon: Tv, text: "32\" TV" },
-      { icon: Users, text: "Up to 2 Guests" },
+      { icon: Tv, text: "Smart TV" },
+      { icon: Refrigerator, text: "Mini Fridge" },
+      { icon: Armchair, text: "Table & Chairs" },
     ],
-    longDescription: `The Regular Room provides a comfortable and affordable stay with all essential amenities. 
-    Enjoy a peaceful garden view, a cozy double bed, and a private bathroom. Perfect for budget-conscious travelers 
-    who don't want to compromise on comfort.`,
+    longDescription: `The Classic Room provides a comfortable stay with all essential amenities. 
+    Enjoy a pleasant view, a standard bed, and a private bathroom. Perfect for travelers 
+    who value comfort and quality.`,
   },
 }
 
