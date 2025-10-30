@@ -445,6 +445,7 @@ export default function TicketsPage() {
         total: pendingPayment.totalAmount.toFixed(2),
         customerName: pendingPayment.customerName,
         customerEmail: pendingPayment.customerEmail,
+        customerPhone: pendingPayment.customerPhone,
         paymentReference: reference,
         paymentMethod: PaystackService.getPaymentMethodName(verificationResult.data?.channel || 'paystack')
       });
